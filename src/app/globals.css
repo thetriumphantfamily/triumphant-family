@@ -1,26 +1,137 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS VARIABLES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground:        17, 17, 17;
+  --background:        255, 255, 255;
+  --brand-purple:      107, 31, 138;
+  --brand-gold:        255, 199, 44;
+  --brand-violet:      74, 18, 89;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BASE STYLES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    @apply bg-white text-gray-900 font-body antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-brand-purple-600 text-white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-purple-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-purple-700;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CUSTOM COMPONENT CLASSES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 
+           px-6 py-3 rounded-full 
+           bg-brand-purple-600 text-white font-semibold 
+           shadow-brand 
+           hover:bg-brand-purple-700 hover:shadow-brand-lg 
+           transition-all duration-300 
+           focus:outline-none focus:ring-2 focus:ring-brand-purple-400 focus:ring-offset-2;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 
+           px-6 py-3 rounded-full 
+           bg-brand-gold-400 text-brand-purple-900 font-bold 
+           shadow-gold 
+           hover:bg-brand-gold-300 hover:shadow-gold-lg 
+           transition-all duration-300 
+           focus:outline-none focus:ring-2 focus:ring-brand-gold-300 focus:ring-offset-2;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 
+           px-6 py-3 rounded-full 
+           bg-transparent text-brand-purple-600 font-semibold 
+           border-2 border-brand-purple-600 
+           hover:bg-brand-purple-600 hover:text-white 
+           transition-all duration-300;
+  }
+
+  .section-heading {
+    @apply text-3xl md:text-4xl lg:text-5xl font-heading font-bold 
+           text-brand-purple-900 leading-tight;
+  }
+
+  .section-subheading {
+    @apply text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-md hover:shadow-xl 
+           transition-all duration-300 overflow-hidden;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-purple-600 via-brand-magenta-500 to-brand-gold-400 
+           bg-clip-text text-transparent;
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 40px rgba(107, 31, 138, 0.4);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 40px rgba(255, 199, 44, 0.4);
+  }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   UTILITY CLASSES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
