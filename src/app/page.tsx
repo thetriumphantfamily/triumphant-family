@@ -1,160 +1,59 @@
-import { SITE } from "@/lib/constants";
-import { createClient } from "@/lib/supabase/server";
+import { SITE, HERO } from "@/lib/constants";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// HOMEPAGE — TEMPORARY CONNECTION TEST
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// This temporary page proves that Supabase is connected by fetching:
-//   • Leadership (Prophet Olayiwole — seeded in step 4.6)
-//   • Site settings (15 settings — seeded in step 4.6)
-// Will be replaced with the real homepage in Step 7.
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-export default async function HomePage() {
-  const supabase = await createClient();
-
-  // Fetch leadership data
-  const { data: leaders, error: leadersError } = await supabase
-    .from("leadership")
-    .select("*")
-    .order("display_order", { ascending: true });
-
-  // Fetch site settings
-  const { data: settings, error: settingsError } = await supabase
-    .from("site_settings")
-    .select("*")
-    .order("key", { ascending: true });
-
-  const connectionWorking = !leadersError && !settingsError;
-
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gradient-hero p-4 md:p-8">
-      <div className="max-w-5xl mx-auto py-12 animate-fade-in">
+    <main>
+      {/* ━━━ HERO SECTION ━━━ */}
+      <section className="relative min-h-[80vh] flex items-center justify-center bg-gradient-hero overflow-hidden">
+        <div className="absolute top-20 -left-20 w-72 h-72 bg-brand-magenta-500/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 -right-20 w-96 h-96 bg-brand-gold-400/20 rounded-full blur-3xl"></div>
 
-        {/* ━━━ HEADER ━━━ */}
-        <div className="text-center mb-12">
-          <div className="inline-block px-6 py-2 rounded-full bg-brand-gold-400/20 backdrop-blur-sm border border-brand-gold-400/40 mb-6">
+        <div className="container-custom relative z-10 text-center py-20">
+          <div className="inline-block px-6 py-2 rounded-full bg-brand-gold-400/20 backdrop-blur-sm border border-brand-gold-400/40 mb-8 animate-fade-in">
             <span className="text-brand-gold-300 font-semibold tracking-wider text-sm uppercase">
-              🔌 Supabase Connection Test
+              {HERO.badge}
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-white mb-4">
-            {SITE.name}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-white mb-6 animate-slide-up">
+            Experience the{" "}
+            <span className="text-gradient bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-magenta-400 bg-clip-text text-transparent">
+              Supernatural
+            </span>
           </h1>
 
-          <p className="text-2xl md:text-3xl font-script text-brand-gold-400 mb-4">
+          <p className="text-3xl md:text-4xl font-script text-brand-gold-400 mb-8 animate-slide-up">
             {SITE.tagline}
           </p>
-        </div>
 
-        {/* ━━━ CONNECTION STATUS ━━━ */}
-        <div className={`mb-8 p-6 rounded-2xl border-2 ${
-          connectionWorking
-            ? "bg-green-500/20 border-green-400 text-white"
-            : "bg-red-500/20 border-red-400 text-white"
-        }`}>
-          <h2 className="text-2xl font-bold mb-2">
-            {connectionWorking ? "✅ CONNECTION SUCCESSFUL!" : "❌ CONNECTION FAILED"}
-          </h2>
-          <p className="text-sm opacity-90">
-            {connectionWorking
-              ? "Your Next.js app is successfully connected to Supabase."
-              : "There's an issue with your Supabase connection. Check the errors below."}
+          <p className="max-w-2xl mx-auto text-base md:text-lg text-brand-purple-100 leading-relaxed mb-10 animate-slide-up">
+            {HERO.subheadline}
           </p>
 
-          {leadersError && (
-            <div className="mt-4 p-3 bg-red-900/40 rounded-lg">
-              <p className="font-semibold">Leadership Error:</p>
-              <p className="text-xs">{leadersError.message}</p>
-            </div>
-          )}
-
-          {settingsError && (
-            <div className="mt-4 p-3 bg-red-900/40 rounded-lg">
-              <p className="font-semibold">Settings Error:</p>
-              <p className="text-xs">{settingsError.message}</p>
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
+            <a href="/prayer" className="btn-gold">
+              🙏 Submit Prayer Request
+            </a>
+            <a href="/live" className="btn-outline !text-white !border-white hover:!bg-white hover:!text-brand-purple-900">
+              📺 Watch Live
+            </a>
+          </div>
         </div>
+      </section>
 
-        {/* ━━━ LEADERSHIP DATA ━━━ */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-8">
-          <h2 className="text-2xl font-heading font-bold text-brand-gold-400 mb-4">
-            👤 Leadership Table ({leaders?.length || 0} record{leaders?.length === 1 ? "" : "s"})
-          </h2>
-
-          {leaders && leaders.length > 0 ? (
-            <div className="space-y-4">
-              {leaders.map((leader) => (
-                <div
-                  key={leader.id}
-                  className="p-4 bg-white/10 rounded-xl border border-white/10"
-                >
-                  <p className="text-brand-gold-300 text-sm font-semibold uppercase tracking-wider">
-                    {leader.title}
-                  </p>
-                  <p className="text-white text-xl font-bold mb-1">
-                    {leader.full_name}
-                  </p>
-                  <p className="text-brand-purple-100 text-sm mb-2">
-                    {leader.role}
-                  </p>
-                  {leader.bio && (
-                    <p className="text-brand-purple-200 text-sm leading-relaxed">
-                      {leader.bio}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-brand-purple-200 italic">
-              No leadership records found.
-            </p>
-          )}
-        </div>
-
-        {/* ━━━ SITE SETTINGS DATA ━━━ */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-8">
-          <h2 className="text-2xl font-heading font-bold text-brand-gold-400 mb-4">
-            ⚙️ Site Settings Table ({settings?.length || 0} record{settings?.length === 1 ? "" : "s"})
-          </h2>
-
-          {settings && settings.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {settings.map((setting) => (
-                <div
-                  key={setting.id}
-                  className="p-3 bg-white/10 rounded-lg border border-white/10"
-                >
-                  <p className="text-brand-gold-300 text-xs font-mono uppercase mb-1">
-                    {setting.key}
-                  </p>
-                  <p className="text-white text-sm break-words">
-                    {setting.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-brand-purple-200 italic">
-              No settings found.
-            </p>
-          )}
-        </div>
-
-        {/* ━━━ NEXT STEPS ━━━ */}
-        <div className="text-center mt-12 p-6 bg-brand-gold-400/10 backdrop-blur-md rounded-2xl border border-brand-gold-400/30">
-          <p className="text-brand-gold-300 font-semibold mb-2">
-            🚀 Next: Building the real homepage with Navbar, Hero, Sermons, Events, Prayer CTA...
-          </p>
-          <p className="text-brand-purple-100 text-sm">
-            This test page will be replaced with the actual ministry homepage soon.
+      {/* ━━━ WELCOME SECTION ━━━ */}
+      <section className="py-20 bg-white">
+        <div className="container-custom text-center">
+          <h2 className="section-heading mb-4">Welcome to {SITE.name}</h2>
+          <p className="section-subheading mb-8">
+            We are a global prayer ministry under the apostolic leadership of{" "}
+            <span className="text-brand-purple-600 font-semibold">
+              {SITE.prophet.fullName}
+            </span>
+            . Join us as we encounter the supernatural and walk in unstoppable victory.
           </p>
         </div>
-
-      </div>
+      </section>
     </main>
   );
 }

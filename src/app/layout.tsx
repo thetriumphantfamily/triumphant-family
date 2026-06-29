@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, Great_Vibes } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { SEO, SITE } from "@/lib/constants";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import "./globals.css";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// FONT CONFIGURATION
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const inter = Inter({
   subsets:  ["latin"],
   variable: "--font-inter",
@@ -26,9 +26,6 @@ const greatVibes = Great_Vibes({
   display:  "swap",
 });
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SITE METADATA (SEO)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export const metadata: Metadata = {
   title: {
     default:  SEO.title,
@@ -39,7 +36,6 @@ export const metadata: Metadata = {
   authors:     [{ name: SEO.author }],
   creator:     SEO.author,
   metadataBase: new URL(SEO.url),
-
   openGraph: {
     title:       SEO.title,
     description: SEO.description,
@@ -56,14 +52,12 @@ export const metadata: Metadata = {
     locale: "en_NG",
     type:   "website",
   },
-
   twitter: {
     card:        "summary_large_image",
     title:       SEO.title,
     description: SEO.description,
     images:      [SEO.ogImage],
   },
-
   robots: {
     index:  true,
     follow: true,
@@ -74,7 +68,6 @@ export const metadata: Metadata = {
       "max-snippet":       -1,
     },
   },
-
   icons: {
     icon:     "/favicon.ico",
     shortcut: "/favicon.ico",
@@ -82,9 +75,6 @@ export const metadata: Metadata = {
   },
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ROOT LAYOUT
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -96,8 +86,12 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} ${greatVibes.variable}`}
     >
       <body className="font-body antialiased min-h-screen flex flex-col">
-        {children}
-
+        <Navbar />
+        <div className="flex-1">
+          {children}
+        </div>
+        <Footer />
+        <WhatsAppButton />
         <Toaster
           position="top-center"
           toastOptions={{
