@@ -1,59 +1,66 @@
-import { SITE, HERO } from "@/lib/constants";
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HOMEPAGE — The Triumphant Family Ministry Website
+// Assembles all homepage sections
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import { Suspense } from "react";
+import LoadingSpinner      from "@/components/ui/LoadingSpinner";
+import HeroSection         from "@/components/home/HeroSection";
+import WelcomeSection      from "@/components/home/WelcomeSection";
+import CorePromisesSection from "@/components/home/CorePromisesSection";
+import ServiceTimesSection from "@/components/home/ServiceTimesSection";
+import SermonsPreview      from "@/components/home/SermonsPreview";
+import EventsPreview       from "@/components/home/EventsPreview";
+import PrayerCTASection    from "@/components/home/PrayerCTASection";
+import TestimoniesSection  from "@/components/home/TestimoniesSection";
+import LiveStreamBanner    from "@/components/home/LiveStreamBanner";
+
+// ── Loading fallback ──
+function SectionLoader() {
+  return (
+    <div className="py-20 flex items-center justify-center">
+      <LoadingSpinner size="lg" color="purple" label="Loading..." />
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
     <main>
-      {/* ━━━ HERO SECTION ━━━ */}
-      <section className="relative min-h-[80vh] flex items-center justify-center bg-gradient-hero overflow-hidden">
-        <div className="absolute top-20 -left-20 w-72 h-72 bg-brand-magenta-500/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 -right-20 w-96 h-96 bg-brand-gold-400/20 rounded-full blur-3xl"></div>
+      {/* Live stream alert (only shown when live) */}
+      <Suspense fallback={null}>
+        <LiveStreamBanner />
+      </Suspense>
 
-        <div className="container-custom relative z-10 text-center py-20">
-          <div className="inline-block px-6 py-2 rounded-full bg-brand-gold-400/20 backdrop-blur-sm border border-brand-gold-400/40 mb-8 animate-fade-in">
-            <span className="text-brand-gold-300 font-semibold tracking-wider text-sm uppercase">
-              {HERO.badge}
-            </span>
-          </div>
+      {/* Hero */}
+      <HeroSection />
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-white mb-6 animate-slide-up">
-            Experience the{" "}
-            <span className="text-gradient bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-magenta-400 bg-clip-text text-transparent">
-              Supernatural
-            </span>
-          </h1>
+      {/* Welcome from Prophet */}
+      <WelcomeSection />
 
-          <p className="text-3xl md:text-4xl font-script text-brand-gold-400 mb-8 animate-slide-up">
-            {SITE.tagline}
-          </p>
+      {/* Core Promises */}
+      <CorePromisesSection />
 
-          <p className="max-w-2xl mx-auto text-base md:text-lg text-brand-purple-100 leading-relaxed mb-10 animate-slide-up">
-            {HERO.subheadline}
-          </p>
+      {/* Service Times */}
+      <ServiceTimesSection />
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-            <a href="/prayer" className="btn-gold">
-              🙏 Submit Prayer Request
-            </a>
-            <a href="/live" className="btn-outline !text-white !border-white hover:!bg-white hover:!text-brand-purple-900">
-              📺 Watch Live
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* Latest Sermons */}
+      <Suspense fallback={<SectionLoader />}>
+        <SermonsPreview />
+      </Suspense>
 
-      {/* ━━━ WELCOME SECTION ━━━ */}
-      <section className="py-20 bg-white">
-        <div className="container-custom text-center">
-          <h2 className="section-heading mb-4">Welcome to {SITE.name}</h2>
-          <p className="section-subheading mb-8">
-            We are a global prayer ministry under the apostolic leadership of{" "}
-            <span className="text-brand-purple-600 font-semibold">
-              {SITE.prophet.fullName}
-            </span>
-            . Join us as we encounter the supernatural and walk in unstoppable victory.
-          </p>
-        </div>
-      </section>
+      {/* Upcoming Events */}
+      <Suspense fallback={<SectionLoader />}>
+        <EventsPreview />
+      </Suspense>
+
+      {/* Prayer CTA */}
+      <PrayerCTASection />
+
+      {/* Testimonies */}
+      <Suspense fallback={<SectionLoader />}>
+        <TestimoniesSection />
+      </Suspense>
     </main>
   );
 }
