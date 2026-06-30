@@ -70,6 +70,7 @@ const config: Config = {
         "pulse-slow": "pulse 3s ease-in-out infinite",
         "float":      "float 3s ease-in-out infinite",
         "shimmer":    "shimmer 2s linear infinite",
+        "ken-burns":  "kenBurns 7s ease-out forwards",
       },
       keyframes: {
         fadeIn: {
@@ -95,6 +96,10 @@ const config: Config = {
         shimmer: {
           "0%":   { backgroundPosition: "-1000px 0" },
           "100%": { backgroundPosition: "1000px 0" },
+        },
+        kenBurns: {
+          "0%":   { transform: "scale(1) translateY(0)" },
+          "100%": { transform: "scale(1.08) translateY(-1%)" },
         },
       },
       boxShadow: {
