@@ -1,5 +1,15 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ADMIN LAYOUT — Wrapper with sidebar
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Wraps ALL admin pages including login/forgot/reset.
+// Auth check is done individually inside each protected page
+// (dashboard, sermons, events, etc.) — NOT in this layout.
+//
+// WHY: If auth check is in layout, it applies to login page too
+//      which creates a redirect loop. Better to check per-page.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 import { Metadata } from "next";
-import Sidebar from "@/components/admin/Sidebar";
 
 export const metadata: Metadata = {
   title: "Admin Portal | The Triumphant Family",
@@ -15,12 +25,6 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="lg:ml-64 min-h-screen">
-        <div className="p-6 lg:p-8 pt-20 lg:pt-8">{children}</div>
-      </div>
-    </div>
-  );
+  // No wrapper, no sidebar — each page decides its own layout
+  return <>{children}</>;
 }
