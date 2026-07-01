@@ -1,8 +1,11 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONTACT FORM — Working form saves to Supabase
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 "use client";
 
 import { useState, FormEvent } from "react";
 import toast from "react-hot-toast";
-import { Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
@@ -97,7 +100,6 @@ export default function ContactForm() {
         },
       });
 
-      // Reset form
       setFormData({
         fullName: "",
         email: "",
@@ -118,22 +120,27 @@ export default function ContactForm() {
     <section className="py-16 lg:py-24 bg-gray-50">
       <div className="container-custom">
         <div className="max-w-3xl mx-auto">
+          {/* Section heading */}
           <div className="text-center mb-10">
-            <div className="inline-block px-4 py-1.5 rounded-full bg-brand-purple-100 text-brand-purple-600 text-sm font-bold tracking-widest uppercase mb-4">
-              Send A Message
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-100 mb-4">
+              <span className="w-2 h-2 rounded-full bg-brand-purple-600" />
+              <span className="text-brand-purple-600 font-semibold text-sm uppercase tracking-widest">
+                Send A Message
+              </span>
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-gray-900 mb-4">
+            <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-brand-purple-900 mb-4">
               Drop Us A{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple-600 to-brand-magenta-500">
                 Message
               </span>
             </h2>
-            <p className="text-gray-500 text-lg">
-              Fill the form below and we&apos;ll get back to you within 24
+            <p className="text-gray-600 text-base md:text-lg">
+              Fill the form below and we&rsquo;ll get back to you within 24
               hours.
             </p>
           </div>
 
+          {/* Form */}
           <form
             onSubmit={handleSubmit}
             className="bg-white rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100"
@@ -206,7 +213,6 @@ export default function ContactForm() {
               size="lg"
               fullWidth
               isLoading={isSubmitting}
-              rightIcon={<Send className="w-5 h-5" />}
             >
               {isSubmitting ? "Sending Message..." : "Send Message"}
             </Button>
