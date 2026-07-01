@@ -1,5 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // MESSAGES LIST — Interactive admin messages management
+// Email button now opens Gmail web (works reliably on all devices)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -159,6 +160,13 @@ export default function MessagesList({
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  // ━━━ Build Gmail compose URL ━━━
+  const buildGmailUrl = (msg: Message) => {
+    const subject = `Re: ${SUBJECT_LABELS[msg.subject] || msg.subject}`;
+    const body = `Hello ${msg.full_name},\n\nThank you for reaching out to The Triumphant Family Ministry.\n\n`;
+    return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(msg.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -340,15 +348,17 @@ export default function MessagesList({
 
                   {/* Action buttons */}
                   <div className="flex flex-wrap gap-2">
-                    {/* Reply via email */}
+                    {/* Reply via Gmail (opens in browser) */}
                     <a
-                      href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(SUBJECT_LABELS[msg.subject] || msg.subject)}`}
+                      href={buildGmailUrl(msg)}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-br from-brand-purple-600 to-brand-purple-700 hover:from-brand-purple-700 hover:to-brand-purple-800 text-white text-sm font-bold shadow-brand hover:shadow-brand-lg transition-all"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                       </svg>
-                      Reply via Email
+                      Reply via Gmail
                     </a>
 
                     {/* Reply via WhatsApp (if phone) */}
