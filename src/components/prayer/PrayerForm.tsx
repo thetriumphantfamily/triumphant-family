@@ -1,87 +1,91 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PRAYER FORM — Interactive form that submits prayers to Supabase
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useState, FormEvent } from "react";
 import toast from "react-hot-toast";
+import { HandHeart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
+import Select from "@/components/ui/Select";
+import Button from "@/components/ui/Button";
 
-import Button         from "@/components/ui/Button";
-import Input          from "@/components/ui/Input";
-import Textarea       from "@/components/ui/Textarea";
-import Select         from "@/components/ui/Select";
-import SectionHeading from "@/components/ui/SectionHeading";
-
-// ── Prayer category options ──
-const PRAYER_CATEGORIES = [
-  { value: "healing",      label: "🙌 Healing" },
+const CATEGORIES = [
+  { value: "healing", label: "🙏 Healing" },
   { value: "breakthrough", label: "⚡ Breakthrough" },
-  { value: "salvation",    label: "✝️ Salvation" },
-  { value: "marriage",     label: "💍 Marriage & Relationships" },
-  { value: "family",       label: "👨‍👩‍👧 Family" },
-  { value: "finance",      label: "💰 Finance & Provision" },
-  { value: "career",       label: "📈 Career & Business" },
-  { value: "deliverance",  label: "🔓 Deliverance" },
-  { value: "thanksgiving", label: "🙏 Thanksgiving" },
-  { value: "other",        label: "✨ Other" },
+  { value: "salvation", label: "✝️ Salvation" },
+  { value: "marriage", label: "💍 Marriage" },
+  { value: "family", label: "👨‍👩‍👧‍👦 Family" },
+  { value: "finance", label: "💰 Finance" },
+  { value: "career", label: "💼 Career / Business" },
+  { value: "deliverance", label: "🕊️ Deliverance" },
+  { value: "thanksgiving", label: "🎉 Thanksgiving" },
+  { value: "other", label: "📖 Other" },
 ];
 
-// ── Country options (most common) ──
 const COUNTRIES = [
-  "Nigeria", "United States", "United Kingdom", "Canada", "Ghana",
-  "South Africa", "Kenya", "Australia", "Germany", "France",
-  "Netherlands", "United Arab Emirates", "India", "Brazil", "Other",
+  { value: "Nigeria", label: "🇳🇬 Nigeria" },
+  { value: "United States", label: "🇺🇸 United States" },
+  { value: "United Kingdom", label: "🇬🇧 United Kingdom" },
+  { value: "Canada", label: "🇨🇦 Canada" },
+  { value: "South Africa", label: "🇿🇦 South Africa" },
+  { value: "Ghana", label: "🇬🇭 Ghana" },
+  { value: "Kenya", label: "🇰🇪 Kenya" },
+  { value: "Australia", label: "🇦🇺 Australia" },
+  { value: "Germany", label: "🇩🇪 Germany" },
+  { value: "France", label: "🇫🇷 France" },
+  { value: "Netherlands", label: "🇳🇱 Netherlands" },
+  { value: "Italy", label: "🇮🇹 Italy" },
+  { value: "Spain", label: "🇪🇸 Spain" },
+  { value: "UAE", label: "🇦🇪 UAE" },
+  { value: "Other", label: "🌍 Other Country" },
 ];
 
 export default function PrayerForm() {
-  // ── Form state ──
   const [formData, setFormData] = useState({
-    full_name:     "",
-    email:         "",
-    phone:         "",
-    country:       "",
-    prayer_point:  "",
-    category:      "",
-    is_anonymous:  false,
-    show_on_wall:  true,
+    fullName: "",
+    email: "",
+    phone: "",
+    country: "",
+    category: "",
+    prayerPoint: "",
+    isAnonymous: false,
+    showOnWall: true,
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors,       setErrors]       = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // ── Validate form ──
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.full_name.trim() && !formData.is_anonymous) {
-      newErrors.full_name = "Please enter your name (or check Anonymous)";
+    if (!formData.isAnonymous && !formData.fullName.trim()) {
+      newErrors.fullName = "Please enter your name (or check anonymous)";
     }
 
-    if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email";
-    }
-
-    if (!formData.prayer_point.trim()) {
-      newErrors.prayer_point = "Please share your prayer request";
-    } else if (formData.prayer_point.trim().length < 10) {
-      newErrors.prayer_point = "Prayer request must be at least 10 characters";
     }
 
     if (!formData.category) {
       newErrors.category = "Please select a category";
     }
 
+    if (!formData.prayerPoint.trim()) {
+      newErrors.prayerPoint = "Please write your prayer request";
+    } else if (formData.prayerPoint.trim().length < 10) {
+      newErrors.prayerPoint = "Prayer request must be at least 10 characters";
+    } else if (formData.prayerPoint.trim().length > 1000) {
+      newErrors.prayerPoint = "Prayer request must be under 1000 characters";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ── Submit handler ──
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
-      toast.error("Please fix the errors and try again");
+      toast.error("Please fix the errors below");
       return;
     }
 
@@ -89,50 +93,51 @@ export default function PrayerForm() {
 
     try {
       const supabase = createClient();
+      const { error } = await supabase.from("prayer_requests").insert([
+        {
+          full_name: formData.isAnonymous ? "Anonymous" : formData.fullName,
+          email: formData.email || null,
+          phone: formData.phone || null,
+          country: formData.country || null,
+          category: formData.category,
+          prayer_point: formData.prayerPoint,
+          is_anonymous: formData.isAnonymous,
+          show_on_wall: formData.showOnWall,
+        },
+      ]);
 
-      const { error } = await supabase
-        .from("prayer_requests")
-        .insert([{
-          full_name:    formData.is_anonymous ? "Anonymous" : formData.full_name.trim(),
-          email:        formData.email.trim() || null,
-          phone:        formData.phone.trim() || null,
-          country:      formData.country || null,
-          prayer_point: formData.prayer_point.trim(),
-          category:     formData.category,
-          is_anonymous: formData.is_anonymous,
-          show_on_wall: formData.show_on_wall,
-          is_approved:  false,   // admin must approve
-          is_answered:  false,
-        }]);
+      if (error) {
+        console.error("Supabase error:", error);
+        toast.error(`Error: ${error.message}`);
+        return;
+      }
 
-      if (error) throw error;
-
-      // Success!
-      toast.success("🙏 Prayer request received! We are praying for you.", {
-        duration: 5000,
+      toast.success("Prayer request submitted! We are praying with you.", {
         style: {
           background: "#6B1F8A",
-          color:      "#fff",
-          padding:    "16px",
-          fontWeight: "bold",
+          color: "#fff",
+          border: "1px solid #FFC72C",
+        },
+        iconTheme: {
+          primary: "#FFC72C",
+          secondary: "#6B1F8A",
         },
       });
 
       // Reset form
       setFormData({
-        full_name:    "",
-        email:        "",
-        phone:        "",
-        country:      "",
-        prayer_point: "",
-        category:     "",
-        is_anonymous: false,
-        show_on_wall: true,
+        fullName: "",
+        email: "",
+        phone: "",
+        country: "",
+        category: "",
+        prayerPoint: "",
+        isAnonymous: false,
+        showOnWall: true,
       });
       setErrors({});
-
     } catch (err) {
-      console.error("Prayer submission error:", err);
+      console.error("Unexpected error:", err);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -140,155 +145,173 @@ export default function PrayerForm() {
   };
 
   return (
-    <section className="py-20 bg-white" id="form">
+    <section className="py-16 lg:py-24 bg-gray-50">
       <div className="container-custom">
-
-        {/* Heading */}
-        <div className="mb-12">
-          <SectionHeading
-            badge="Submit Your Prayer"
-            title={
-              <>
-                Share What&rsquo;s On{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple-600 to-brand-magenta-500">
-                  Your Heart
-                </span>
-              </>
-            }
-            subtitle="Your prayer is safe with us. Fill out the form below and our prayer team will lift you up before the throne of grace."
-            withDivider
-          />
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="max-w-3xl mx-auto bg-gradient-to-br from-brand-purple-50 to-white border border-brand-purple-100 rounded-3xl p-6 md:p-10 shadow-lg space-y-6"
-        >
-
-          {/* Anonymous toggle */}
-          <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border-2 border-brand-purple-100">
-            <input
-              type="checkbox"
-              id="is_anonymous"
-              checked={formData.is_anonymous}
-              onChange={(e) => setFormData({ ...formData, is_anonymous: e.target.checked })}
-              className="w-5 h-5 rounded text-brand-purple-600 focus:ring-2 focus:ring-brand-purple-300 cursor-pointer"
-            />
-            <label htmlFor="is_anonymous" className="text-sm text-gray-700 cursor-pointer font-medium">
-              Submit anonymously (hide my name)
-            </label>
-          </div>
-
-          {/* Name + Email row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Full Name"
-              required={!formData.is_anonymous}
-              placeholder="John Doe"
-              value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              error={errors.full_name}
-              disabled={formData.is_anonymous}
-            />
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              error={errors.email}
-              helperText="Optional — for follow-up"
-            />
-          </div>
-
-          {/* Phone + Country row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Phone Number"
-              type="tel"
-              placeholder="+234 800 000 0000"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              helperText="Optional"
-            />
-            <Select
-              label="Country"
-              placeholder="Select your country"
-              value={formData.country}
-              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-              options={COUNTRIES.map((c) => ({ value: c, label: c }))}
-            />
-          </div>
-
-          {/* Category */}
-          <Select
-            label="Prayer Category"
-            required
-            placeholder="What is this prayer about?"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            options={PRAYER_CATEGORIES}
-            error={errors.category}
-          />
-
-          {/* Prayer point */}
-          <Textarea
-            label="Your Prayer Request"
-            required
-            placeholder="Share what you need prayer for. Be as specific as you'd like — your request is in safe hands..."
-            rows={6}
-            value={formData.prayer_point}
-            onChange={(e) => setFormData({ ...formData, prayer_point: e.target.value })}
-            error={errors.prayer_point}
-            showCount
-            maxLength={1000}
-            currentValue={formData.prayer_point}
-          />
-
-          {/* Show on wall toggle */}
-          <div className="flex items-start gap-3 p-4 bg-white rounded-2xl border-2 border-brand-purple-100">
-            <input
-              type="checkbox"
-              id="show_on_wall"
-              checked={formData.show_on_wall}
-              onChange={(e) => setFormData({ ...formData, show_on_wall: e.target.checked })}
-              className="w-5 h-5 rounded text-brand-purple-600 focus:ring-2 focus:ring-brand-purple-300 cursor-pointer mt-0.5 flex-shrink-0"
-            />
-            <label htmlFor="show_on_wall" className="text-sm text-gray-700 cursor-pointer leading-relaxed">
-              <span className="font-semibold">Display on Prayer Wall</span>
-              <span className="block text-xs text-gray-500 mt-1">
-                Let others see your prayer (after admin approval) so they can pray with you.
-                Personal details (email, phone) are always private.
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-purple-100 mb-4">
+              <HandHeart className="w-8 h-8 text-brand-purple-600" />
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-gray-900 mb-4">
+              Submit Your{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple-600 to-brand-magenta-500">
+                Prayer Request
               </span>
-            </label>
+            </h2>
+            <p className="text-gray-500 text-lg">
+              Share what&apos;s on your heart. We&apos;ll pray with you and
+              stand with you in faith.
+            </p>
           </div>
 
-          {/* Submit button */}
-          <Button
-            type="submit"
-            variant="gold"
-            size="lg"
-            fullWidth
-            isLoading={isSubmitting}
-            leftIcon={
-              !isSubmitting && (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              )
-            }
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-3xl p-6 md:p-10 shadow-xl border border-gray-100"
           >
-            {isSubmitting ? "Sending your prayer..." : "Send Prayer Request"}
-          </Button>
+            {/* Anonymous Toggle */}
+            <div className="mb-6 p-4 rounded-xl bg-brand-purple-50 border border-brand-purple-100">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isAnonymous}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      isAnonymous: e.target.checked,
+                    })
+                  }
+                  className="w-5 h-5 rounded border-2 border-brand-purple-400 text-brand-purple-600 focus:ring-brand-purple-500"
+                />
+                <div>
+                  <p className="font-bold text-gray-900">
+                    Submit Anonymously
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    Your name won&apos;t be shown, but we&apos;ll still pray
+                    for you.
+                  </p>
+                </div>
+              </label>
+            </div>
 
-          {/* Privacy note */}
-          <p className="text-xs text-gray-500 text-center leading-relaxed">
-            🔒 Your information is kept strictly confidential.
-            We will never share your details with third parties.
-          </p>
-        </form>
+            {!formData.isAnonymous && (
+              <div className="mb-5">
+                <Input
+                  label="Full Name"
+                  required
+                  placeholder="Your full name"
+                  value={formData.fullName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
+                  error={errors.fullName}
+                />
+              </div>
+            )}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <Input
+                label="Email (Optional)"
+                type="email"
+                placeholder="your.email@example.com"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                error={errors.email}
+              />
+              <Input
+                label="Phone (Optional)"
+                type="tel"
+                placeholder="+234 XXX XXX XXXX"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <Select
+                label="Country"
+                placeholder="Select your country"
+                value={formData.country}
+                onChange={(e) =>
+                  setFormData({ ...formData, country: e.target.value })
+                }
+                options={COUNTRIES}
+              />
+              <Select
+                label="Prayer Category"
+                required
+                placeholder="What's this prayer about?"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                options={CATEGORIES}
+                error={errors.category}
+              />
+            </div>
+
+            <div className="mb-6">
+              <Textarea
+                label="Your Prayer Request"
+                required
+                placeholder="Share what's on your heart. Be as detailed as you'd like — we want to pray with understanding."
+                rows={6}
+                maxLength={1000}
+                value={formData.prayerPoint}
+                onChange={(e) =>
+                  setFormData({ ...formData, prayerPoint: e.target.value })
+                }
+                error={errors.prayerPoint}
+              />
+            </div>
+
+            {/* Show on Wall Toggle */}
+            <div className="mb-6 p-4 rounded-xl bg-brand-gold-50 border border-brand-gold-200">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.showOnWall}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      showOnWall: e.target.checked,
+                    })
+                  }
+                  className="w-5 h-5 rounded border-2 border-brand-gold-400 text-brand-gold-600 focus:ring-brand-gold-500"
+                />
+                <div>
+                  <p className="font-bold text-gray-900">
+                    Show on Prayer Wall
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    Allow others to see and pray for your request (after admin
+                    approval).
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              isLoading={isSubmitting}
+              rightIcon={<HandHeart className="w-5 h-5" />}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Prayer Request"}
+            </Button>
+
+            <p className="text-center text-gray-400 text-xs mt-5">
+              Your prayer request is confidential and will be handled with
+              care. Requests shown on the wall are moderated by our team.
+            </p>
+          </form>
+        </div>
       </div>
     </section>
   );

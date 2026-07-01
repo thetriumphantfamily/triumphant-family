@@ -7,22 +7,22 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 type ButtonVariant = "primary" | "gold" | "outline" | "ghost" | "danger";
-type ButtonSize    = "sm" | "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?:    ButtonVariant;
-  size?:       ButtonSize;
-  href?:       string;
-  isLoading?:  boolean;
-  fullWidth?:  boolean;
-  leftIcon?:   ReactNode;
-  rightIcon?:  ReactNode;
-  children:    ReactNode;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  href?: string;
+  isLoading?: boolean;
+  fullWidth?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+  children: ReactNode;
 }
 
 export default function Button({
-  variant   = "primary",
-  size      = "md",
+  variant = "primary",
+  size = "md",
   href,
   isLoading = false,
   fullWidth = false,
@@ -33,9 +33,9 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-
   // ━━━ Base styles ━━━
-  const baseStyles = "inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles =
+    "inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
   // ━━━ Size styles ━━━
   const sizeStyles = {
@@ -46,11 +46,15 @@ export default function Button({
 
   // ━━━ Variant styles ━━━
   const variantStyles = {
-    primary: "bg-brand-purple-600 text-white shadow-brand hover:bg-brand-purple-700 hover:shadow-brand-lg focus:ring-brand-purple-400",
-    gold:    "bg-gradient-gold text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 focus:ring-brand-gold-300",
-    outline: "bg-transparent text-brand-purple-600 border-2 border-brand-purple-600 hover:bg-brand-purple-600 hover:text-white focus:ring-brand-purple-400",
-    ghost:   "bg-transparent text-brand-purple-600 hover:bg-brand-purple-50 focus:ring-brand-purple-400",
-    danger:  "bg-red-600 text-white shadow-md hover:bg-red-700 focus:ring-red-400",
+    primary:
+      "bg-brand-purple-600 text-white shadow-brand hover:bg-brand-purple-700 hover:shadow-brand-lg focus:ring-brand-purple-400",
+    gold: "bg-gradient-gold text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 focus:ring-brand-gold-300",
+    outline:
+      "bg-transparent text-brand-purple-600 border-2 border-brand-purple-600 hover:bg-brand-purple-600 hover:text-white focus:ring-brand-purple-400",
+    ghost:
+      "bg-transparent text-brand-purple-600 hover:bg-brand-purple-50 focus:ring-brand-purple-400",
+    danger:
+      "bg-red-600 text-white shadow-md hover:bg-red-700 focus:ring-red-400",
   };
 
   // ━━━ Combine all styles ━━━
@@ -66,11 +70,28 @@ export default function Button({
   const content = (
     <>
       {isLoading ? (
-        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <svg
+          className="animate-spin h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
         </svg>
-      ) : leftIcon}
+      ) : (
+        leftIcon
+      )}
       {children}
       {!isLoading && rightIcon}
     </>
@@ -78,7 +99,10 @@ export default function Button({
 
   // ━━━ Render as Link if href provided ━━━
   if (href) {
-    const isExternal = href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:");
+    const isExternal =
+      href.startsWith("http") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("tel:");
 
     if (isExternal) {
       return (

@@ -21,7 +21,7 @@ const SUBJECTS = [
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     phone: "",
     subject: "",
@@ -33,8 +33,8 @@ export default function ContactForm() {
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Please enter your name";
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Please enter your name";
     }
 
     if (!formData.email.trim()) {
@@ -71,7 +71,7 @@ export default function ContactForm() {
       const supabase = createClient();
       const { error } = await supabase.from("contact_messages").insert([
         {
-          name: formData.name,
+          full_name: formData.fullName,
           email: formData.email,
           phone: formData.phone || null,
           subject: formData.subject,
@@ -79,7 +79,11 @@ export default function ContactForm() {
         },
       ]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        toast.error(`Error: ${error.message}`);
+        return;
+      }
 
       toast.success("Message sent! We'll reply within 24 hours.", {
         style: {
@@ -95,7 +99,7 @@ export default function ContactForm() {
 
       // Reset form
       setFormData({
-        name: "",
+        fullName: "",
         email: "",
         phone: "",
         subject: "",
@@ -103,8 +107,8 @@ export default function ContactForm() {
       });
       setErrors({});
     } catch (err) {
-      console.error(err);
-      toast.error("Could not send message. Please try again.");
+      console.error("Unexpected error:", err);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -125,7 +129,8 @@ export default function ContactForm() {
               </span>
             </h2>
             <p className="text-gray-500 text-lg">
-              Fill the form below and we&apos;ll get back to you within 24 hours.
+              Fill the form below and we&apos;ll get back to you within 24
+              hours.
             </p>
           </div>
 
@@ -138,11 +143,11 @@ export default function ContactForm() {
                 label="Full Name"
                 required
                 placeholder="Your full name"
-                value={formData.name}
+                value={formData.fullName}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, fullName: e.target.value })
                 }
-                error={errors.name}
+                error={errors.fullName}
               />
               <Input
                 label="Email Address"
@@ -200,7 +205,7 @@ export default function ContactForm() {
               variant="primary"
               size="lg"
               fullWidth
-              loading={isSubmitting}
+              isLoading={isSubmitting}
               rightIcon={<Send className="w-5 h-5" />}
             >
               {isSubmitting ? "Sending Message..." : "Send Message"}
