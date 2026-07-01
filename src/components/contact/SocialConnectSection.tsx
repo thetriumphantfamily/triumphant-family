@@ -1,11 +1,10 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SOCIAL CONNECT SECTION — Social media grid
+// SOCIAL CONNECT SECTION — Social media grid (handles hidden)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const SOCIAL_PLATFORMS = [
   {
     name: "Facebook",
-    handle: "@wole.ola.376",
     url: "https://m.facebook.com/wole.ola.376/",
     color: "from-blue-600 to-blue-700",
     icon: (
@@ -16,7 +15,6 @@ const SOCIAL_PLATFORMS = [
   },
   {
     name: "YouTube",
-    handle: "@PastorOlayiwoleTriumphant",
     url: "https://www.youtube.com/PastorOlayiwoleTriumphant",
     color: "from-red-600 to-red-700",
     icon: (
@@ -27,7 +25,6 @@ const SOCIAL_PLATFORMS = [
   },
   {
     name: "Instagram",
-    handle: "@pastorolayiwoletriumphant",
     url: "https://www.instagram.com/pastorolayiwoletriumphant",
     color: "from-purple-600 via-pink-500 to-orange-400",
     icon: (
@@ -38,7 +35,6 @@ const SOCIAL_PLATFORMS = [
   },
   {
     name: "TikTok",
-    handle: "@pastorolayiwoletriumphant",
     url: "https://www.tiktok.com/@pastorolayiwoletriumphant",
     color: "from-gray-900 to-black",
     icon: (
@@ -73,7 +69,7 @@ export default function SocialConnectSection() {
           </p>
         </div>
 
-        {/* Social platform cards */}
+        {/* Social platform cards — CLEAN (no handles shown) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
           {SOCIAL_PLATFORMS.map((platform) => (
             <a
@@ -90,15 +86,10 @@ export default function SocialConnectSection() {
                 {platform.icon}
               </div>
 
-              {/* Name */}
-              <h3 className="font-heading text-lg font-bold text-brand-purple-900 mb-1">
+              {/* Platform Name Only */}
+              <h3 className="font-heading text-lg font-bold text-brand-purple-900">
                 {platform.name}
               </h3>
-
-              {/* Handle */}
-              <p className="text-gray-500 text-xs break-all">
-                {platform.handle}
-              </p>
             </a>
           ))}
         </div>
