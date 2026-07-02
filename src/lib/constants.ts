@@ -84,14 +84,15 @@ export const BANK_ACCOUNTS = [
 ];
 
 export const NAV_LINKS = [
-  { name: "Home",    href: "/" },
-  { name: "About",   href: "/about" },
-  { name: "Prayer",  href: "/prayer" },
-  { name: "Sermons", href: "/sermons" },
-  { name: "Events",  href: "/events" },
-  { name: "Live",    href: "/live" },
-  { name: "Give",    href: "/give" },
-  { name: "Contact", href: "/contact" },
+  { name: "Home",         href: "/" },
+  { name: "About",        href: "/about" },
+  { name: "Prayer",       href: "/prayer" },
+  { name: "Sermons",      href: "/sermons" },
+  { name: "Events",       href: "/events" },
+  { name: "Testimonies",  href: "/testimonies" },
+  { name: "Live",         href: "/live" },
+  { name: "Give",         href: "/give" },
+  { name: "Contact",      href: "/contact" },
 ];
 
 export const HERO = {
