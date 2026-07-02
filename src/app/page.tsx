@@ -11,6 +11,7 @@ import CorePromisesSection from "@/components/home/CorePromisesSection";
 import ServiceTimesSection from "@/components/home/ServiceTimesSection";
 import SermonsPreview      from "@/components/home/SermonsPreview";
 import EventsPreview       from "@/components/home/EventsPreview";
+import GalleryPreview      from "@/components/home/GalleryPreview";
 import PrayerCTASection    from "@/components/home/PrayerCTASection";
 import TestimoniesSection  from "@/components/home/TestimoniesSection";
 import LiveStreamBanner    from "@/components/home/LiveStreamBanner";
@@ -52,6 +53,11 @@ export default function HomePage() {
       {/* Upcoming Events */}
       <Suspense fallback={<SectionLoader />}>
         <EventsPreview />
+      </Suspense>
+
+      {/* Gallery Preview */}
+      <Suspense fallback={<SectionLoader />}>
+        <GalleryPreview />
       </Suspense>
 
       {/* Prayer CTA */}

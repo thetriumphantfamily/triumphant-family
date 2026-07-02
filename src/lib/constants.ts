@@ -89,6 +89,7 @@ export const NAV_LINKS = [
   { name: "Prayer",       href: "/prayer" },
   { name: "Sermons",      href: "/sermons" },
   { name: "Events",       href: "/events" },
+  { name: "Gallery",      href: "/gallery" },
   { name: "Testimonies",  href: "/testimonies" },
   { name: "Live",         href: "/live" },
   { name: "Give",         href: "/give" },

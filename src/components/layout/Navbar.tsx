@@ -1,10 +1,9 @@
 "use client";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// NAVBAR COMPONENT — with Social Media Icons
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Sticky top navigation with logo, menu links, social icons,
-// mobile drawer, and a highlighted "Give" call-to-action button.
+// NAVBAR COMPONENT — Two-row layout
+// Row 1: Logo (left) + Social Icons + Give button (right)
+// Row 2: Menu links centered
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { useState, useEffect } from "react";
@@ -16,7 +15,7 @@ import { cn } from "@/lib/utils";
 import Logo from "./Logo";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SOCIAL MEDIA LINKS (inline so we control everything)
+// SOCIAL MEDIA LINKS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SOCIAL_LINKS = [
   {
@@ -97,9 +96,9 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {/* TOP BAR - LIVE INDICATOR                                     */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {LIVE_STREAM.isLive && (
         <div className="bg-red-600 text-white py-2 px-4 text-center text-sm font-semibold animate-pulse">
           <Link href="/live" className="inline-flex items-center gap-2 hover:underline">
@@ -109,45 +108,29 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* MAIN NAVBAR                                                  */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* MAIN NAVBAR — TWO ROWS ON DESKTOP                            */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <nav
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-300",
           isScrolled
-            ? "bg-brand-purple-900/95 backdrop-blur-md shadow-brand-lg py-2"
-            : "bg-brand-purple-900 py-3 md:py-4"
+            ? "bg-brand-purple-900/95 backdrop-blur-md shadow-brand-lg"
+            : "bg-brand-purple-900"
         )}
       >
-        <div className="container-custom flex items-center justify-between gap-4">
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        {/* ROW 1: Logo (left) + Social + Give (right)                   */}
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className={cn(
+          "container-custom flex items-center justify-between gap-4 transition-all duration-300",
+          isScrolled ? "py-2" : "py-3 md:py-4"
+        )}>
 
           {/* ── LOGO ── */}
           <Logo size="sm" textColor="white" />
 
-          {/* ── DESKTOP MENU ── */}
-          <ul className="hidden lg:flex items-center gap-1">
-            {mainLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={cn(
-                      "px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200",
-                      isActive
-                        ? "bg-brand-gold-400 text-brand-purple-900 shadow-gold"
-                        : "text-white hover:bg-white/10 hover:text-brand-gold-300"
-                    )}
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* ── RIGHT SIDE: SOCIAL ICONS + GIVE BUTTON (DESKTOP) ── */}
+          {/* ── RIGHT SIDE: SOCIAL + GIVE (DESKTOP) ── */}
           <div className="hidden lg:flex items-center gap-3">
 
             {/* Social Media Icons */}
@@ -190,11 +173,42 @@ export default function Navbar() {
           </button>
 
         </div>
+
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        {/* ROW 2: MENU LINKS (DESKTOP ONLY, CENTERED)                   */}
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className={cn(
+          "hidden lg:block border-t border-white/10 transition-all duration-300",
+          isScrolled ? "py-1.5" : "py-2"
+        )}>
+          <div className="container-custom">
+            <ul className="flex items-center justify-center gap-1 flex-wrap">
+              {mainLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200",
+                        isActive
+                          ? "bg-brand-gold-400 text-brand-purple-900 shadow-gold"
+                          : "text-white hover:bg-white/10 hover:text-brand-gold-300"
+                      )}
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
       </nav>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {/* MOBILE DRAWER                                                */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div
         className={cn(
           "fixed inset-0 z-40 lg:hidden transition-all duration-300",
