@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ADMIN SIDEBAR — Navigation with brand theme
+// ADMIN SIDEBAR — Positioned below main navbar
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -118,10 +118,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Mobile toggle — positioned below main navbar */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900"
+        className="lg:hidden fixed top-20 left-4 z-30 p-2 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900"
         aria-label="Toggle menu"
       >
         {mobileOpen ? (
@@ -139,18 +139,18 @@ export default function Sidebar() {
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/50 z-20"
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — starts BELOW navbar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 text-white z-40 transform transition-transform duration-300 flex flex-col shadow-2xl ${
+        className={`fixed top-[76px] lg:top-[132px] left-0 h-[calc(100vh-76px)] lg:h-[calc(100vh-132px)] w-64 bg-gradient-to-b from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 text-white z-30 transform transition-transform duration-300 flex flex-col shadow-2xl ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        {/* Logo Header */}
-        <div className="p-6 border-b border-white/10 relative overflow-hidden">
+        {/* Logo Header (STICKY at top) */}
+        <div className="flex-shrink-0 p-6 border-b border-white/10 relative overflow-hidden">
           <div className="absolute top-[-30%] right-[-20%] w-32 h-32 rounded-full bg-brand-magenta-500/20 blur-2xl pointer-events-none" />
 
           <Link
@@ -177,8 +177,14 @@ export default function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 no-scrollbar">
+        {/* Navigation (SCROLLABLE middle) */}
+        <nav
+          className="flex-1 overflow-y-auto py-4"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255,255,255,0.2) transparent",
+          }}
+        >
           <div className="px-3 space-y-1">
             {NAV_ITEMS.map((item) => {
               const isActive =
@@ -204,8 +210,8 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        {/* Footer Actions */}
-        <div className="p-3 border-t border-white/10 space-y-2">
+        {/* Footer Actions (STICKY at bottom) */}
+        <div className="flex-shrink-0 p-3 border-t border-white/10 space-y-2 bg-brand-purple-900/50 backdrop-blur-sm">
           <Link
             href="/"
             target="_blank"
