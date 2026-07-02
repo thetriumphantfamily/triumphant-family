@@ -6,6 +6,10 @@ import Link from "next/link";
 import { CONTACT, SERVICES } from "@/lib/constants";
 
 export default function JoinUsCTA() {
+  // ━━━ Find services by day (SERVICES is an array) ━━━
+  const sundayService = SERVICES.find((s) => s.day === "Sunday");
+  const wednesdayService = SERVICES.find((s) => s.day === "Wednesday");
+
   return (
     <section className="py-20 bg-gray-50">
       <div className="container-custom">
@@ -48,7 +52,7 @@ export default function JoinUsCTA() {
                   Sunday Service
                 </p>
                 <p className="text-white font-heading text-xl font-bold">
-                  {SERVICES.sunday}
+                  {sundayService?.time || "8:00 AM"}
                 </p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5">
@@ -56,7 +60,7 @@ export default function JoinUsCTA() {
                   Midweek Service
                 </p>
                 <p className="text-white font-heading text-xl font-bold">
-                  {SERVICES.wednesday}
+                  {wednesdayService?.time || "9:00 AM"}
                 </p>
               </div>
             </div>
