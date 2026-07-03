@@ -5,11 +5,15 @@
 import Link from "next/link";
 import { CONTACT, SERVICES } from "@/lib/constants";
 
+// ━━━ Find services by day (SERVICES is an array) ━━━
+const sundayService = SERVICES.find((s) => s.day === "Sunday");
+const wednesdayService = SERVICES.find((s) => s.day === "Wednesday");
+
 const SERVICES_LIST = [
   {
     day:         "Sunday",
     name:        "Sunday Worship Service",
-    time:        SERVICES.sunday,
+    time:        sundayService?.time || "8:00 AM",
     description: "Spirit-filled praise, powerful preaching of God's Word, and miraculous encounters.",
     icon: (
       <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -20,12 +24,11 @@ const SERVICES_LIST = [
   {
     day:         "Wednesday",
     name:        "Midweek Prayer & Word",
-    time:        SERVICES.wednesday,
+    time:        wednesdayService?.time || "9:00 AM",
     description: "Deep intercession, prophetic ministry, and midweek spiritual recharging.",
     icon: (
       <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.047 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/>
       </svg>
     ),
   },
