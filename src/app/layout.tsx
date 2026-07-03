@@ -36,6 +36,7 @@ export const metadata: Metadata = {
   authors:     [{ name: SEO.author }],
   creator:     SEO.author,
   metadataBase: new URL(SEO.url),
+  manifest:    "/site.webmanifest",
   openGraph: {
     title:       SEO.title,
     description: SEO.description,
@@ -69,9 +70,27 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon:     "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
     shortcut: "/favicon.ico",
-    apple:    "/images/logo/logo.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel:  "icon",
+        url:  "/web-app-manifest-192x192.png",
+        sizes: "192x192",
+      },
+      {
+        rel:  "icon",
+        url:  "/web-app-manifest-512x512.png",
+        sizes: "512x512",
+      },
+    ],
   },
 };
 
