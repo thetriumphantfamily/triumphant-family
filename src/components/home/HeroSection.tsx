@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// HERO SECTION — Mobile: 1 photo | Desktop: 3 photos side-by-side gallery
-// Each photo rotates independently with staggered timing
+// HERO SECTION — Mobile: 1 photo | Desktop: 3 photos side-by-side
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -8,7 +7,6 @@ import { useState, useEffect } from "react";
 import Link  from "next/link";
 import Image from "next/image";
 
-// ── Rotating pill sets ──
 const PILL_SETS = [
   ["Supernatural",  "Healings",     "Breakthrough"],
   ["Miracles",      "Deliverance",  "Victories"],
@@ -16,7 +14,6 @@ const PILL_SETS = [
   ["Salvation",     "Prosperity",   "Favor"],
 ];
 
-// ── Hero photos ──
 const HERO_PHOTOS = [
   { src: "/images/hero/prophet-1.png",  isProphet: true },
   { src: "/images/hero/ministry-1.png", isProphet: false },
@@ -30,7 +27,6 @@ const HERO_PHOTOS = [
   { src: "/images/hero/ministry-6.png", isProphet: false },
 ];
 
-// ── Stars ──
 const STARS = [
   { top: "12%", left: "8%",  delay: "0s",   duration: "3s" },
   { top: "25%", left: "85%", delay: "0.5s", duration: "4s" },
@@ -46,10 +42,9 @@ export default function HeroSection() {
   const [pillIndex,    setPillIndex]    = useState(0);
   const [pillVisible,  setPillVisible]  = useState(true);
   const [photoIndex1,  setPhotoIndex1]  = useState(0);
-  const [photoIndex2,  setPhotoIndex2]  = useState(3);  // Start at photo 4
-  const [photoIndex3,  setPhotoIndex3]  = useState(6);  // Start at photo 7
+  const [photoIndex2,  setPhotoIndex2]  = useState(3);
+  const [photoIndex3,  setPhotoIndex3]  = useState(6);
 
-  // Pills rotate every 3.5s
   useEffect(() => {
     const interval = setInterval(() => {
       setPillVisible(false);
@@ -61,7 +56,6 @@ export default function HeroSection() {
     return () => clearInterval(interval);
   }, []);
 
-  // Photo 1 rotates every 5s
   useEffect(() => {
     const interval = setInterval(() => {
       setPhotoIndex1((prev) => (prev + 1) % HERO_PHOTOS.length);
@@ -69,37 +63,39 @@ export default function HeroSection() {
     return () => clearInterval(interval);
   }, []);
 
-  // Photo 2 rotates every 5s (starts 1.5s after)
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
     const timeout = setTimeout(() => {
-      const interval = setInterval(() => {
+      intervalId = setInterval(() => {
         setPhotoIndex2((prev) => (prev + 1) % HERO_PHOTOS.length);
       }, 5000);
-      return () => clearInterval(interval);
     }, 1500);
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
-  // Photo 3 rotates every 5s (starts 3s after)
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
     const timeout = setTimeout(() => {
-      const interval = setInterval(() => {
+      intervalId = setInterval(() => {
         setPhotoIndex3((prev) => (prev + 1) % HERO_PHOTOS.length);
       }, 5000);
-      return () => clearInterval(interval);
     }, 3000);
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   const currentPills = PILL_SETS[pillIndex];
-  const currentPhoto1 = HERO_PHOTOS[photoIndex1];  // Used for mobile too
+  const currentPhoto1 = HERO_PHOTOS[photoIndex1];
 
   return (
     <section className="relative w-full h-[380px] sm:h-[420px] md:h-[480px] lg:h-[550px] overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* MOBILE: SINGLE PHOTO (only visible below md breakpoint)      */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* MOBILE: SINGLE PHOTO */}
       <div className="absolute inset-0 z-0 md:hidden">
         {HERO_PHOTOS.map((photo, i) => (
           <div
@@ -120,12 +116,9 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* DESKTOP: 3 PHOTOS SIDE-BY-SIDE (only visible from md up)     */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* DESKTOP: 3 PHOTOS SIDE-BY-SIDE */}
       <div className="absolute inset-0 z-0 hidden md:grid md:grid-cols-3">
 
-        {/* PHOTO COLUMN 1 */}
         <div className="relative overflow-hidden">
           {HERO_PHOTOS.map((photo, i) => (
             <div
@@ -146,7 +139,6 @@ export default function HeroSection() {
           ))}
         </div>
 
-        {/* PHOTO COLUMN 2 */}
         <div className="relative overflow-hidden">
           {HERO_PHOTOS.map((photo, i) => (
             <div
@@ -166,7 +158,6 @@ export default function HeroSection() {
           ))}
         </div>
 
-        {/* PHOTO COLUMN 3 */}
         <div className="relative overflow-hidden">
           {HERO_PHOTOS.map((photo, i) => (
             <div
@@ -188,14 +179,10 @@ export default function HeroSection() {
 
       </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* DARK OVERLAY (for text readability)                          */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* Dark overlay */}
       <div className="absolute inset-0 z-[5] pointer-events-none bg-black/40" />
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* SUBTLE PURPLE DIVIDERS BETWEEN PHOTOS (desktop only)         */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* Column dividers (desktop) */}
       <div className="absolute inset-0 z-[6] pointer-events-none hidden md:block">
         <div className="grid grid-cols-3 h-full">
           <div className="border-r border-brand-purple-900/50" />
@@ -204,9 +191,7 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* STARS                                                        */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* Stars */}
       <div className="absolute inset-0 pointer-events-none z-10">
         {STARS.map((star, i) => (
           <div
@@ -222,9 +207,7 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* PROPHET SIGNATURE (only on prophet photos)                   */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* Prophet signature */}
       <div
         className={`absolute top-3 right-3 sm:top-4 sm:right-4 text-right pointer-events-none z-20 transition-opacity duration-1000 ${
           currentPhoto1.isProphet ? "opacity-100" : "opacity-0"
@@ -238,20 +221,16 @@ export default function HeroSection() {
         </p>
       </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* MAIN CONTENT                                                 */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* Main content */}
       <div className="relative z-20 container-custom py-6 sm:py-7 md:py-8 lg:py-10 flex items-center h-full">
         <div className="max-w-xl w-full">
 
-          {/* "Experience" */}
           <div className="mb-2 sm:mb-3">
             <p className="font-script text-red-500 text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-none drop-shadow-lg" style={{ textShadow: "0 2px 15px rgba(239,68,68,0.6)" }}>
               Experience
             </p>
           </div>
 
-          {/* Pills */}
           <div
             className="flex flex-col gap-1.5 sm:gap-2 mb-3 sm:mb-4 max-w-xs transition-opacity duration-500"
             style={{ opacity: pillVisible ? 1 : 0 }}
@@ -259,7 +238,7 @@ export default function HeroSection() {
             {currentPills.map((pill, i) => (
               <div
                 key={`${pillIndex}-${i}`}
-                className="bg-brand-gold-400/25 backdrop-blur-md border border-brand-gold-400/50 text-white font-heading font-bold text-[10px] sm:text-xs md:text-sm lg:text-base py-1 sm:py-1.5 lg:py-2 px-2.5 sm:px-3 lg:px-5 rounded-full shadow-lg text-center animate-slide-up"
+                className="bg-brand-gold-400/25 border-2 border-brand-gold-400/50 text-white font-heading font-bold text-[10px] sm:text-xs md:text-sm lg:text-base py-1 sm:py-1.5 lg:py-2 px-2.5 sm:px-3 lg:px-5 rounded-full shadow-lg text-center animate-slide-up"
                 style={{
                   animationDelay: `${i * 100}ms`,
                   textShadow: "0 2px 8px rgba(0,0,0,0.6)",
@@ -270,17 +249,14 @@ export default function HeroSection() {
             ))}
           </div>
 
-          {/* Description */}
           <p className="text-white text-[10px] sm:text-xs md:text-sm leading-snug mb-2 sm:mb-3 drop-shadow-lg font-medium max-w-md" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.7)" }}>
             We gather for explosive prayer storms, glorious worship, and life-changing encounters with the Holy Spirit.
           </p>
 
-          {/* Tagline */}
           <p className="font-script text-brand-gold-400 text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 drop-shadow-lg" style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
             Pray with us. Triumph with us.
           </p>
 
-          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Link
               href="/prayer"
@@ -294,7 +270,7 @@ export default function HeroSection() {
 
             <Link
               href="/live"
-              className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/40 text-white font-bold text-[11px] sm:text-xs lg:text-sm hover:bg-white/20 hover:border-white transition-all duration-300"
+              className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-[11px] sm:text-xs lg:text-sm hover:border-brand-gold-400 transition-all duration-300"
             >
               <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />

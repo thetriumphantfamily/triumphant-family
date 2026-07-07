@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CORE PROMISES SECTION — 6 themed ministry promise cards
-// Purple gradient background with beautiful glass cards
+// CORE PROMISES SECTION — Same gradient on section + cards
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const PROMISES = [
@@ -65,26 +64,19 @@ export default function CorePromisesSection() {
   return (
     <section className="relative py-20 lg:py-24 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
-      {/* Decorative blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-brand-magenta-500/20 blur-3xl" />
-        <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-brand-gold-400/15 blur-3xl" />
-      </div>
-
       <div className="relative z-10 container-custom">
 
         {/* Section heading */}
         <div className="text-center mb-12 lg:mb-16">
-          
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg mb-6">
+
+          {/* Badge — same gradient + gold border */}
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg mb-6">
             <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
               What We Offer
             </span>
           </div>
 
-          {/* Heading */}
           <h2 className="font-heading text-3xl md:text-4xl lg:text-6xl font-bold text-white leading-tight mb-4">
             God&rsquo;s Best{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
@@ -92,43 +84,35 @@ export default function CorePromisesSection() {
             </span>
           </h2>
 
-          {/* Subtitle */}
           <p className="text-brand-purple-100 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto">
-            Every time you join The Triumphant Family — in person or online — 
-            you step into an atmosphere charged with faith, power, and the 
+            Every time you join The Triumphant Family — in person or online —
+            you step into an atmosphere charged with faith, power, and the
             undeniable presence of God.
           </p>
 
-          {/* Gold divider */}
           <div className="flex items-center justify-center mt-6">
             <div className="h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
           </div>
         </div>
 
-        {/* Cards grid */}
+        {/* Cards grid — SAME gradient + gold border */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {PROMISES.map((promise, index) => (
             <div
               key={index}
-              className="group relative bg-white/10 backdrop-blur-md rounded-3xl p-6 lg:p-8 border-2 border-white/20 hover:border-brand-gold-400/60 hover:bg-white/15 transition-all duration-500 hover:-translate-y-2 overflow-hidden shadow-xl"
+              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 lg:p-8 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-500 hover:-translate-y-2 overflow-hidden shadow-xl"
             >
               {/* Gold gradient top bar */}
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 rounded-t-3xl" />
 
-              {/* Decorative corner glow */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold-400/10 blur-3xl rounded-full pointer-events-none" />
-
-              {/* Icon */}
               <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                 {promise.icon}
               </div>
 
-              {/* Title */}
               <h3 className="font-heading text-xl lg:text-2xl font-bold text-white mb-3">
                 {promise.title}
               </h3>
 
-              {/* Description */}
               <p className="text-brand-purple-100 leading-relaxed text-sm md:text-base">
                 {promise.description}
               </p>

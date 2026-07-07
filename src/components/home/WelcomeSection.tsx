@@ -1,7 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// WELCOME SECTION — Compact + Justified on both layouts
-// Mobile: Photo on top + justified paragraphs (quote removed)
-// Desktop: Photo LEFT + justified paragraphs (compact spacing)
+// WELCOME SECTION — Both CTAs gold gradient (matching)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -11,17 +9,9 @@ export default function WelcomeSection() {
   return (
     <section className="relative py-12 lg:pt-14 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
-      {/* Decorative blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-brand-magenta-500/20 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-brand-gold-400/10 blur-3xl" />
-      </div>
-
       <div className="relative z-10 container-custom">
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        {/* MOBILE LAYOUT (default)                                    */}
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        {/* MOBILE LAYOUT */}
         <div className="lg:hidden">
           <div className="grid grid-cols-1 gap-8 items-center">
 
@@ -56,9 +46,11 @@ export default function WelcomeSection() {
 
             {/* Content */}
             <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-brand-gold-400/40 bg-brand-gold-400/10 mb-5">
+
+              {/* Badge — same gradient + gold border */}
+              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg mb-5">
                 <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
-                <span className="text-brand-gold-300 font-bold text-xs uppercase tracking-widest">
+                <span className="text-white font-bold text-xs uppercase tracking-widest">
                   A Word from the Man of God
                 </span>
               </div>
@@ -70,11 +62,10 @@ export default function WelcomeSection() {
                 </span>
               </h2>
 
-              {/* Justified paragraphs (quote removed) */}
               <div className="space-y-4 text-brand-purple-100 text-base md:text-lg leading-relaxed mb-6">
                 <p className="text-justify">
-                  God has called us together as a family — a family of prayer 
-                  warriors, worshippers, and believers who refuse to accept anything 
+                  God has called us together as a family — a family of prayer
+                  warriors, worshippers, and believers who refuse to accept anything
                   less than God&rsquo;s best.
                 </p>
                 <p className="text-justify">
@@ -88,7 +79,7 @@ export default function WelcomeSection() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-4 mb-6 pb-6 border-b border-white/10">
+              <div className="flex items-center justify-center gap-4 mb-6 pb-6 border-b border-brand-gold-400/30">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0">
                   <span className="font-heading font-bold text-brand-purple-900 text-lg">OO</span>
                 </div>
@@ -98,7 +89,10 @@ export default function WelcomeSection() {
                 </div>
               </div>
 
+              {/* CTAs — BOTH GOLD GRADIENT */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
+
+                {/* Learn About Us */}
                 <Link
                   href="/about"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
@@ -108,10 +102,15 @@ export default function WelcomeSection() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
+
+                {/* Send a Prayer Request — GOLD GRADIENT (matching) */}
                 <Link
                   href="/prayer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/40 text-white font-bold hover:bg-white/20 hover:border-white transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                  </svg>
                   Send a Prayer Request
                 </Link>
               </div>
@@ -119,14 +118,12 @@ export default function WelcomeSection() {
           </div>
         </div>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        {/* DESKTOP LAYOUT (lg+ only)                                   */}
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        {/* DESKTOP LAYOUT */}
         <div className="hidden lg:block">
 
-          {/* Top center: White glass badge */}
+          {/* Badge — same gradient + gold border */}
           <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg">
+            <div className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
               <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
               <span className="text-white font-bold text-sm uppercase tracking-widest">
                 A Word from the Man of God
@@ -134,7 +131,6 @@ export default function WelcomeSection() {
             </div>
           </div>
 
-          {/* Center: Heading on ONE LINE */}
           <div className="text-center mb-10">
             <h2 className="font-heading text-5xl xl:text-6xl 2xl:text-7xl font-bold text-white leading-tight whitespace-nowrap">
               Welcome to{" "}
@@ -144,10 +140,8 @@ export default function WelcomeSection() {
             </h2>
           </div>
 
-          {/* Split: Photo LEFT + Content column CENTER */}
           <div className="grid grid-cols-12 gap-8 items-start">
 
-            {/* Photo — extreme left (cols 1-4) */}
             <div className="col-span-4 relative flex justify-start">
               <div className="absolute inset-0 flex items-center justify-start pl-4 pointer-events-none">
                 <div className="w-[420px] h-[420px] rounded-full border-2 border-brand-gold-400/30 animate-pulse-slow" />
@@ -176,14 +170,12 @@ export default function WelcomeSection() {
               </div>
             </div>
 
-            {/* Content Block (cols 5-12) */}
             <div className="col-span-8">
-              
-              {/* Justified Paragraphs */}
+
               <div className="space-y-6 mb-8">
                 <p className="text-brand-purple-100 text-2xl xl:text-3xl leading-relaxed text-justify">
-                  God has called us together as a family — a family of prayer 
-                  warriors, worshippers, and believers who refuse to accept anything 
+                  God has called us together as a family — a family of prayer
+                  warriors, worshippers, and believers who refuse to accept anything
                   less than God&rsquo;s best.
                 </p>
                 <p className="text-brand-purple-100 text-2xl xl:text-3xl leading-relaxed text-justify">
@@ -197,8 +189,7 @@ export default function WelcomeSection() {
                 </p>
               </div>
 
-              {/* Signature */}
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-brand-gold-400/30">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0">
                   <span className="font-heading font-bold text-brand-purple-900 text-xl">OO</span>
                 </div>
@@ -208,8 +199,10 @@ export default function WelcomeSection() {
                 </div>
               </div>
 
-              {/* CTAs */}
+              {/* CTAs — BOTH GOLD GRADIENT */}
               <div className="flex flex-row gap-4 justify-start">
+
+                {/* Learn About Us */}
                 <Link
                   href="/about"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
@@ -219,14 +212,18 @@ export default function WelcomeSection() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
+
+                {/* Send a Prayer Request — GOLD GRADIENT (matching) */}
                 <Link
                   href="/prayer"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/40 text-white font-bold text-lg hover:bg-white/20 hover:border-white transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                  </svg>
                   Send a Prayer Request
                 </Link>
               </div>
-
             </div>
 
           </div>

@@ -1,22 +1,16 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// OUR STORY SECTION — Ministry history & journey (fully themed)
+// OUR STORY SECTION — Deep purple cards, no white haze
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export default function OurStorySection() {
   return (
     <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
-      {/* Blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-brand-gold-400/15 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-brand-magenta-500/20 blur-3xl" />
-      </div>
-
       <div className="relative z-10 container-custom">
 
         {/* Badge */}
         <div className="flex justify-center mb-4">
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg">
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-purple-900/60 border border-brand-gold-400/40 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
               Our Story
@@ -36,14 +30,13 @@ export default function OurStorySection() {
             The Triumphant Family is not just a church. It is a family — a movement
             of believers raised to demonstrate the supernatural power of God.
           </p>
-          {/* Gold divider */}
           <div className="flex items-center justify-center mt-4">
             <div className="h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
           </div>
         </div>
 
-        {/* Story content — glass card */}
-        <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-3xl p-8 lg:p-12 border border-white/20 relative overflow-hidden">
+        {/* Story content — deep purple card */}
+        <div className="max-w-4xl mx-auto bg-brand-purple-900/60 rounded-3xl p-8 lg:p-12 border border-brand-gold-400/30 relative overflow-hidden">
 
           {/* Gold top bar */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -84,7 +77,7 @@ export default function OurStorySection() {
           </div>
 
           {/* Quote block */}
-          <div className="relative mt-10 py-7 px-6 md:px-10 border-l-4 border-brand-gold-400 bg-white/10 rounded-r-2xl">
+          <div className="relative mt-10 py-7 px-6 md:px-10 border-l-4 border-brand-gold-400 bg-brand-purple-900/60 rounded-r-2xl">
             <svg className="absolute top-4 left-4 w-8 h-8 text-brand-gold-400/40" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
             </svg>

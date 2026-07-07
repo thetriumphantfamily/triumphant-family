@@ -1,23 +1,81 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PRAYER HERO — Page banner with breadcrumb + scripture (fully themed)
+// PRAYER HERO — 3-photo G.O. rotating gallery (clean, no blobs)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link  from "next/link";
+
+const GO_PHOTOS = [
+  "/images/hero/prophet-1.png",
+  "/images/hero/prophet-2.png",
+  "/images/hero/prophet-3.png",
+  "/images/hero/prophet-4.png",
+];
 
 export default function PrayerHero() {
-  return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 py-16 lg:py-24">
+  const [activeIndex, setActiveIndex] = useState(0);
+  const totalPhotos = GO_PHOTOS.length;
 
-      {/* Blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-brand-magenta-500/20 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-brand-gold-400/10 blur-3xl" />
-        {/* Light beams */}
-        <div className="absolute top-0 right-10 w-px h-full bg-gradient-to-b from-brand-gold-400/30 to-transparent rotate-12" />
-        <div className="absolute top-0 right-40 w-px h-full bg-gradient-to-b from-brand-magenta-400/20 to-transparent rotate-12" />
+  useEffect(() => {
+    if (totalPhotos <= 1) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % totalPhotos);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [totalPhotos]);
+
+  const getPhotoIndex = (offset: number) =>
+    (activeIndex + offset) % totalPhotos;
+
+  const renderPhotoLayer = (currentIndex: number) => (
+    <>
+      {GO_PHOTOS.map((src, i) => (
+        <div
+          key={src}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            i === currentIndex ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <Image
+            src={src}
+            alt="Prophet Olayiwole Ogunsola"
+            fill
+            className="object-cover object-top"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            priority={i === 0}
+          />
+        </div>
+      ))}
+    </>
+  );
+
+  return (
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[520px] lg:min-h-[600px] flex items-center">
+
+      {/* MOBILE: single rotating photo */}
+      <div className="absolute inset-0 z-0 md:hidden">
+        {renderPhotoLayer(activeIndex)}
+        <div className="absolute inset-0 z-10 bg-black/55" />
       </div>
 
-      <div className="relative z-10 container-custom text-center">
+      {/* DESKTOP: 3 photos side-by-side */}
+      <div className="absolute inset-0 z-0 hidden md:grid md:grid-cols-3">
+        <div className="relative overflow-hidden">
+          {renderPhotoLayer(getPhotoIndex(0))}
+        </div>
+        <div className="relative overflow-hidden">
+          {renderPhotoLayer(getPhotoIndex(1))}
+        </div>
+        <div className="relative overflow-hidden">
+          {renderPhotoLayer(getPhotoIndex(2))}
+        </div>
+        <div className="absolute inset-0 z-10 bg-black/55" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-20 container-custom text-center py-16 lg:py-24 w-full">
 
         {/* Gold icon circle */}
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-6">

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// GALLERY PREVIEW — Themed homepage section showing latest photos
+// GALLERY PREVIEW — Clean theme, no blobs, gold borders
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -18,23 +18,16 @@ export default async function GalleryPreview() {
 
   const items = gallery || [];
 
-  // Hide section if no gallery items
   if (items.length === 0) return null;
 
   return (
     <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-brand-gold-400/15 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-brand-magenta-500/20 blur-3xl" />
-      </div>
-
       <div className="relative z-10 container-custom">
 
-        {/* Top center: Badge */}
+        {/* Badge */}
         <div className="flex justify-center mb-4">
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg">
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
               Photo Gallery
@@ -42,7 +35,7 @@ export default async function GalleryPreview() {
           </div>
         </div>
 
-        {/* Center heading */}
+        {/* Heading */}
         <div className="text-center mb-8 lg:mb-10 max-w-4xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Precious{" "}
@@ -55,7 +48,6 @@ export default async function GalleryPreview() {
             Family Ministry.
           </p>
 
-          {/* Gold divider */}
           <div className="flex items-center justify-center mt-4">
             <div className="h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
           </div>
@@ -67,7 +59,7 @@ export default async function GalleryPreview() {
             <Link
               key={item.id}
               href="/gallery"
-              className="group relative aspect-square rounded-2xl overflow-hidden border-2 border-white/20 hover:border-brand-gold-400/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+              className="group relative aspect-square rounded-2xl overflow-hidden border-2 border-brand-gold-400/40 hover:border-brand-gold-400 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
             >
               <Image
                 src={item.image_url}
@@ -76,10 +68,8 @@ export default async function GalleryPreview() {
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
                 unoptimized
               />
-              {/* Gold hover overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-900/80 via-brand-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-              {/* Title on hover */}
               {item.title && (
                 <div className="absolute bottom-0 inset-x-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <p className="text-white text-xs lg:text-sm font-bold truncate" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>

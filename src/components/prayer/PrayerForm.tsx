@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PRAYER FORM — Submit prayer request (fully themed, no magenta blobs)
+// PRAYER FORM — Submit prayer request (clean, no blobs)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -130,12 +130,6 @@ export default function PrayerForm() {
       id="form"
       className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden"
     >
-      {/* Gold blobs only — no magenta */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-brand-gold-400/15 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-brand-gold-400/10 blur-3xl" />
-      </div>
-
       <div className="relative z-10 container-custom">
         <div className="max-w-3xl mx-auto">
 

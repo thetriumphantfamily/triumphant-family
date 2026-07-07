@@ -1,12 +1,11 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SERMONS PREVIEW — Latest 3 sermons themed with brand colors
+// SERMONS PREVIEW — Same gradient on section + cards
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 
-// ── YouTube thumbnail helper ──
 function getYouTubeThumbnail(url: string): string | null {
   const match = url?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
   if (!match) return null;
@@ -26,17 +25,11 @@ export default async function SermonsPreview() {
   return (
     <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-brand-magenta-500/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-brand-gold-400/15 blur-3xl" />
-      </div>
-
       <div className="relative z-10 container-custom">
 
-        {/* Top center: Badge */}
+        {/* Badge */}
         <div className="flex justify-center mb-4">
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg">
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
               The Word
@@ -44,7 +37,7 @@ export default async function SermonsPreview() {
           </div>
         </div>
 
-        {/* Center heading */}
+        {/* Heading */}
         <div className="text-center mb-8 lg:mb-10 max-w-4xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Latest{" "}
@@ -56,18 +49,18 @@ export default async function SermonsPreview() {
             Feed your spirit with anointed messages from Prophet Olayiwole Ogunsola.
           </p>
 
-          {/* Gold divider */}
           <div className="flex items-center justify-center mt-4">
             <div className="h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
           </div>
         </div>
 
-        {/* No sermons yet — themed empty state */}
+        {/* Empty state */}
         {(!sermons || sermons.length === 0) && (
-          <div className="max-w-2xl mx-auto text-center bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-3xl p-10 lg:p-12">
+          <div className="max-w-2xl mx-auto text-center bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-4">
               <svg className="w-10 h-10 text-brand-purple-900" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
               </svg>
             </div>
             <h3 className="font-heading text-xl lg:text-2xl font-bold text-white mb-2">
@@ -90,7 +83,7 @@ export default async function SermonsPreview() {
           </div>
         )}
 
-        {/* Sermon cards */}
+        {/* Sermon cards — SAME GRADIENT + GOLD BORDER */}
         {sermons && sermons.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
@@ -100,12 +93,10 @@ export default async function SermonsPreview() {
                   <Link
                     key={sermon.id}
                     href={`/sermons/${sermon.slug}`}
-                    className="group bg-white/10 backdrop-blur-md rounded-3xl overflow-hidden border-2 border-white/20 hover:border-brand-gold-400/60 hover:bg-white/15 transition-all duration-300 hover:-translate-y-1 relative"
+                    className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl overflow-hidden border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-1 relative"
                   >
-                    {/* Gold top bar */}
                     <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
 
-                    {/* Thumbnail */}
                     <div className="relative w-full aspect-video bg-brand-purple-900 overflow-hidden">
                       {thumbnail ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -117,33 +108,30 @@ export default async function SermonsPreview() {
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-purple-900">
                           <svg className="w-16 h-16 text-white/40" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
+                            <path d="M8 5v14l11-7z" />
                           </svg>
                         </div>
                       )}
 
-                      {/* Play overlay */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-brand-purple-900/60">
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center">
                           <svg className="w-8 h-8 text-brand-purple-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
+                            <path d="M8 5v14l11-7z" />
                           </svg>
                         </div>
                       </div>
 
-                      {/* Views badge */}
                       {sermon.views > 0 && (
-                        <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1 border border-white/20">
+                        <div className="absolute bottom-2 right-2 bg-brand-purple-900/80 text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1 border border-brand-gold-400/40">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                           </svg>
                           {sermon.views.toLocaleString()}
                         </div>
                       )}
                     </div>
 
-                    {/* Content */}
                     <div className="p-5 lg:p-6">
                       {sermon.series && (
                         <span className="inline-block px-3 py-1 rounded-full bg-brand-gold-400/20 border border-brand-gold-400/40 text-brand-gold-300 text-xs font-bold uppercase tracking-wider mb-3">
@@ -158,7 +146,7 @@ export default async function SermonsPreview() {
                           📖 {sermon.scripture}
                         </p>
                       )}
-                      <div className="flex items-center justify-between text-xs text-brand-purple-200 pt-3 border-t border-white/10">
+                      <div className="flex items-center justify-between text-xs text-brand-purple-200 pt-3 border-t border-brand-gold-400/30">
                         <span className="font-medium">{sermon.preacher}</span>
                         <span>{formatDate(sermon.sermon_date)}</span>
                       </div>
@@ -168,7 +156,6 @@ export default async function SermonsPreview() {
               })}
             </div>
 
-            {/* View all CTA at bottom */}
             <div className="flex justify-center">
               <Link
                 href="/sermons"
@@ -176,7 +163,7 @@ export default async function SermonsPreview() {
               >
                 View All Sermons
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
             </div>
