@@ -1,15 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LOGO COMPONENT — REUSABLE + 3-CLICK ADMIN ACCESS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Used in Navbar, Footer and any other place requiring the brand logo.
-// Four size variants: sm | md | lg | xl
-//
-// ADMIN ACCESS:
-//   Click the logo 3 times → redirects to /admin/login
-//   1st click: nothing happens
-//   2nd click: nothing happens
-//   3rd click: opens admin login page
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
 
@@ -55,19 +46,16 @@ export default function Logo({
 
   // ━━━ Click handler: count clicks, redirect on 3rd ━━━
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Stop default navigation
+    e.preventDefault();
 
     clickCountRef.current += 1;
 
     if (clickCountRef.current >= 3) {
-      // 3rd click — go to admin
       clickCountRef.current = 0;
       router.push("/admin/login");
     }
-    // 1st and 2nd click — do nothing
   };
 
-  // ━━━ Content JSX ━━━
   const content = (
     <div className={cn("flex items-center", dimensions.gap, className)}>
       {/* Logo Image */}
@@ -97,7 +85,7 @@ export default function Logo({
           </span>
           <span
             className={cn(
-              "font-body font-medium tracking-wider uppercase",
+              "font-body font-black tracking-wider uppercase",
               dimensions.textSub,
               textStyles.sub
             )}
@@ -109,7 +97,6 @@ export default function Logo({
     </div>
   );
 
-  // ━━━ Render with click handler ━━━
   if (href) {
     return (
       <a
