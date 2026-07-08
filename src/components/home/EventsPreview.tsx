@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EVENTS PREVIEW — Mobile optimized (flyer displays properly)
+// EVENTS PREVIEW — Mobile fix (flyer loads properly on real phones)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -66,7 +66,7 @@ export default async function EventsPreview() {
           </div>
         )}
 
-        {/* Event cards — MOBILE OPTIMIZED */}
+        {/* Event cards */}
         {events && events.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 max-w-5xl mx-auto">
@@ -86,16 +86,18 @@ export default async function EventsPreview() {
                   >
                     <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
 
-                    {/* Flyer — MOBILE-FRIENDLY (max height + object-contain) */}
-                    <div className="relative w-full bg-brand-purple-950 overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ minHeight: "300px", maxHeight: "500px" }}>
+                    {/* Flyer — plain <img> for mobile compatibility */}
+                    <div className="relative w-full bg-brand-purple-950 overflow-hidden flex-shrink-0">
                       {event.flyer_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={event.flyer_url}
-                          alt={event.title}
-                          className="w-full h-auto max-h-[500px] object-contain"
-                          style={{ display: "block" }}
-                        />
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={event.flyer_url}
+                            alt={event.title}
+                            loading="lazy"
+                            className="w-full h-auto block"
+                          />
+                        </>
                       ) : (
                         <div className="w-full aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-violet-900">
                           <svg className="w-20 h-20 text-white/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
