@@ -84,9 +84,9 @@ export default function PrayerHero() {
           </svg>
         </div>
 
-        {/* Badge */}
+        {/* Badge — same gradient + gold border */}
         <div className="flex justify-center mb-5">
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg">
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
               We Pray With You

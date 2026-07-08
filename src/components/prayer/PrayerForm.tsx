@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PRAYER FORM — Submit prayer request (clean, no blobs)
+// PRAYER FORM — Clean theme with gold submit button
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/client";
 import Input    from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import Select   from "@/components/ui/Select";
-import Button   from "@/components/ui/Button";
 
 const CATEGORIES = [
   { value: "healing",      label: "🙌 Healing" },
@@ -135,7 +134,7 @@ export default function PrayerForm() {
 
           {/* Badge */}
           <div className="flex justify-center mb-4">
-            <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 shadow-lg">
+            <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
               <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
               <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
                 Prayer Request
@@ -160,16 +159,15 @@ export default function PrayerForm() {
             </div>
           </div>
 
-          {/* Form glass card */}
-          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-white/20 relative overflow-hidden">
+          {/* Form card — SAME GRADIENT + GOLD BORDER */}
+          <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 relative overflow-hidden">
 
-            {/* Gold top bar */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
             <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* Anonymous Toggle */}
-              <div className="p-4 rounded-2xl bg-brand-purple-900/40 border border-white/20">
+              <div className="p-4 rounded-2xl bg-brand-purple-900/50 border border-brand-gold-400/30">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -250,7 +248,7 @@ export default function PrayerForm() {
               />
 
               {/* Show on Wall Toggle */}
-              <div className="p-4 rounded-2xl bg-brand-purple-900/40 border border-brand-gold-400/30">
+              <div className="p-4 rounded-2xl bg-brand-purple-900/50 border border-brand-gold-400/30">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -267,21 +265,29 @@ export default function PrayerForm() {
                 </label>
               </div>
 
-              {/* Submit button */}
-              <Button
+              {/* Submit button — GOLD GRADIENT */}
+              <button
                 type="submit"
-                variant="primary"
-                size="lg"
-                fullWidth
-                isLoading={isSubmitting}
-                rightIcon={
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                }
+                disabled={isSubmitting}
+                className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base lg:text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {isSubmitting ? "Submitting..." : "Submit Prayer Request"}
-              </Button>
+                {isSubmitting ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit Prayer Request
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </>
+                )}
+              </button>
 
               <p className="text-center text-brand-purple-300 text-xs">
                 Your prayer request is confidential and will be handled with care.
