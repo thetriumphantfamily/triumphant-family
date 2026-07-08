@@ -1,52 +1,101 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CONTACT HERO — Page banner with breadcrumb
+// CONTACT HERO — 3-photo G.O. rotating gallery (clean, no blobs)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link  from "next/link";
+
+const GO_PHOTOS = [
+  "/images/hero/prophet-1.png",
+  "/images/hero/prophet-2.png",
+  "/images/hero/prophet-3.png",
+  "/images/hero/prophet-4.png",
+];
 
 export default function ContactHero() {
-  return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 py-16 lg:py-24">
-      {/* Decorative background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-brand-magenta-500/20 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-brand-gold-400/10 blur-3xl" />
+  const [activeIndex, setActiveIndex] = useState(0);
+  const totalPhotos = GO_PHOTOS.length;
 
-        {/* Diagonal light beams */}
-        <div className="absolute top-0 right-0 w-1/2 h-full opacity-15">
-          <div className="absolute top-0 right-10 w-1 h-full bg-gradient-to-b from-brand-gold-400 to-transparent rotate-12" />
-          <div className="absolute top-0 right-40 w-1 h-full bg-gradient-to-b from-brand-magenta-400 to-transparent rotate-12" />
+  useEffect(() => {
+    if (totalPhotos <= 1) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % totalPhotos);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [totalPhotos]);
+
+  const getPhotoIndex = (offset: number) =>
+    (activeIndex + offset) % totalPhotos;
+
+  const renderPhotoLayer = (currentIndex: number) => (
+    <>
+      {GO_PHOTOS.map((src, i) => (
+        <div
+          key={src}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            i === currentIndex ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <Image
+            src={src}
+            alt="Prophet Olayiwole Ogunsola"
+            fill
+            className="object-cover object-top"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            priority={i === 0}
+          />
         </div>
+      ))}
+    </>
+  );
+
+  return (
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[520px] lg:min-h-[600px] flex items-center">
+
+      {/* MOBILE: single rotating photo */}
+      <div className="absolute inset-0 z-0 md:hidden">
+        {renderPhotoLayer(activeIndex)}
+        <div className="absolute inset-0 z-10 bg-black/55" />
       </div>
 
-      <div className="relative z-10 container-custom text-center">
-        {/* Chat icon */}
+      {/* DESKTOP: 3 photos side-by-side */}
+      <div className="absolute inset-0 z-0 hidden md:grid md:grid-cols-3">
+        <div className="relative overflow-hidden">
+          {renderPhotoLayer(getPhotoIndex(0))}
+        </div>
+        <div className="relative overflow-hidden">
+          {renderPhotoLayer(getPhotoIndex(1))}
+        </div>
+        <div className="relative overflow-hidden">
+          {renderPhotoLayer(getPhotoIndex(2))}
+        </div>
+        <div className="absolute inset-0 z-10 bg-black/55" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-20 container-custom text-center py-16 lg:py-24 w-full">
+
+        {/* Gold chat icon */}
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-6">
-          <svg
-            className="w-10 h-10 text-brand-purple-900"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
+          <svg className="w-10 h-10 text-brand-purple-900" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
         </div>
 
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-brand-gold-400/40 bg-brand-gold-400/10 mb-6">
-          <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
-          <span className="text-brand-gold-300 font-semibold text-sm uppercase tracking-widest">
-            Get In Touch
-          </span>
+        <div className="flex justify-center mb-5">
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-widest">
+              Get In Touch
+            </span>
+          </div>
         </div>
 
-        {/* Main heading */}
-        <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
+        {/* Heading */}
+        <h1 className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
           Contact{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
             Us
@@ -54,10 +103,15 @@ export default function ContactHero() {
         </h1>
 
         {/* Description */}
-        <p className="text-brand-purple-100 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-6">
+        <p className="text-brand-purple-100 text-sm md:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed mb-6">
           We&rsquo;d love to hear from you. Reach out for prayer, partnership,
           inquiries, or to simply say hello. Our team is ready to serve you.
         </p>
+
+        {/* Gold divider */}
+        <div className="flex items-center justify-center mb-6">
+          <div className="h-1 w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
+        </div>
 
         {/* Tagline */}
         <p className="font-script text-brand-gold-400 text-xl md:text-2xl mb-8">
@@ -69,18 +123,8 @@ export default function ContactHero() {
           <Link href="/" className="hover:text-brand-gold-400 transition-colors">
             Home
           </Link>
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5l7 7-7 7"
-            />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
           <span className="text-brand-gold-400 font-semibold">Contact</span>
         </nav>
