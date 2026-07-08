@@ -1,7 +1,7 @@
 "use client";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// NAVBAR — Two-row layout with brand-colored social icons
+// NAVBAR — Mobile dropdown themed with purple + gold system
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { useState, useEffect } from "react";
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import Logo from "./Logo";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SOCIAL MEDIA LINKS — Original brand colors + official Facebook logo
+// SOCIAL MEDIA LINKS — Original brand colors
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SOCIAL_LINKS = [
   {
@@ -63,7 +63,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
-  // Detect scroll for navbar style change
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -72,7 +71,6 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Lock body scroll when mobile menu open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -84,12 +82,10 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  // Close menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
-  // Filter "Give" out of main links (it's a special button)
   const mainLinks = NAV_LINKS.filter((link) => link.name !== "Give");
 
   return (
@@ -104,7 +100,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* MAIN NAVBAR — TWO ROWS ON DESKTOP */}
+      {/* MAIN NAVBAR */}
       <nav
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-300",
@@ -113,19 +109,15 @@ export default function Navbar() {
             : "bg-brand-purple-900"
         )}
       >
-        {/* ROW 1: Logo (left) + Social + Give (right) */}
+        {/* ROW 1: Logo + Social + Give */}
         <div className={cn(
           "container-custom flex items-center justify-between gap-4 transition-all duration-300",
           isScrolled ? "py-2" : "py-3 md:py-4"
         )}>
 
-          {/* LOGO */}
           <Logo size="sm" textColor="white" />
 
-          {/* RIGHT SIDE: SOCIAL + GIVE (DESKTOP) */}
           <div className="hidden lg:flex items-center gap-3">
-
-            {/* Social Media Icons — ORIGINAL BRAND COLORS */}
             <div className="flex items-center gap-2 pr-3 border-r border-white/20">
               {SOCIAL_LINKS.map((social) => (
                 <a
@@ -145,7 +137,6 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Give Button */}
             <Link
               href="/give"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
@@ -166,7 +157,7 @@ export default function Navbar() {
 
         </div>
 
-        {/* ROW 2: MENU LINKS (DESKTOP ONLY, CENTERED) */}
+        {/* ROW 2: Desktop Menu */}
         <div className={cn(
           "hidden lg:block border-t border-white/10 transition-all duration-300",
           isScrolled ? "py-1.5" : "py-2"
@@ -196,7 +187,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MOBILE DRAWER */}
+      {/* ══════════════════════════════════════════════════════ */}
+      {/* MOBILE DRAWER — LOCKED-IN PURPLE + GOLD THEME         */}
+      {/* ══════════════════════════════════════════════════════ */}
       <div
         className={cn(
           "fixed inset-0 z-40 lg:hidden transition-all duration-300",
@@ -205,32 +198,47 @@ export default function Navbar() {
       >
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-brand-purple-950/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
 
-        {/* Drawer Panel */}
+        {/* Drawer Panel — SAME PURPLE GRADIENT AS SITE */}
         <div
           className={cn(
-            "absolute top-0 right-0 h-full w-[85%] max-w-sm bg-gradient-purple shadow-brand-lg transition-transform duration-300 ease-out",
+            "absolute top-0 right-0 h-full w-[85%] max-w-sm bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-l-2 border-brand-gold-400/40 shadow-2xl transition-transform duration-300 ease-out overflow-hidden",
             isOpen ? "translate-x-0" : "translate-x-full"
           )}
         >
+          {/* Gold top bar */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
+
           {/* Drawer Header */}
-          <div className="flex items-center justify-between p-5 border-b border-white/10">
+          <div className="relative flex items-center justify-between p-5 border-b border-brand-gold-400/30">
             <Logo size="sm" textColor="white" />
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-full bg-brand-purple-950/60 hover:bg-brand-gold-400 hover:text-brand-purple-900 text-white transition-all duration-300 border border-brand-gold-400/40"
               aria-label="Close menu"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Drawer Links */}
+          {/* Drawer Content */}
           <nav className="p-5 overflow-y-auto h-[calc(100%-80px)]">
-            <ul className="space-y-2">
+
+            {/* Menu heading badge */}
+            <div className="flex justify-center mb-5">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-gold-400 animate-pulse" />
+                <span className="text-white font-bold text-[10px] uppercase tracking-widest">
+                  Navigate
+                </span>
+              </div>
+            </div>
+
+            {/* Menu Links */}
+            <ul className="space-y-2 mb-6">
               {mainLinks.map((link, index) => {
                 const isActive = pathname === link.href;
                 return (
@@ -242,31 +250,48 @@ export default function Navbar() {
                     <Link
                       href={link.href}
                       className={cn(
-                        "block px-5 py-3 rounded-xl text-base font-semibold transition-all duration-200",
+                        "flex items-center justify-between px-5 py-3.5 rounded-xl text-base font-bold transition-all duration-200 border relative overflow-hidden group",
                         isActive
-                          ? "bg-brand-gold-400 text-brand-purple-900 shadow-gold"
-                          : "text-white hover:bg-white/10 hover:translate-x-1"
+                          ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold border-brand-gold-400"
+                          : "bg-brand-purple-950/60 text-white border-brand-gold-400/30 hover:border-brand-gold-400 hover:bg-brand-purple-950 hover:translate-x-1"
                       )}
                     >
-                      {link.name}
+                      <span>{link.name}</span>
+                      <svg
+                        className={cn(
+                          "w-4 h-4 transition-transform",
+                          isActive ? "text-brand-purple-900" : "text-brand-gold-400 group-hover:translate-x-1"
+                        )}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
                   </li>
                 );
               })}
             </ul>
 
-            {/* Mobile Give Button */}
+            {/* Gold divider */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="h-0.5 w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
+            </div>
+
+            {/* Give Button */}
             <Link
               href="/give"
-              className="mt-6 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-gold text-brand-purple-900 font-bold shadow-gold-lg hover:scale-[1.02] transition-all duration-300"
+              className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-[1.02] transition-all duration-300"
             >
               <Heart className="w-5 h-5 fill-current" />
               Give to the Ministry
             </Link>
 
-            {/* SOCIAL ICONS (Mobile Drawer) — ORIGINAL BRAND COLORS */}
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <p className="text-center text-brand-gold-300 text-xs font-bold uppercase tracking-widest mb-4">
+            {/* Social Icons — ORIGINAL BRAND COLORS */}
+            <div className="mt-8 pt-6 border-t border-brand-gold-400/30">
+              <p className="text-center text-brand-gold-300 text-[10px] font-bold uppercase tracking-widest mb-4">
                 Connect With Us
               </p>
               <div className="flex items-center justify-center gap-3">
@@ -289,7 +314,7 @@ export default function Navbar() {
             </div>
 
             {/* Tagline */}
-            <p className="mt-8 text-center text-brand-gold-300 font-script text-2xl">
+            <p className="mt-8 text-center font-script text-brand-gold-400 text-2xl">
               Pray with us.
               <br />
               Triumph with us.

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EVENTS PREVIEW — Same gradient on section + cards (flyer visible, text below)
+// EVENTS PREVIEW — Mobile optimized (flyer displays properly)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -66,10 +66,10 @@ export default async function EventsPreview() {
           </div>
         )}
 
-        {/* Event cards — SAME GRADIENT + GOLD BORDER */}
+        {/* Event cards — MOBILE OPTIMIZED */}
         {events && events.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 max-w-5xl mx-auto">
               {events.map((event) => {
                 const eventDate = new Date(event.event_date);
                 const day = eventDate.getDate();
@@ -82,23 +82,22 @@ export default async function EventsPreview() {
                 return (
                   <div
                     key={event.id}
-                    className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl overflow-hidden border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-1 relative flex flex-col"
+                    className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_25px_rgba(255,199,44,0.25)] transition-all duration-300 hover:-translate-y-1 relative flex flex-col max-w-md mx-auto w-full"
                   >
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
+                    <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
 
-                    {/* Flyer */}
-                    <div className="relative w-full bg-brand-purple-900 overflow-hidden flex-shrink-0">
+                    {/* Flyer — MOBILE-FRIENDLY (max height + object-contain) */}
+                    <div className="relative w-full bg-brand-purple-950 overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ minHeight: "300px", maxHeight: "500px" }}>
                       {event.flyer_url ? (
-                        <div className="relative w-full" style={{ paddingBottom: "125%" }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={event.flyer_url}
-                            alt={event.title}
-                            className="absolute inset-0 w-full h-full object-contain"
-                          />
-                        </div>
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={event.flyer_url}
+                          alt={event.title}
+                          className="w-full h-auto max-h-[500px] object-contain"
+                          style={{ display: "block" }}
+                        />
                       ) : (
-                        <div className="relative w-full aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-violet-900">
+                        <div className="w-full aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-violet-900">
                           <svg className="w-20 h-20 text-white/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75" />
                           </svg>
@@ -170,14 +169,14 @@ export default async function EventsPreview() {
                           href={event.online_link!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-brand-purple-900/60 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 transition-all duration-300"
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
                         >
                           🌐 Join Online
                         </a>
                       ) : (
                         <Link
                           href={`/events/${event.slug}`}
-                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-brand-purple-900/60 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 transition-all duration-300"
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
                         >
                           View Details
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// GALLERY PREVIEW — Clean theme, no blobs, gold borders
+// GALLERY PREVIEW — Mobile optimized (photos display properly)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -53,26 +53,27 @@ export default async function GalleryPreview() {
           </div>
         </div>
 
-        {/* Photo grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+        {/* Photo grid — MOBILE OPTIMIZED */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8">
           {items.map((item) => (
             <Link
               key={item.id}
               href="/gallery"
-              className="group relative aspect-square rounded-2xl overflow-hidden border-2 border-brand-gold-400/40 hover:border-brand-gold-400 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+              className="group relative aspect-square rounded-xl md:rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_20px_rgba(255,199,44,0.3)] transition-all duration-300 hover:scale-[1.02]"
             >
               <Image
                 src={item.image_url}
                 alt={item.title || "Gallery"}
                 fill
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
                 unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-900/80 via-brand-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
               {item.title && (
-                <div className="absolute bottom-0 inset-x-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <p className="text-white text-xs lg:text-sm font-bold truncate" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
+                <div className="absolute bottom-0 inset-x-0 p-2 md:p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="text-white text-[10px] md:text-xs lg:text-sm font-bold truncate" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
                     {item.title}
                   </p>
                 </div>
