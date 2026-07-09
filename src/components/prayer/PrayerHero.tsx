@@ -72,16 +72,15 @@ export default function PrayerHero() {
   );
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[380px] md:min-h-[520px] lg:min-h-[600px] flex items-center">
-
-      {/* MOBILE: single rotating photo */}
-      <div className="absolute inset-0 z-0 md:hidden">
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[380px] sm:min-h-[420px] lg:min-h-[600px] flex items-center">
+      {/* MOBILE + TABLET: single rotating photo */}
+      <div className="absolute inset-0 z-0 lg:hidden">
         {renderMobilePhotoLayer(activeIndex)}
         <div className="absolute inset-0 z-10 bg-black/55" />
       </div>
 
       {/* DESKTOP: 3 photos side-by-side */}
-      <div className="absolute inset-0 z-0 hidden md:grid md:grid-cols-3">
+      <div className="absolute inset-0 z-0 hidden lg:grid lg:grid-cols-3">
         <div className="relative overflow-hidden">
           {renderDesktopPhotoLayer(getPhotoIndex(0))}
         </div>
@@ -96,7 +95,6 @@ export default function PrayerHero() {
 
       {/* Content */}
       <div className="relative z-20 container-custom text-center py-10 lg:py-24 w-full">
-
         {/* Gold icon circle */}
         <div className="inline-flex items-center justify-center w-14 h-14 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-4 lg:mb-6">
           <svg
@@ -125,7 +123,7 @@ export default function PrayerHero() {
         </div>
 
         {/* Heading */}
-        <h1 className="font-heading text-2xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-3 lg:mb-4">
+        <h1 className="font-heading text-2xl md:text-4xl lg:text-6xl font-bold text-white leading-tight mb-3 lg:mb-4">
           Submit a{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
             Prayer Request
@@ -145,7 +143,7 @@ export default function PrayerHero() {
         </div>
 
         {/* Scripture */}
-        <p className="font-script text-brand-gold-400 text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed mb-2 px-2 sm:px-0">
+        <p className="font-script text-brand-gold-400 text-lg md:text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed mb-2 px-2 sm:px-0">
           &ldquo;Again I say to you, if two of you agree on earth about anything
           they ask, it will be done for them by my Father in heaven.&rdquo;
         </p>
