@@ -73,6 +73,7 @@ export default function PrayerHero() {
 
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[380px] md:min-h-[520px] lg:min-h-[600px] flex items-center">
+
       {/* MOBILE: single rotating photo */}
       <div className="absolute inset-0 z-0 md:hidden">
         {renderMobilePhotoLayer(activeIndex)}
@@ -95,6 +96,7 @@ export default function PrayerHero() {
 
       {/* Content */}
       <div className="relative z-20 container-custom text-center py-10 lg:py-24 w-full">
+
         {/* Gold icon circle */}
         <div className="inline-flex items-center justify-center w-14 h-14 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-4 lg:mb-6">
           <svg
@@ -163,7 +165,11 @@ export default function PrayerHero() {
             strokeWidth={2}
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
           <span className="text-brand-gold-400 font-semibold">Prayer</span>
         </nav>
