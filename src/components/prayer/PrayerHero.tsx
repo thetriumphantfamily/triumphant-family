@@ -13,6 +13,13 @@ const GO_PHOTOS = [
   "/images/hero/prophet-4.png",
 ];
 
+const MOBILE_PHOTO_SETTINGS = [
+  { objectPosition: "40% top", scale: 1 },
+  { objectPosition: "50% top", scale: 0.92 },
+  { objectPosition: "50% top", scale: 0.92 },
+  { objectPosition: "50% top", scale: 0.92 },
+];
+
 export default function PrayerHero() {
   const [activeIndex, setActiveIndex] = useState(0);
   const totalPhotos = GO_PHOTOS.length;
@@ -32,22 +39,30 @@ export default function PrayerHero() {
 
   const renderMobilePhotoLayer = (currentIndex: number) => (
     <>
-      {GO_PHOTOS.map((src, i) => (
-        <div
-          key={src}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            i === currentIndex ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <img
-            src={src}
-            alt="Prophet Olayiwole Ogunsola"
-            loading={i === 0 ? "eager" : "lazy"}
-            className="w-full h-full object-cover"
-            style={{ objectPosition: "40% top" }}
-          />
-        </div>
-      ))}
+      {GO_PHOTOS.map((src, i) => {
+        const mobileSetting = MOBILE_PHOTO_SETTINGS[i];
+
+        return (
+          <div
+            key={src}
+            className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ${
+              i === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <img
+              src={src}
+              alt="Prophet Olayiwole Ogunsola"
+              loading={i === 0 ? "eager" : "lazy"}
+              className="w-full h-full object-cover"
+              style={{
+                objectPosition: mobileSetting.objectPosition,
+                transform: `scale(${mobileSetting.scale})`,
+                transformOrigin: "center top",
+              }}
+            />
+          </div>
+        );
+      })}
     </>
   );
 
