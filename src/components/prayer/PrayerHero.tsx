@@ -72,7 +72,8 @@ export default function PrayerHero() {
   );
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[380px] sm:min-h-[420px] lg:min-h-[600px] flex items-center">
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 min-h-[380px] sm:min-h-[420px] lg:min-h-[520px] flex items-center">
+
       {/* MOBILE + TABLET: single rotating photo */}
       <div className="absolute inset-0 z-0 lg:hidden">
         {renderMobilePhotoLayer(activeIndex)}
@@ -94,7 +95,8 @@ export default function PrayerHero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-20 container-custom text-center py-10 lg:py-24 w-full">
+      <div className="relative z-20 container-custom text-center py-10 lg:py-20 w-full">
+
         {/* Gold icon circle */}
         <div className="inline-flex items-center justify-center w-14 h-14 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-4 lg:mb-6">
           <svg
@@ -138,7 +140,7 @@ export default function PrayerHero() {
         </p>
 
         {/* Gold divider */}
-        <div className="flex items-center justify-center mb-5 lg:mb-6">
+        <div className="flex items-center justify-center mb-4 lg:mb-6">
           <div className="h-1 w-20 lg:w-24 rounded-full bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent" />
         </div>
 
