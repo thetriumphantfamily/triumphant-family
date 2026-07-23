@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// LIVE STREAM PLAYER — Clean (no blurs)
+// LIVE STREAM PLAYER — Dual platform (YouTube + Facebook) with orientation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { createClient } from "@/lib/supabase/server";
@@ -19,34 +19,54 @@ const FacebookIcon = ({ className }: { className?: string }) => (
 export default async function LiveStreamPlayer() {
   const supabase = await createClient();
 
-  const { data: liveSetting } = await supabase
+  // Fetch all settings we need
+  const { data: settings } = await supabase
     .from("site_settings")
-    .select("value")
-    .eq("key", "is_live_streaming")
-    .single();
+    .select("key, value")
+    .in("key", [
+      "is_live_streaming",
+      "youtube_live_url",
+      "youtube_orientation",
+      "facebook_live_url",
+      "facebook_orientation",
+      "event_start_date",
+      "pre_live_message",
+      "youtube_url",
+      "facebook_url",
+    ]);
 
-  const { data: youtubeIdSetting } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "youtube_live_id")
-    .single();
+  // Build settings map
+  const settingsMap: Record<string, string> = {};
+  settings?.forEach((s) => {
+    settingsMap[s.key] = s.value;
+  });
 
-  const { data: facebookUrlSetting } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "facebook_live_url")
-    .single();
+  const isLive = settingsMap.is_live_streaming === "true";
+  const youtubeLiveUrl = settingsMap.youtube_live_url || "";
+  const youtubeOrientation = settingsMap.youtube_orientation || "landscape";
+  const facebookLiveUrl = settingsMap.facebook_live_url || "";
+  const facebookOrientation = settingsMap.facebook_orientation || "landscape";
+  const eventStartDate = settingsMap.event_start_date || "Sunday 8:00 AM";
+  const preLiveMessage =
+    settingsMap.pre_live_message ||
+    "The live stream will begin at our next service.";
+  const youtubeChannel =
+    settingsMap.youtube_url ||
+    "https://www.youtube.com/PastorOlayiwoleTriumphant";
+  const facebookPage =
+    settingsMap.facebook_url || "https://m.facebook.com/wole.ola.376/";
 
-  const isLive = liveSetting?.value === "true";
-  const youtubeId = youtubeIdSetting?.value || "";
-  const facebookUrl = facebookUrlSetting?.value || "";
+  // Aspect ratio classes
+  const getAspectClass = (orientation: string) =>
+    orientation === "vertical"
+      ? "aspect-[9/16] max-w-sm mx-auto"
+      : "aspect-video";
 
   return (
     <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
-
         {/* Status Bar */}
-        <div className="max-w-5xl mx-auto mb-6">
+        <div className="max-w-5xl mx-auto mb-8">
           {isLive ? (
             <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-700 border-2 border-brand-gold-400/60 shadow-lg">
               <div className="relative flex items-center justify-center">
@@ -58,97 +78,205 @@ export default async function LiveStreamPlayer() {
               </p>
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-lg">
-              <svg className="w-5 h-5 text-brand-gold-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
-              <p className="text-white font-semibold text-sm">
-                We&rsquo;re currently offline. Catch the next service below.
+            <div className="text-center">
+              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-lg mb-3">
+                <svg
+                  className="w-5 h-5 text-brand-gold-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-white font-semibold text-sm">
+                  📅 Next Service: {eventStartDate}
+                </p>
+              </div>
+              <p className="text-brand-purple-100 text-sm md:text-base max-w-2xl mx-auto">
+                {preLiveMessage}
               </p>
             </div>
           )}
         </div>
 
-        {/* Main Player */}
-        <div className="max-w-5xl mx-auto">
-          <div className="aspect-video rounded-3xl overflow-hidden bg-black border-2 border-brand-gold-400/40">
-            {isLive && youtubeId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-                title="Live Stream"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            ) : (
-              <div className="relative w-full h-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center">
+        {/* Live streams — Only show when live */}
+        {isLive && (youtubeLiveUrl || facebookLiveUrl) ? (
+          <div className="max-w-6xl mx-auto">
+            {/* Section badge */}
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
+                <span className="text-white font-bold text-xs uppercase tracking-widest">
+                  Watch On Any Platform
+                </span>
+              </div>
+            </div>
 
+            {/* Dual stream grid */}
+            <div
+              className={`grid gap-6 ${
+                youtubeLiveUrl && facebookLiveUrl
+                  ? "grid-cols-1 lg:grid-cols-2"
+                  : "grid-cols-1"
+              }`}
+            >
+              {/* YOUTUBE LIVE */}
+              {youtubeLiveUrl && (
+                <div className="relative">
+                  {/* Platform label */}
+                  <div className="flex items-center justify-between mb-3 px-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center">
+                        <YoutubeIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white font-bold">YouTube Live</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="text-white text-xs font-bold uppercase">
+                        Live
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`${getAspectClass(
+                      youtubeOrientation
+                    )} rounded-2xl overflow-hidden bg-black border-2 border-brand-gold-400/40`}
+                  >
+                    <iframe
+                      src={youtubeLiveUrl}
+                      title="YouTube Live Stream"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* FACEBOOK LIVE */}
+              {facebookLiveUrl && (
+                <div className="relative">
+                  {/* Platform label */}
+                  <div className="flex items-center justify-between mb-3 px-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
+                        <FacebookIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white font-bold">Facebook Live</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="text-white text-xs font-bold uppercase">
+                        Live
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`${getAspectClass(
+                      facebookOrientation
+                    )} rounded-2xl overflow-hidden bg-black border-2 border-brand-gold-400/40`}
+                  >
+                    <iframe
+                      src={facebookLiveUrl}
+                      title="Facebook Live Stream"
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* OFFLINE STATE */
+          <div className="max-w-5xl mx-auto">
+            <div className="aspect-video rounded-3xl overflow-hidden bg-black border-2 border-brand-gold-400/40 relative">
+              <div className="relative w-full h-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center">
                 <div className="relative z-10 text-center px-8">
                   {/* Gold icon */}
-                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-6">
-                    <svg className="w-12 h-12 text-brand-purple-900" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-6">
+                    <svg
+                      className="w-10 h-10 md:w-12 md:h-12 text-brand-purple-900"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"
+                      />
                     </svg>
                   </div>
 
-                  <h3 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">
+                  <h3 className="font-heading text-2xl md:text-4xl font-bold text-white mb-4">
                     Stream Offline
                   </h3>
-                  <p className="text-brand-purple-100 text-base md:text-lg mb-6 max-w-md mx-auto">
-                    We go live during our services. Check the schedule below or
-                    subscribe to our YouTube channel.
+
+                  <p className="text-brand-purple-100 text-sm md:text-lg mb-4 max-w-md mx-auto">
+                    Come back for our next service and be blessed!
                   </p>
 
-                  <p className="font-script text-brand-gold-400 text-xl mb-6">
-                    See you at the next service.
+                  <p className="font-script text-brand-gold-400 text-lg md:text-xl mb-6">
+                    Pray with us. Triumph with us.
                   </p>
 
-                  <a
-                    href="https://www.youtube.com/PastorOlayiwoleTriumphant"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
-                  >
-                    <YoutubeIcon className="w-5 h-5" />
-                    Subscribe on YouTube
-                  </a>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <a
+                      href={youtubeChannel}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                    >
+                      <YoutubeIcon className="w-5 h-5" />
+                      Subscribe on YouTube
+                    </a>
+                    <a
+                      href={facebookPage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 transition-all duration-300"
+                    >
+                      <FacebookIcon className="w-5 h-5" />
+                      Follow on Facebook
+                    </a>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
+        )}
 
-          {/* Platform Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-            <a
-              href="https://www.youtube.com/PastorOlayiwoleTriumphant"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
-            >
-              <YoutubeIcon className="w-5 h-5" />
-              Watch on YouTube
-            </a>
-            {facebookUrl && (
-              <a
-                href={facebookUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
-              >
-                <FacebookIcon className="w-5 h-5" />
-                Watch on Facebook
-              </a>
-            )}
-            <a
-              href="https://m.facebook.com/wole.ola.376/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 transition-all duration-300"
-            >
-              <FacebookIcon className="w-5 h-5" />
-              Follow on Facebook
-            </a>
-          </div>
+        {/* Platform Buttons (always visible below) */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+          <a
+            href={youtubeChannel}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-sm shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <YoutubeIcon className="w-5 h-5" />
+            Visit YouTube Channel
+          </a>
+          <a
+            href={facebookPage}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <FacebookIcon className="w-5 h-5" />
+            Visit Facebook Page
+          </a>
         </div>
       </div>
     </section>

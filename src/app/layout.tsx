@@ -5,6 +5,7 @@ import { SEO, SITE } from "@/lib/constants";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import "./globals.css";
 
 const inter = Inter({
@@ -105,6 +106,7 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} ${greatVibes.variable}`}
     >
       <body className="font-body antialiased min-h-screen flex flex-col">
+        <AnnouncementBanner />
         <Navbar />
         <div className="flex-1">
           {children}
