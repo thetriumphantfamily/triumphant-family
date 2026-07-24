@@ -1,5 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HERO SECTION CLIENT — Rotating photos + all UI + Prophet signature
+// Content constrained to first column on desktop
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -223,86 +224,95 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
         </p>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-20 container-custom py-6 sm:py-7 md:py-8 lg:py-10 flex items-center h-full">
-        <div className="max-w-xl w-full">
-          <div className="mb-2 sm:mb-3">
+      {/* Main content — constrained to first column on desktop */}
+      <div className="relative z-20 md:grid md:grid-cols-3 h-full">
+        {/* First column — text lives here on desktop */}
+        <div className="container-custom md:container-none md:pl-6 lg:pl-10 py-6 sm:py-7 md:py-8 lg:py-10 flex items-center h-full md:pr-4">
+          <div className="w-full md:max-w-full">
+            <div className="mb-2 sm:mb-3">
+              <p
+                className="font-script text-red-500 text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-none drop-shadow-lg"
+                style={{ textShadow: "0 2px 15px rgba(239,68,68,0.6)" }}
+              >
+                Experience
+              </p>
+            </div>
+
+            <div
+              className="flex flex-col gap-1.5 sm:gap-2 mb-3 sm:mb-4 max-w-xs transition-opacity duration-500"
+              style={{ opacity: pillVisible ? 1 : 0 }}
+            >
+              {currentPills.map((pill, i) => (
+                <div
+                  key={`${pillIndex}-${i}`}
+                  className="bg-brand-gold-400/25 border-2 border-brand-gold-400/50 text-white font-heading font-bold text-[10px] sm:text-xs md:text-sm lg:text-base py-1 sm:py-1.5 lg:py-2 px-2.5 sm:px-3 lg:px-5 rounded-full shadow-lg text-center animate-slide-up"
+                  style={{
+                    animationDelay: `${i * 100}ms`,
+                    textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                  }}
+                >
+                  {pill}
+                </div>
+              ))}
+            </div>
+
             <p
-              className="font-script text-red-500 text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-none drop-shadow-lg"
-              style={{ textShadow: "0 2px 15px rgba(239,68,68,0.6)" }}
+              className="text-white text-[10px] sm:text-xs md:text-[11px] lg:text-sm leading-snug mb-2 sm:mb-3 drop-shadow-lg font-medium max-w-md md:max-w-none"
+              style={{ textShadow: "0 2px 10px rgba(0,0,0,0.7)" }}
             >
-              Experience
+              We gather for explosive prayer storms, glorious worship, and life-changing encounters with the Holy Spirit.
             </p>
-          </div>
 
-          <div
-            className="flex flex-col gap-1.5 sm:gap-2 mb-3 sm:mb-4 max-w-xs transition-opacity duration-500"
-            style={{ opacity: pillVisible ? 1 : 0 }}
-          >
-            {currentPills.map((pill, i) => (
-              <div
-                key={`${pillIndex}-${i}`}
-                className="bg-brand-gold-400/25 border-2 border-brand-gold-400/50 text-white font-heading font-bold text-[10px] sm:text-xs md:text-sm lg:text-base py-1 sm:py-1.5 lg:py-2 px-2.5 sm:px-3 lg:px-5 rounded-full shadow-lg text-center animate-slide-up"
-                style={{
-                  animationDelay: `${i * 100}ms`,
-                  textShadow: "0 2px 8px rgba(0,0,0,0.6)",
-                }}
-              >
-                {pill}
-              </div>
-            ))}
-          </div>
-
-          <p
-            className="text-white text-[10px] sm:text-xs md:text-sm leading-snug mb-2 sm:mb-3 drop-shadow-lg font-medium max-w-md"
-            style={{ textShadow: "0 2px 10px rgba(0,0,0,0.7)" }}
-          >
-            We gather for explosive prayer storms, glorious worship, and life-changing encounters with the Holy Spirit.
-          </p>
-
-          <p
-            className="font-script text-brand-gold-400 text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 drop-shadow-lg"
-            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
-          >
-            Pray with us. Triumph with us.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Link
-              href="/prayer"
-              className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-[11px] sm:text-xs lg:text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+            <p
+              className="font-script text-brand-gold-400 text-base sm:text-lg md:text-lg lg:text-2xl mb-3 sm:mb-4 drop-shadow-lg"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
             >
-              <svg
-                className="w-3 h-3 sm:w-4 sm:h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-              Prayer Request
-            </Link>
+              Pray with us. Triumph with us.
+            </p>
 
-            <Link
-              href="/live"
-              className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-[11px] sm:text-xs lg:text-sm hover:border-brand-gold-400 transition-all duration-300"
-            >
-              <svg
-                className="w-3 h-3 sm:w-4 sm:h-4"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2">
+              <Link
+                href="/prayer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-[11px] sm:text-xs lg:text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
               >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              Watch Live
-            </Link>
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+                Prayer Request
+              </Link>
+
+              <Link
+                href="/live"
+                className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-[11px] sm:text-xs lg:text-sm hover:border-brand-gold-400 transition-all duration-300"
+              >
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Watch Live
+              </Link>
+            </div>
           </div>
         </div>
+
+        {/* Empty second column on desktop — allows photo 2 to be seen */}
+        <div className="hidden md:block" />
+
+        {/* Empty third column on desktop — allows photo 3 to be seen */}
+        <div className="hidden md:block" />
       </div>
     </section>
   );
