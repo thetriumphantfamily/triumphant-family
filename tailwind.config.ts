@@ -52,8 +52,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: ["var(--font-playfair)", "serif"],
-        body:    ["var(--font-inter)", "sans-serif"],
+        heading: ["var(--font-poppins)", "sans-serif"],
+        body:    ["var(--font-poppins)", "sans-serif"],
         script:  ["var(--font-great-vibes)", "cursive"],
       },
       backgroundImage: {

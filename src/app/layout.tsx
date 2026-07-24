@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Great_Vibes } from "next/font/google";
+import { Poppins, Great_Vibes } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { SEO, SITE } from "@/lib/constants";
 import Navbar from "@/components/layout/Navbar";
@@ -8,15 +8,10 @@ import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import "./globals.css";
 
-const inter = Inter({
+const poppins = Poppins({
   subsets:  ["latin"],
-  variable: "--font-inter",
-  display:  "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets:  ["latin"],
-  variable: "--font-playfair",
+  weight:   ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-poppins",
   display:  "swap",
 });
 
@@ -103,7 +98,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfair.variable} ${greatVibes.variable}`}
+      className={`${poppins.variable} ${greatVibes.variable}`}
     >
       <body className="font-body antialiased min-h-screen flex flex-col">
         <AnnouncementBanner />
