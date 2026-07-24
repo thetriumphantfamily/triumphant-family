@@ -1,9 +1,19 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// GALLERY PREVIEW — Mobile fix using plain <img> tag
+// GALLERY PREVIEW — Shows title, description, and category
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  worship: "🎵 Worship",
+  prayer: "🙏 Prayer",
+  event: "📅 Event",
+  ministry: "⛪ Ministry",
+  outreach: "🌍 Outreach",
+  service: "✨ Service",
+  general: "📸 General",
+};
 
 export default async function GalleryPreview() {
   const supabase = await createClient();
@@ -21,9 +31,7 @@ export default async function GalleryPreview() {
 
   return (
     <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
-
       <div className="relative z-10 container-custom">
-
         {/* Badge */}
         <div className="flex justify-center mb-4">
           <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
@@ -52,31 +60,45 @@ export default async function GalleryPreview() {
           </div>
         </div>
 
-        {/* Photo grid — using plain <img> for mobile compatibility */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-8">
+        {/* Photo grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {items.map((item) => (
             <Link
               key={item.id}
               href="/gallery"
-              className="group relative aspect-square rounded-xl md:rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_20px_rgba(255,199,44,0.3)] transition-all duration-300 hover:scale-[1.02] bg-brand-purple-950"
+              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_20px_rgba(255,199,44,0.3)] transition-all duration-300 hover:-translate-y-0.5"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.image_url}
-                alt={item.title || "Gallery"}
-                loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
+              {/* Photo */}
+              <div className="relative aspect-square bg-brand-purple-950 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.image_url}
+                  alt={item.title || "Gallery"}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
 
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-900/80 via-brand-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Category badge */}
+                {item.category && (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-brand-purple-900/80 border border-brand-gold-400/40 text-brand-gold-300 text-[10px] font-bold">
+                    {CATEGORY_LABELS[item.category] || item.category}
+                  </div>
+                )}
+              </div>
 
-              {/* Title on hover */}
-              {item.title && (
-                <div className="absolute bottom-0 inset-x-0 p-2 md:p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <p className="text-white text-[10px] md:text-xs lg:text-sm font-bold truncate" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-                    {item.title}
-                  </p>
+              {/* Title and description below photo */}
+              {(item.title || item.description) && (
+                <div className="p-3">
+                  {item.title && (
+                    <h3 className="font-heading text-sm font-bold text-white mb-1 line-clamp-1 group-hover:text-brand-gold-400 transition-colors">
+                      {item.title}
+                    </h3>
+                  )}
+                  {item.description && (
+                    <p className="text-brand-purple-100 text-xs leading-relaxed line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
                 </div>
               )}
             </Link>
@@ -90,8 +112,18 @@ export default async function GalleryPreview() {
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
           >
             View Full Gallery
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
             </svg>
           </Link>
         </div>
