@@ -42,9 +42,16 @@ export default async function LiveStreamPlayer() {
   });
 
   const isLive = settingsMap.is_live_streaming === "true";
-  const youtubeLiveUrl = settingsMap.youtube_live_url || "";
+
+  // Trim and validate URLs — must have actual content
+  const youtubeLiveUrl = (settingsMap.youtube_live_url || "").trim();
+  const facebookLiveUrl = (settingsMap.facebook_live_url || "").trim();
+
+  // Only consider URL valid if it starts with https://
+  const hasYoutube = youtubeLiveUrl.startsWith("https://");
+  const hasFacebook = facebookLiveUrl.startsWith("https://");
+
   const youtubeOrientation = settingsMap.youtube_orientation || "landscape";
-  const facebookLiveUrl = settingsMap.facebook_live_url || "";
   const facebookOrientation = settingsMap.facebook_orientation || "landscape";
   const eventStartDate = settingsMap.event_start_date || "Sunday 8:00 AM";
   const preLiveMessage =
@@ -61,6 +68,10 @@ export default async function LiveStreamPlayer() {
     orientation === "vertical"
       ? "aspect-[9/16] max-w-sm mx-auto"
       : "aspect-video";
+
+  // Count active streams
+  const activeStreams = (hasYoutube ? 1 : 0) + (hasFacebook ? 1 : 0);
+  const bothActive = hasYoutube && hasFacebook;
 
   return (
     <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
@@ -104,29 +115,31 @@ export default async function LiveStreamPlayer() {
           )}
         </div>
 
-        {/* Live streams — Only show when live */}
-        {isLive && (youtubeLiveUrl || facebookLiveUrl) ? (
+        {/* Live streams — Only show when live AND at least one URL is valid */}
+        {isLive && activeStreams > 0 ? (
           <div className="max-w-6xl mx-auto">
             {/* Section badge */}
             <div className="flex justify-center mb-6">
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
                 <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
                 <span className="text-white font-bold text-xs uppercase tracking-widest">
-                  Watch On Any Platform
+                  {bothActive
+                    ? "Watch On Any Platform"
+                    : hasYoutube
+                    ? "Watch On YouTube"
+                    : "Watch On Facebook"}
                 </span>
               </div>
             </div>
 
-            {/* Dual stream grid */}
+            {/* Streams grid — layout adjusts based on active streams */}
             <div
               className={`grid gap-6 ${
-                youtubeLiveUrl && facebookLiveUrl
-                  ? "grid-cols-1 lg:grid-cols-2"
-                  : "grid-cols-1"
+                bothActive ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
               }`}
             >
-              {/* YOUTUBE LIVE */}
-              {youtubeLiveUrl && (
+              {/* YOUTUBE LIVE — only show if URL is valid */}
+              {hasYoutube && (
                 <div className="relative">
                   {/* Platform label */}
                   <div className="flex items-center justify-between mb-3 px-2">
@@ -160,8 +173,8 @@ export default async function LiveStreamPlayer() {
                 </div>
               )}
 
-              {/* FACEBOOK LIVE */}
-              {facebookLiveUrl && (
+              {/* FACEBOOK LIVE — only show if URL is valid */}
+              {hasFacebook && (
                 <div className="relative">
                   {/* Platform label */}
                   <div className="flex items-center justify-between mb-3 px-2">
@@ -197,7 +210,7 @@ export default async function LiveStreamPlayer() {
             </div>
           </div>
         ) : (
-          /* OFFLINE STATE */
+          /* OFFLINE STATE — shows when not live OR no valid URLs */
           <div className="max-w-5xl mx-auto">
             <div className="aspect-video rounded-3xl overflow-hidden bg-black border-2 border-brand-gold-400/40 relative">
               <div className="relative w-full h-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center">
