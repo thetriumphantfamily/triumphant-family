@@ -1,5 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ADMIN LOGIN PAGE — With show/hide password eye icon
+// ADMIN LOGIN PAGE — Smart 3-password detection
+// One email, three passwords, auto-redirect to correct section
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -30,40 +31,103 @@ export default function AdminLoginPage() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
+
+      // ━━━ ATTEMPT 1: Try Supabase Auth (Main Website Admin) ━━━
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
-      if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Wrong email or password");
-        } else {
-          toast.error(error.message);
-        }
+      if (!authError) {
+        toast.success("🏠 Welcome to Main Website Admin!", {
+          style: {
+            background: "#6B1F8A",
+            color: "#fff",
+            border: "1px solid #FFC72C",
+          },
+        });
+
+        setTimeout(() => {
+          router.push("/admin");
+          router.refresh();
+        }, 500);
         return;
       }
 
-      toast.success("Welcome back! Redirecting...", {
-        style: {
-          background: "#6B1F8A",
-          color: "#fff",
-          border: "1px solid #FFC72C",
-        },
-        iconTheme: {
-          primary: "#FFC72C",
-          secondary: "#6B1F8A",
-        },
-      });
+      // ━━━ ATTEMPT 2: Check Bible School password ━━━
+      const { data: schoolData } = await supabase
+        .from("tda_settings")
+        .select("setting_value")
+        .eq("setting_key", "school_admin_password")
+        .single();
 
-      setTimeout(() => {
-        router.push("/admin");
-        router.refresh();
-      }, 500);
+      if (
+        schoolData &&
+        password === schoolData.setting_value &&
+        email.trim().toLowerCase() === "thetriumphantgrace@gmail.com"
+      ) {
+        const session = {
+          section: "bible_school",
+          password: password,
+          loggedInAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem("tda_admin_session", JSON.stringify(session));
+
+        toast.success("🎓 Welcome to Bible School Admin!", {
+          style: {
+            background: "#6B1F8A",
+            color: "#fff",
+            border: "1px solid #FFC72C",
+          },
+        });
+
+        setTimeout(() => {
+          router.push("/admin/bible-school/dashboard");
+        }, 500);
+        return;
+      }
+
+      // ━━━ ATTEMPT 3: Check Church Management password ━━━
+      const { data: churchData } = await supabase
+        .from("tda_settings")
+        .select("setting_value")
+        .eq("setting_key", "church_admin_password")
+        .single();
+
+      if (
+        churchData &&
+        password === churchData.setting_value &&
+        email.trim().toLowerCase() === "thetriumphantgrace@gmail.com"
+      ) {
+        const session = {
+          section: "church_management",
+          password: password,
+          loggedInAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem("church_admin_session", JSON.stringify(session));
+
+        toast.success("⛪ Welcome to Church Management!", {
+          style: {
+            background: "#6B1F8A",
+            color: "#fff",
+            border: "1px solid #FFC72C",
+          },
+        });
+
+        setTimeout(() => {
+          router.push("/admin/church/dashboard");
+        }, 500);
+        return;
+      }
+
+      // ━━━ NO PASSWORD MATCHED ━━━
+      toast.error("❌ Invalid email or password");
+      setIsSubmitting(false);
     } catch (err) {
-      console.error(err);
+      console.error("Login error:", err);
       toast.error("Something went wrong. Try again.");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -75,7 +139,6 @@ export default function AdminLoginPage() {
         <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-brand-magenta-500/20 blur-3xl" />
         <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-brand-gold-400/10 blur-3xl" />
 
-        {/* Diagonal light beams */}
         <div className="absolute top-0 right-0 w-1/2 h-full opacity-15">
           <div className="absolute top-0 right-10 w-1 h-full bg-gradient-to-b from-brand-gold-400 to-transparent rotate-12" />
           <div className="absolute top-0 right-40 w-1 h-full bg-gradient-to-b from-brand-magenta-400 to-transparent rotate-12" />
@@ -83,33 +146,37 @@ export default function AdminLoginPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Logo header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
+        {/* ━━━ CENTERED LOGO + TIGHT SPACING ━━━ */}
+        <div className="flex flex-col items-center text-center mb-6">
+          {/* Logo — centered */}
+          <Link href="/" className="inline-block mb-1">
             <Image
               src="/images/logo/logo.png"
               alt="The Triumphant Family"
-              width={80}
-              height={80}
-              className="mx-auto"
+              width={90}
+              height={90}
+              className="w-24 h-24 object-contain"
               unoptimized
             />
           </Link>
 
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-brand-gold-400/40 bg-brand-gold-400/10 mt-4 mb-3">
+          {/* Badge — tight below logo */}
+          <div className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border border-brand-gold-400/40 bg-brand-gold-400/10 mb-2">
             <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-brand-gold-300 font-semibold text-sm uppercase tracking-widest">
               Admin Portal
             </span>
           </div>
 
-          <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-2">
+          {/* Heading — tight */}
+          <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-1">
             Welcome{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
               Back
             </span>
           </h1>
+
+          {/* Subtitle — tight */}
           <p className="text-brand-purple-200 text-sm">
             The Triumphant Family Ministry
           </p>
@@ -122,7 +189,7 @@ export default function AdminLoginPage() {
               Sign In
             </h2>
             <p className="text-gray-500 text-sm">
-              Enter your credentials to manage the ministry website
+              Enter your credentials to access the admin portal
             </p>
           </div>
 
@@ -296,8 +363,7 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        {/* Script tagline */}
-        <p className="text-center mt-6 font-script text-brand-gold-400 text-xl">
+        <p className="text-center mt-6 text-brand-gold-400 text-sm italic font-medium">
           Secure. Trusted. Anointed.
         </p>
       </div>

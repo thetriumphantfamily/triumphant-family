@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
+import SiteChromeWrapper from "@/components/layout/SiteChromeWrapper";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -95,19 +96,35 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Build the chrome elements as server components
+  const chrome = (
+    <>
+      <AnnouncementBanner />
+      <Navbar />
+    </>
+  );
+
+  const footer = (
+    <>
+      <Footer />
+      <WhatsAppButton />
+    </>
+  );
+
   return (
     <html
       lang="en"
       className={`${poppins.variable} ${greatVibes.variable}`}
     >
       <body className="font-body antialiased min-h-screen flex flex-col">
-        <AnnouncementBanner />
-        <Navbar />
-        <div className="flex-1">
-          {children}
-        </div>
-        <Footer />
-        <WhatsAppButton />
+        <SiteChromeWrapper chrome={chrome}>
+          <div className="flex-1">
+            {children}
+          </div>
+        </SiteChromeWrapper>
+        <SiteChromeWrapper chrome={footer}>
+          <div />
+        </SiteChromeWrapper>
         <Toaster
           position="top-center"
           toastOptions={{

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ADMIN SIDEBAR — Positioned below main navbar
+// ADMIN SIDEBAR — Full screen height (main navbar hidden on admin)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -128,10 +128,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile toggle — positioned below main navbar */}
+      {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-20 left-4 z-30 p-2 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900"
         aria-label="Toggle menu"
       >
         {mobileOpen ? (
@@ -149,20 +149,18 @@ export default function Sidebar() {
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 z-20"
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
         />
       )}
 
-      {/* Sidebar — starts BELOW navbar */}
+      {/* Sidebar — FULL screen height */}
       <aside
-        className={`fixed top-[76px] lg:top-[132px] left-0 h-[calc(100vh-76px)] lg:h-[calc(100vh-132px)] w-64 bg-gradient-to-b from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 text-white z-30 transform transition-transform duration-300 flex flex-col shadow-2xl ${
+        className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 text-white z-40 transform transition-transform duration-300 flex flex-col shadow-2xl ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        {/* Logo Header (STICKY at top) */}
-        <div className="flex-shrink-0 p-6 border-b border-white/10 relative overflow-hidden">
-          <div className="absolute top-[-30%] right-[-20%] w-32 h-32 rounded-full bg-brand-magenta-500/20 blur-2xl pointer-events-none" />
-
+        {/* Logo Header */}
+        <div className="flex-shrink-0 p-4 border-b border-white/10 relative overflow-hidden">
           <Link
             href="/admin"
             className="relative flex items-center gap-3"
@@ -171,10 +169,10 @@ export default function Sidebar() {
             <Image
               src="/images/logo/logo.png"
               alt="Logo"
-              width={40}
-              height={40}
+              width={48}
+              height={48}
               unoptimized
-              className="rounded-full"
+              className="w-12 h-12 object-contain flex-shrink-0"
             />
             <div>
               <p className="font-heading font-bold text-white text-sm">
@@ -187,7 +185,7 @@ export default function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation (SCROLLABLE middle) */}
+        {/* Navigation */}
         <nav
           className="flex-1 overflow-y-auto py-4"
           style={{
@@ -220,7 +218,7 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        {/* Footer Actions (STICKY at bottom) */}
+        {/* Footer Actions */}
         <div className="flex-shrink-0 p-3 border-t border-white/10 space-y-2 bg-brand-purple-900/50 backdrop-blur-sm">
           <Link
             href="/"
@@ -228,7 +226,7 @@ export default function Sidebar() {
             className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>
             View Website
           </Link>
