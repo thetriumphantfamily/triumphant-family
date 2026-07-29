@@ -1,9 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // THE TRIUMPHANT FAMILY - SITE CONFIGURATION CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// All site-wide content lives here. Update values here and they reflect
-// everywhere on the website. Search for {{PLACEHOLDER}} for items to update.
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export const SITE = {
   name: "The Triumphant Family",
@@ -56,7 +53,7 @@ export const SOCIALS = {
   facebook:  "https://m.facebook.com/wole.ola.376/",
   youtube:   "https://www.youtube.com/PastorOlayiwoleTriumphant",
   instagram: "https://www.instagram.com/pastorolayiwoletriumphant",
-  tiktok:    "{{TIKTOK_URL}}",
+  tiktok:    "https://www.tiktok.com/@pastorolayiwoletriumphant",
 
   handles: {
     facebook:  "Pastor Olayiwole Triumphant",
@@ -84,16 +81,17 @@ export const BANK_ACCOUNTS = [
 ];
 
 export const NAV_LINKS = [
-  { name: "Home",         href: "/" },
-  { name: "About",        href: "/about" },
-  { name: "Prayer",       href: "/prayer" },
-  { name: "Sermons",      href: "/sermons" },
-  { name: "Events",       href: "/events" },
-  { name: "Gallery",      href: "/gallery" },
-  { name: "Testimonies",  href: "/testimonies" },
-  { name: "Live",         href: "/live" },
-  { name: "Give",         href: "/give" },
-  { name: "Contact",      href: "/contact" },
+  { name: "Home",          href: "/" },
+  { name: "About",         href: "/about" },
+  { name: "Prayer",        href: "/prayer" },
+  { name: "Sermons",       href: "/sermons" },
+  { name: "Events",        href: "/events" },
+  { name: "Gallery",       href: "/gallery" },
+  { name: "Testimonies",   href: "/testimonies" },
+  { name: "Live",          href: "/live" },
+  { name: "Give",          href: "/give" },
+  { name: "Contact",       href: "/contact" },
+  { name: "Bible School",  href: "/bible-school" },
 ];
 
 export const HERO = {
@@ -153,6 +151,8 @@ export const SEO = {
     "Deliverance Ministry",
     "Prophetic Ministry",
     "Online Church",
+    "Bible School",
+    "Triumphant Disciples Academy",
   ],
   ogImage: "/images/og-image.jpg",
   url:     "https://thetriumphantfamily.org",
