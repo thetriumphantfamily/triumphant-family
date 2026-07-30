@@ -1,38 +1,34 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SITE CHROME WRAPPER — Path checker only (client component)
+// MEMBER LAYOUT CLIENT — Conditionally wraps member pages
+// Login page gets no sidebar, other pages get full layout
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
 
 import { usePathname } from "next/navigation";
+import MemberAuthGuard from "./MemberAuthGuard";
+import MemberSidebar from "./MemberSidebar";
 
-const HIDDEN_CHROME_PATHS = [
-  "/bible-school/portal",
-  "/admin",
-  "/member",
-];
-
-export default function SiteChromeWrapper({
-  chrome,
+export default function MemberLayoutClient({
   children,
 }: {
-  chrome: React.ReactNode;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isLoginPage = pathname === "/member/login";
 
-  const shouldHideChrome = HIDDEN_CHROME_PATHS.some((path) =>
-    pathname?.startsWith(path)
-  );
-
-  if (shouldHideChrome) {
+  if (isLoginPage) {
     return <>{children}</>;
   }
 
   return (
-    <>
-      {chrome}
-      {children}
-    </>
+    <MemberAuthGuard>
+      <div className="min-h-screen bg-gray-50">
+        <MemberSidebar />
+        <div className="lg:ml-64 min-h-screen">
+          <div className="p-4 lg:p-8 pt-20 lg:pt-8">{children}</div>
+        </div>
+      </div>
+    </MemberAuthGuard>
   );
 }
