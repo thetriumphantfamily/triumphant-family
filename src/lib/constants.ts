@@ -92,6 +92,7 @@ export const NAV_LINKS = [
   { name: "Give",          href: "/give" },
   { name: "Contact",       href: "/contact" },
   { name: "Bible School",  href: "/bible-school" },
+  { name: "Membership",    href: "/membership" },
 ];
 
 export const HERO = {
@@ -153,6 +154,7 @@ export const SEO = {
     "Online Church",
     "Bible School",
     "Triumphant Disciples Academy",
+    "Church Membership",
   ],
   ogImage: "/images/og-image.jpg",
   url:     "https://thetriumphantfamily.org",

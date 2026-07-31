@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN ASK PASTOR CLIENT — AI-assisted Q&A management
+// CHURCH ADMIN ASK PASTOR — AI-assisted answers + notify members
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyMember } from "@/lib/notifications";
 
 interface PastorQuestion {
   id: string;
@@ -72,7 +73,6 @@ export default function ChurchAdminAskPastorClient() {
       const data = await res.json();
       if (data.error) { toast.error(data.error); return; }
       setAnswerText(data.result);
-      // Save AI draft to database
       const supabase = createClient();
       await supabase.from("tfam_pastor_questions").update({ ai_draft: data.result }).eq("id", selectedQ.id);
       toast.success("🤖 AI draft generated! Review and edit before sending.");
@@ -90,6 +90,18 @@ export default function ChurchAdminAskPastorClient() {
         status: "answered",
         answered_at: new Date().toISOString(),
       }).eq("id", selectedQ.id);
+
+      // 🔔 NOTIFY MEMBER
+      if (selectedQ.member_id) {
+        await notifyMember({
+          memberId: selectedQ.member_id,
+          title: "✅ Pastor Answered Your Question",
+          message: `Your question has been answered: "${selectedQ.question.substring(0, 80)}${selectedQ.question.length > 80 ? "..." : ""}"`,
+          type: "ask_pastor",
+          link: "/member/ask-pastor",
+        });
+      }
+
       toast.success("✅ Answer sent to member!");
       setSelectedQ(null);
       setAnswerText("");
@@ -116,7 +128,6 @@ export default function ChurchAdminAskPastorClient() {
 
   return (
     <div className="space-y-6">
-      {/* Brand Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -125,8 +136,7 @@ export default function ChurchAdminAskPastorClient() {
             <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Ask The Pastor</span>
           </div>
           <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-            Member{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">Questions</span>
+            Member Questions
           </h1>
           <p className="text-brand-purple-100 text-sm md:text-base">Answer member questions with AI assistance</p>
           <div className="flex gap-4 pt-4 mt-4 border-t border-brand-gold-400/30">
@@ -142,7 +152,6 @@ export default function ChurchAdminAskPastorClient() {
         </div>
       </div>
 
-      {/* Pending Alert */}
       {pendingCount > 0 && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-700 via-amber-600 to-amber-700 border-2 border-amber-400/60 p-5 shadow-xl">
           <div className="flex items-center gap-4">
@@ -155,7 +164,6 @@ export default function ChurchAdminAskPastorClient() {
         </div>
       )}
 
-      {/* Questions List */}
       {questions.length === 0 ? (
         <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
           <div className="text-4xl mb-4">❓</div>
@@ -190,7 +198,6 @@ export default function ChurchAdminAskPastorClient() {
         </div>
       )}
 
-      {/* Answer Modal */}
       {selectedQ && (
         <>
           <div onClick={() => { setSelectedQ(null); setAnswerText(""); }} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -205,7 +212,6 @@ export default function ChurchAdminAskPastorClient() {
                 </div>
               </div>
               <div className="p-6 space-y-4">
-                {/* Question */}
                 <div className="bg-gray-50 rounded-2xl p-4">
                   <p className="font-bold text-gray-500 text-xs uppercase tracking-widest mb-2">Member&apos;s Question</p>
                   {selectedQ.member && <p className="text-brand-purple-900 font-bold text-sm mb-1">👤 {selectedQ.member.full_name}</p>}
@@ -213,13 +219,11 @@ export default function ChurchAdminAskPastorClient() {
                   <p className="text-gray-500 text-xs mt-2">📅 {formatDate(selectedQ.created_at)}</p>
                 </div>
 
-                {/* AI Button */}
                 <button onClick={generateAIDraft} disabled={isGeneratingAI}
                   className="w-full px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-black shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100">
                   {isGeneratingAI ? "🤖 AI is drafting..." : "🤖 Generate AI Draft Answer"}
                 </button>
 
-                {/* Answer */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Your Answer</label>
                   <textarea value={answerText} onChange={(e) => setAnswerText(e.target.value)}

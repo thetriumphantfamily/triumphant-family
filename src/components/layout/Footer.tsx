@@ -7,7 +7,6 @@ export default function Footer() {
 
   return (
     <footer className="bg-gradient-to-b from-brand-purple-900 to-brand-purple-950 text-white">
-
       {/* Gold tagline banner */}
       <div className="bg-gradient-gold py-5">
         <div className="container-custom text-center">
@@ -26,9 +25,7 @@ export default function Footer() {
               Connect With Us
             </h3>
 
-            {/* Social icons — VERTICAL STACKED */}
             <div className="flex flex-col gap-3">
-
               {/* Facebook */}
               <a
                 href={SOCIALS.facebook}
@@ -38,7 +35,7 @@ export default function Footer() {
               >
                 <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 group-hover:from-blue-500 group-hover:to-blue-600 text-white flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-md flex-shrink-0">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </div>
                 <span className="text-brand-purple-200 text-sm group-hover:text-brand-gold-300 transition-colors">
@@ -122,9 +119,9 @@ export default function Footer() {
                 Visit Bible School
               </Link>
 
-              {/* Membership — Coming Soon placeholder */}
+              {/* Membership — now links to choice page */}
               <Link
-                href="/join-church"
+                href="/membership"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 transition-all duration-300 w-fit"
               >
                 <svg

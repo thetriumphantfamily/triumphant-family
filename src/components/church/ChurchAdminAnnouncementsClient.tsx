@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN ANNOUNCEMENTS CLIENT — Post and manage church announcements
+// CHURCH ADMIN ANNOUNCEMENTS — Post + notify all members
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyAllMembers } from "@/lib/notifications";
 
 interface Announcement {
   id: string;
@@ -86,7 +87,16 @@ export default function ChurchAdminAnnouncementsClient() {
         toast.success("✅ Updated!");
       } else {
         await supabase.from("tfam_member_announcements").insert(payload);
-        toast.success("📢 Announcement posted!");
+
+        // 🔔 NOTIFY ALL MEMBERS
+        await notifyAllMembers({
+          title: formData.is_important ? "🚨 Important Announcement" : "📢 New Announcement",
+          message: `${formData.title}${formData.body.length > 80 ? ` — ${formData.body.substring(0, 80)}...` : ""}`,
+          type: "announcement",
+          link: "/member/announcements",
+        });
+
+        toast.success("📢 Announcement posted and members notified!");
       }
       resetForm();
       loadAnnouncements();
@@ -108,7 +118,6 @@ export default function ChurchAdminAnnouncementsClient() {
 
   return (
     <div className="space-y-6">
-      {/* ━━━ BRAND HEADER ━━━ */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -117,8 +126,7 @@ export default function ChurchAdminAnnouncementsClient() {
             <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Announcements</span>
           </div>
           <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-            Church{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">Announcements</span>
+            Church Announcements
           </h1>
           <p className="text-brand-purple-100 text-sm md:text-base">Post notices and updates for all members</p>
           <div className="flex gap-4 pt-4 mt-4 border-t border-brand-gold-400/30">
@@ -134,14 +142,12 @@ export default function ChurchAdminAnnouncementsClient() {
         </div>
       </div>
 
-      {/* Post Button */}
       <div className="flex justify-end">
         <button onClick={() => setShowForm(true)} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
           ➕ Post Announcement
         </button>
       </div>
 
-      {/* List */}
       {announcements.length === 0 ? (
         <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
           <div className="text-4xl mb-4">📢</div>
@@ -173,7 +179,6 @@ export default function ChurchAdminAnnouncementsClient() {
         </div>
       )}
 
-      {/* Form Modal */}
       {showForm && (
         <>
           <div onClick={resetForm} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -217,7 +222,7 @@ export default function ChurchAdminAnnouncementsClient() {
                   <button type="button" onClick={resetForm} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">Cancel</button>
                   <button type="submit" disabled={isSubmitting}
                     className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
-                    {isSubmitting ? "Posting..." : editingId ? "✅ Update" : "📢 Post Announcement"}
+                    {isSubmitting ? "Posting..." : editingId ? "✅ Update" : "📢 Post & Notify"}
                   </button>
                 </div>
               </form>

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER REGISTER FORM — Church membership registration with photo upload
+// MEMBER REGISTER FORM — Church membership registration + notify admin
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -8,6 +8,7 @@ import { useState, useRef, FormEvent } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyAdmin } from "@/lib/notifications";
 
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024;
 
@@ -102,49 +103,21 @@ export default function MemberRegisterForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formData.full_name.trim()) {
-      toast.error("Please enter your full name");
-      return;
-    }
-    if (!formData.email.trim()) {
-      toast.error("Please enter your email");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      toast.error("Please enter a valid email");
-      return;
-    }
-    if (!formData.phone.trim()) {
-      toast.error("Please enter your phone number");
-      return;
-    }
-    if (!formData.gender) {
-      toast.error("Please select your gender");
-      return;
-    }
-    if (!selectedFile) {
-      toast.error("Please upload your passport photograph");
-      return;
-    }
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-    if (formData.password !== formData.confirm_password) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    if (!formData.agree_terms) {
-      toast.error("Please agree to the terms to continue");
-      return;
-    }
+    if (!formData.full_name.trim()) { toast.error("Please enter your full name"); return; }
+    if (!formData.email.trim()) { toast.error("Please enter your email"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) { toast.error("Please enter a valid email"); return; }
+    if (!formData.phone.trim()) { toast.error("Please enter your phone number"); return; }
+    if (!formData.gender) { toast.error("Please select your gender"); return; }
+    if (!selectedFile) { toast.error("Please upload your passport photograph"); return; }
+    if (formData.password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (formData.password !== formData.confirm_password) { toast.error("Passwords do not match"); return; }
+    if (!formData.agree_terms) { toast.error("Please agree to the terms to continue"); return; }
 
     setIsSubmitting(true);
 
     try {
       const supabase = createClient();
 
-      // Check if email exists
       const { data: existing } = await supabase
         .from("tfam_members")
         .select("id")
@@ -157,7 +130,6 @@ export default function MemberRegisterForm() {
         return;
       }
 
-      // Upload photo
       const fileExt = selectedFile.name.split(".").pop();
       const fileName = `member-${Date.now()}.${fileExt}`;
 
@@ -212,6 +184,14 @@ export default function MemberRegisterForm() {
         setIsSubmitting(false);
         return;
       }
+
+      // 🔔 NOTIFY ADMIN OF NEW REGISTRATION
+      await notifyAdmin({
+        title: "👥 New Member Registration",
+        message: `${formData.full_name.trim()} just registered (${formData.email.trim().toLowerCase()}) and is awaiting approval.`,
+        type: "member_registration",
+        link: "/admin/church/members",
+      });
 
       toast.success("🎉 Registration successful!", {
         style: {
@@ -304,7 +284,7 @@ export default function MemberRegisterForm() {
       >
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-        {/* ━━━ PHOTO UPLOAD ━━━ */}
+        {/* PHOTO UPLOAD */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">📸</span>
@@ -338,7 +318,7 @@ export default function MemberRegisterForm() {
           </div>
         </div>
 
-        {/* ━━━ PERSONAL INFORMATION ━━━ */}
+        {/* PERSONAL INFO */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">👤</span>
@@ -379,7 +359,7 @@ export default function MemberRegisterForm() {
           </div>
         </div>
 
-        {/* ━━━ LOCATION ━━━ */}
+        {/* LOCATION */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">📍</span>
@@ -407,7 +387,7 @@ export default function MemberRegisterForm() {
           </div>
         </div>
 
-        {/* ━━━ CHURCH INFO ━━━ */}
+        {/* CHURCH INFO */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">⛪</span>
@@ -428,7 +408,7 @@ export default function MemberRegisterForm() {
           </div>
         </div>
 
-        {/* ━━━ EMERGENCY CONTACT ━━━ */}
+        {/* EMERGENCY CONTACT */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">🆘</span>
@@ -447,7 +427,7 @@ export default function MemberRegisterForm() {
           </div>
         </div>
 
-        {/* ━━━ ACCOUNT SETUP ━━━ */}
+        {/* ACCOUNT SETUP */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">🔐</span>
@@ -458,21 +438,25 @@ export default function MemberRegisterForm() {
             <div>
               <label className="block text-sm font-bold text-white mb-2">Password <span className="text-brand-gold-400">*</span></label>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="Min 6 characters" className="w-full p-3 pr-12 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required minLength={6} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showPassword ? "🙈" : "👁️"}</button>
+                <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="Min. 6 characters" className="w-full p-3 pr-12 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required minLength={6} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
               </div>
             </div>
             <div>
               <label className="block text-sm font-bold text-white mb-2">Confirm Password <span className="text-brand-gold-400">*</span></label>
               <div className="relative">
                 <input type={showConfirmPassword ? "text" : "password"} value={formData.confirm_password} onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })} placeholder="Re-enter password" className="w-full p-3 pr-12 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required minLength={6} />
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">{showConfirmPassword ? "🙈" : "👁️"}</button>
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                  {showConfirmPassword ? "🙈" : "👁️"}
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ━━━ TERMS ━━━ */}
+        {/* TERMS */}
         <div className="mb-6">
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={formData.agree_terms} onChange={(e) => setFormData({ ...formData, agree_terms: e.target.checked })} className="w-5 h-5 mt-0.5 rounded border-2 border-brand-gold-400 accent-brand-gold-400" required />
@@ -482,7 +466,7 @@ export default function MemberRegisterForm() {
           </label>
         </div>
 
-        {/* ━━━ SUBMIT ━━━ */}
+        {/* SUBMIT */}
         <button
           type="submit"
           disabled={isSubmitting}

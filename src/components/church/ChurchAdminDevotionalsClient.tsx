@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN DEVOTIONALS CLIENT — AI-Powered Devotional Management
+// CHURCH ADMIN DEVOTIONALS CLIENT — AI-Powered + notify all members
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyAllMembers } from "@/lib/notifications";
 
 interface Devotional {
   id: string;
@@ -103,19 +104,16 @@ export default function ChurchAdminDevotionalsClient() {
   const [devotionals, setDevotionals] = useState<Devotional[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Manual form
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // AI Single
   const [aiSingleTopic, setAiSingleTopic] = useState("");
   const [aiSingleScripture, setAiSingleScripture] = useState("");
   const [aiSingleDate, setAiSingleDate] = useState(getLocalToday());
   const [aiSingleLoading, setAiSingleLoading] = useState(false);
   const [aiSingleResult, setAiSingleResult] = useState<GeneratedDevotional | null>(null);
 
-  // AI Bulk
   const [bulkTheme, setBulkTheme] = useState("");
   const [bulkCount, setBulkCount] = useState(7);
   const [bulkStartDate, setBulkStartDate] = useState(getLocalToday());
@@ -139,6 +137,18 @@ export default function ChurchAdminDevotionalsClient() {
     } catch (err) { console.error(err); setLoading(false); }
   };
 
+  // Helper: Notify members if devotional publishes for today
+  const notifyIfToday = async (title: string, scripture: string, publishDate: string, isPublished: boolean) => {
+    if (isPublished && publishDate === getLocalToday()) {
+      await notifyAllMembers({
+        title: "📖 New Daily Devotional",
+        message: `${title} — ${scripture}. Read now and be blessed!`,
+        type: "devotional",
+        link: "/member/devotional",
+      });
+    }
+  };
+
   const handleManualSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.scripture.trim() || !formData.body.trim()) {
@@ -158,6 +168,7 @@ export default function ChurchAdminDevotionalsClient() {
         toast.success("✅ Updated!");
       } else {
         await supabase.from("tfam_devotionals").insert(payload);
+        await notifyIfToday(payload.title, payload.scripture, payload.publish_date, payload.is_published);
         toast.success("📖 Devotional saved!");
       }
       setFormData(EMPTY_FORM);
@@ -199,6 +210,10 @@ export default function ChurchAdminDevotionalsClient() {
         confession: aiSingleResult.confession || null,
         publish_date: aiSingleResult.publish_date, is_published: true,
       });
+
+      // 🔔 Notify members if publishing for today
+      await notifyIfToday(aiSingleResult.title, aiSingleResult.scripture, aiSingleResult.publish_date, true);
+
       toast.success("📖 Devotional published!");
       setAiSingleResult(null);
       setAiSingleTopic("");
@@ -260,6 +275,18 @@ export default function ChurchAdminDevotionalsClient() {
         publish_date: d.publish_date, is_published: true,
       }));
       await supabase.from("tfam_devotionals").insert(payload);
+
+      // 🔔 Notify members if any devotional is for today
+      const todayDev = approved.find((d) => d.publish_date === getLocalToday());
+      if (todayDev) {
+        await notifyAllMembers({
+          title: "📖 New Daily Devotional",
+          message: `${todayDev.title} — ${todayDev.scripture}. Read now and be blessed!`,
+          type: "devotional",
+          link: "/member/devotional",
+        });
+      }
+
       toast.success(`🎉 ${approved.length} devotionals scheduled!`);
       setBulkResults([]);
       setBulkTheme("");
@@ -275,6 +302,18 @@ export default function ChurchAdminDevotionalsClient() {
       const supabase = createClient();
       await supabase.from("tfam_devotionals").update({ is_published: !current }).eq("id", id);
       setDevotionals((prev) => prev.map((d) => d.id === id ? { ...d, is_published: !current } : d));
+
+      // If publishing (not unpublishing) and it's today, notify
+      const dev = devotionals.find((d) => d.id === id);
+      if (dev && !current && dev.publish_date === getLocalToday()) {
+        await notifyAllMembers({
+          title: "📖 New Daily Devotional",
+          message: `${dev.title} — ${dev.scripture}. Read now and be blessed!`,
+          type: "devotional",
+          link: "/member/devotional",
+        });
+      }
+
       toast.success(current ? "Unpublished" : "✅ Published!");
     } catch { toast.error("Failed"); }
   };
@@ -311,12 +350,10 @@ export default function ChurchAdminDevotionalsClient() {
 
   return (
     <div className="space-y-6">
-
-      {/* ━━━ BRAND HEADER CARD ━━━ */}
+      {/* Brand Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          {/* ✅ WHITE BOLD BIGGER BADGE */}
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
             <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
@@ -324,10 +361,7 @@ export default function ChurchAdminDevotionalsClient() {
             </span>
           </div>
           <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-            Devotional{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-              Management
-            </span>
+            Devotional Management
           </h1>
           <p className="text-brand-purple-100 text-sm md:text-base mb-4">
             Write manually or use AI to generate and schedule devotionals for your members
@@ -353,7 +387,6 @@ export default function ChurchAdminDevotionalsClient() {
         </div>
       </div>
 
-      {/* Today Alert */}
       {!todayDevotional && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-700 via-amber-600 to-amber-700 border-2 border-amber-400/60 p-5 shadow-xl">
           <div className="flex items-center gap-4 flex-wrap">
@@ -387,7 +420,7 @@ export default function ChurchAdminDevotionalsClient() {
         ))}
       </div>
 
-      {/* ━━━ TAB: ALL DEVOTIONALS ━━━ */}
+      {/* All Devotionals Tab */}
       {activeTab === "all" && (
         <div className="space-y-3">
           {loading ? (
@@ -434,7 +467,7 @@ export default function ChurchAdminDevotionalsClient() {
         </div>
       )}
 
-      {/* ━━━ TAB: WRITE MANUALLY ━━━ */}
+      {/* Write Manually Tab */}
       {activeTab === "write" && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -502,7 +535,7 @@ export default function ChurchAdminDevotionalsClient() {
         </div>
       )}
 
-      {/* ━━━ TAB: AI SINGLE ━━━ */}
+      {/* AI Single Tab */}
       {activeTab === "ai-single" && (
         <div className="space-y-4">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
@@ -593,7 +626,7 @@ export default function ChurchAdminDevotionalsClient() {
         </div>
       )}
 
-      {/* ━━━ TAB: AI BULK GENERATOR ━━━ */}
+      {/* AI Bulk Tab */}
       {activeTab === "ai-bulk" && (
         <div className="space-y-4">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">

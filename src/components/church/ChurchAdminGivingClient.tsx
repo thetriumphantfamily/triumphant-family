@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN GIVING CLIENT — Verify member submissions + manual record
+// CHURCH ADMIN GIVING CLIENT — Verify + notify members
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyMember } from "@/lib/notifications";
 
 interface Donation {
   id: string;
@@ -48,7 +49,6 @@ export default function ChurchAdminGivingClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [proofModal, setProofModal] = useState<string | null>(null);
 
-  // Manual form
   const [manualForm, setManualForm] = useState({
     member_name: "", amount: "", category: "tithe",
     payment_method: "bank_transfer", notes: "",
@@ -71,14 +71,29 @@ export default function ChurchAdminGivingClient() {
     try {
       const supabase = createClient();
       const receiptNum = `TFAM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+
       await supabase.from("tfam_donations").update({
         payment_status: "confirmed",
         verified_at: new Date().toISOString(),
         verified_by: "Admin",
         receipt_number: receiptNum,
+        admin_note: null,
       }).eq("id", id);
-      setDonations((prev) => prev.map((d) => d.id === id ? { ...d, payment_status: "confirmed", verified_at: new Date().toISOString(), receipt_number: receiptNum } : d));
-      toast.success("✅ Donation confirmed!");
+
+      // Get donation details for notification
+      const donation = donations.find((d) => d.id === id);
+      if (donation && donation.member_id) {
+        await notifyMember({
+          memberId: donation.member_id,
+          title: "✅ Giving Confirmed!",
+          message: `Your ${formatAmount(Number(donation.amount))} ${donation.category.replace(/_/g, " ")} has been verified. Receipt: ${receiptNum}. God bless you!`,
+          type: "giving",
+          link: "/member/giving-history",
+        });
+      }
+
+      setDonations((prev) => prev.map((d) => d.id === id ? { ...d, payment_status: "confirmed", verified_at: new Date().toISOString(), receipt_number: receiptNum, admin_note: null } : d));
+      toast.success("✅ Donation confirmed and member notified!");
     } catch { toast.error("Failed"); }
     finally { setBusyId(null); }
   };
@@ -92,6 +107,19 @@ export default function ChurchAdminGivingClient() {
         payment_status: "queried",
         admin_note: queryNote.trim(),
       }).eq("id", queryId);
+
+      // Notify member
+      const donation = donations.find((d) => d.id === queryId);
+      if (donation && donation.member_id) {
+        await notifyMember({
+          memberId: donation.member_id,
+          title: "❓ Giving Requires Attention",
+          message: `Your ${formatAmount(Number(donation.amount))} submission has been queried. Admin says: "${queryNote.trim().substring(0, 100)}${queryNote.trim().length > 100 ? "..." : ""}"`,
+          type: "giving",
+          link: "/member/giving-history",
+        });
+      }
+
       setDonations((prev) => prev.map((d) => d.id === queryId ? { ...d, payment_status: "queried", admin_note: queryNote.trim() } : d));
       toast.success("❓ Query sent to member");
       setQueryId(null);
@@ -157,7 +185,6 @@ export default function ChurchAdminGivingClient() {
 
   return (
     <div className="space-y-6">
-      {/* ━━━ BRAND HEADER ━━━ */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -171,7 +198,7 @@ export default function ChurchAdminGivingClient() {
             Giving Management
           </h1>
           <p className="text-brand-purple-100 text-sm md:text-base">Verify member submissions and record donations</p>
-          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30">
+          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30 flex-wrap">
             <div className="text-center">
               <p className="text-white font-black text-2xl">{formatAmount(totalConfirmed)}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Confirmed</p>
@@ -188,7 +215,6 @@ export default function ChurchAdminGivingClient() {
         </div>
       </div>
 
-      {/* Pending Alert */}
       {pending.length > 0 && activeTab !== "pending" && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-700 via-amber-600 to-amber-700 border-2 border-amber-400/60 p-5 shadow-xl">
           <div className="flex items-center gap-4">
@@ -204,7 +230,6 @@ export default function ChurchAdminGivingClient() {
         </div>
       )}
 
-      {/* ━━━ TABS ━━━ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {TABS.map((tab) => (
           <button
@@ -225,7 +250,6 @@ export default function ChurchAdminGivingClient() {
         ))}
       </div>
 
-      {/* ━━━ LIST VIEW ━━━ */}
       {activeTab !== "manual" && (
         <div className="space-y-3">
           {currentList.length === 0 ? (
@@ -262,7 +286,6 @@ export default function ChurchAdminGivingClient() {
                     {d.receipt_number && <p className="text-green-300 text-xs mt-1">🧾 {d.receipt_number}</p>}
                   </div>
 
-                  {/* Proof Image */}
                   {d.payment_proof_url && (
                     <button onClick={() => setProofModal(d.payment_proof_url)} className="flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -271,7 +294,6 @@ export default function ChurchAdminGivingClient() {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 mt-3 flex-wrap">
                   {d.payment_status === "pending" && (
                     <>
@@ -308,7 +330,6 @@ export default function ChurchAdminGivingClient() {
         </div>
       )}
 
-      {/* ━━━ MANUAL RECORD TAB ━━━ */}
       {activeTab === "manual" && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -351,7 +372,6 @@ export default function ChurchAdminGivingClient() {
         </div>
       )}
 
-      {/* ━━━ QUERY MODAL ━━━ */}
       {queryId && (
         <>
           <div onClick={() => { setQueryId(null); setQueryNote(""); }} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -384,7 +404,6 @@ export default function ChurchAdminGivingClient() {
         </>
       )}
 
-      {/* ━━━ PROOF IMAGE MODAL ━━━ */}
       {proofModal && (
         <>
           <div onClick={() => setProofModal(null)} className="fixed inset-0 bg-black/80 z-40" />

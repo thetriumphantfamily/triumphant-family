@@ -1,12 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN MEMBERS CLIENT — Approve/reject/manage members
+// CHURCH ADMIN MEMBERS CLIENT — Approve/reject/manage + notify members
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyMember } from "@/lib/notifications";
 
 interface Member {
   id: string;
@@ -57,12 +57,50 @@ export default function ChurchAdminMembersClient() {
     setBusyId(id);
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("tfam_members").update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", id);
-      if (error) { toast.error("Failed"); setBusyId(null); return; }
+      const { error } = await supabase.from("tfam_members").update({
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      }).eq("id", id);
+
+      if (error) {
+        toast.error("Failed");
+        setBusyId(null);
+        return;
+      }
+
+      // 🔔 NOTIFY MEMBER
+      const member = members.find((m) => m.id === id);
+      if (member) {
+        if (newStatus === "approved") {
+          await notifyMember({
+            memberId: id,
+            title: "🎉 Welcome to The Triumphant Family!",
+            message: `Congratulations! Your membership has been approved. You can now login and access all member features. God bless you!`,
+            type: "member_registration",
+            link: "/member/dashboard",
+          });
+        } else if (newStatus === "rejected") {
+          await notifyMember({
+            memberId: id,
+            title: "⚠️ Membership Status Update",
+            message: `Your membership registration requires attention. Please contact the church for more information.`,
+            type: "member_registration",
+            link: "/member/profile",
+          });
+        }
+      }
+
       setMembers((prev) => prev.map((m) => m.id === id ? { ...m, status: newStatus } : m));
       if (selectedMember?.id === id) setSelectedMember({ ...selectedMember, status: newStatus });
-      toast.success(newStatus === "approved" ? "✅ Member approved!" : newStatus === "rejected" ? "❌ Rejected" : "⏳ Reset");
-    } catch (err) { toast.error("Failed"); }
+
+      toast.success(
+        newStatus === "approved"
+          ? "✅ Member approved and notified!"
+          : newStatus === "rejected"
+          ? "❌ Member status updated"
+          : "⏳ Status reset"
+      );
+    } catch { toast.error("Failed"); }
     finally { setBusyId(null); }
   };
 
@@ -75,7 +113,7 @@ export default function ChurchAdminMembersClient() {
       setMembers((prev) => prev.filter((m) => m.id !== id));
       setSelectedMember(null);
       toast.success("🗑️ Deleted");
-    } catch (err) { toast.error("Failed"); }
+    } catch { toast.error("Failed"); }
     finally { setBusyId(null); }
   };
 
@@ -105,13 +143,13 @@ export default function ChurchAdminMembersClient() {
         <p className="text-gray-600 text-sm">Approve registrations, view profiles, manage member records</p>
       </div>
 
-      {/* Stats — Brand themed cards */}
+      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total", value: stats.total, color: "border-brand-purple-200" },
-          { label: "Pending", value: stats.pending, color: "border-yellow-200", badge: stats.pending > 0 },
-          { label: "Approved", value: stats.approved, color: "border-green-200" },
-          { label: "Rejected", value: stats.rejected, color: "border-red-200" },
+          { label: "Total", value: stats.total, color: "border-brand-gold-400/40" },
+          { label: "Pending", value: stats.pending, color: "border-yellow-400/40", badge: stats.pending > 0 },
+          { label: "Approved", value: stats.approved, color: "border-green-400/40" },
+          { label: "Rejected", value: stats.rejected, color: "border-red-400/40" },
         ].map((stat) => (
           <div key={stat.label} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${stat.color} p-5 shadow-xl`}>
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -190,12 +228,11 @@ export default function ChurchAdminMembersClient() {
                     </>
                   )}
                   {member.status === "approved" && (
-                    <button onClick={(e) => { e.stopPropagation(); updateStatus(member.id, "rejected"); }} disabled={isBusy} className="flex-1 px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold transition-all disabled:opacity-50">🚫 Deactivate</button>
+                    <button onClick={(e) => { e.stopPropagation(); updateStatus(member.id, "rejected"); }} disabled={isBusy} className="flex-1 px-3 py-1.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/30 disabled:opacity-50">🚫 Deactivate</button>
                   )}
                   {member.status === "rejected" && (
                     <button onClick={(e) => { e.stopPropagation(); updateStatus(member.id, "approved"); }} disabled={isBusy} className="flex-1 px-3 py-1.5 rounded-full bg-green-500 hover:bg-green-600 text-white text-xs font-bold transition-all disabled:opacity-50">✅ Re-approve</button>
                   )}
-                  <button onClick={(e) => { e.stopPropagation(); setSelectedMember(member); }} className="px-3 py-1.5 rounded-full bg-brand-gold-400/20 text-brand-gold-300 text-xs font-bold transition-all">👁️</button>
                 </div>
               </div>
             );
@@ -203,7 +240,7 @@ export default function ChurchAdminMembersClient() {
         </div>
       )}
 
-      {/* ━━━ MEMBER DETAIL MODAL ━━━ */}
+      {/* MEMBER DETAIL MODAL */}
       {selectedMember && (
         <>
           <div onClick={() => setSelectedMember(null)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -230,27 +267,25 @@ export default function ChurchAdminMembersClient() {
               </div>
 
               <div className="p-6 space-y-4">
-                {/* Status */}
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-gray-700">Status:</span>
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border capitalize ${selectedMember.status === "approved" ? "bg-green-100 text-green-700 border-green-300" : selectedMember.status === "rejected" ? "bg-red-100 text-red-700 border-red-300" : "bg-yellow-100 text-yellow-700 border-yellow-300"}`}>{selectedMember.status}</span>
                 </div>
 
-                {/* Info Sections */}
                 {[
-                  { title: "👤 Personal", icon: "👤", fields: [
+                  { title: "👤 Personal", fields: [
                     { label: "Email", value: selectedMember.email },
                     { label: "Phone", value: selectedMember.phone },
                     { label: "Gender", value: selectedMember.gender },
                     { label: "Date of Birth", value: selectedMember.date_of_birth ? formatDate(selectedMember.date_of_birth) : null },
                     { label: "Marital Status", value: selectedMember.marital_status },
                   ]},
-                  { title: "📍 Location", icon: "📍", fields: [
+                  { title: "📍 Location", fields: [
                     { label: "Address", value: selectedMember.address },
                     { label: "City", value: selectedMember.city },
                     { label: "State", value: selectedMember.state },
                   ]},
-                  { title: "⛪ Church", icon: "⛪", fields: [
+                  { title: "⛪ Church", fields: [
                     { label: "Department", value: selectedMember.department },
                     { label: "Baptism", value: selectedMember.baptism_status?.replace(/_/g, " ") },
                     { label: "Date Joined", value: selectedMember.date_joined ? formatDate(selectedMember.date_joined) : null },
@@ -271,7 +306,6 @@ export default function ChurchAdminMembersClient() {
 
                 <p className="text-xs text-gray-500 text-center">Registered on {formatDate(selectedMember.created_at)}</p>
 
-                {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t-2 border-gray-100">
                   {selectedMember.status === "pending" && (
                     <>
@@ -280,7 +314,7 @@ export default function ChurchAdminMembersClient() {
                     </>
                   )}
                   {selectedMember.status === "approved" && (
-                    <button onClick={() => updateStatus(selectedMember.id, "rejected")} disabled={busyId === selectedMember.id} className="flex-1 px-6 py-3 rounded-full bg-red-100 hover:bg-red-200 text-red-700 font-bold transition-all disabled:opacity-50">🚫 Deactivate</button>
+                    <button onClick={() => updateStatus(selectedMember.id, "rejected")} disabled={busyId === selectedMember.id} className="flex-1 px-6 py-3 rounded-full bg-brand-purple-950/60 text-white font-bold border border-gray-300 transition-all disabled:opacity-50">🚫 Deactivate</button>
                   )}
                   {selectedMember.status === "rejected" && (
                     <button onClick={() => updateStatus(selectedMember.id, "approved")} disabled={busyId === selectedMember.id} className="flex-1 px-6 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold transition-all disabled:opacity-50">✅ Re-approve</button>
