@@ -1,84 +1,94 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER GIVE CLIENT — Bank transfer giving with proof upload
+// MEMBER GIVE CLIENT — Bank transfer giving with proof submission
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
-import { useEffect, useState, useRef, FormEvent } from "react";
-import Link from "next/link";
+import { useState, FormEvent, useEffect } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 
-const GIVING_CATEGORIES = [
-  { value: "tithe", label: "💰 Tithe", description: "10% of your income" },
-  { value: "offering", label: "🙏 Offering", description: "Free-will giving" },
-  { value: "seed_faith", label: "🌱 Seed Faith", description: "Special seed offering" },
-  { value: "building_fund", label: "🏛️ Building Fund", description: "Church building project" },
-  { value: "missions", label: "🌍 Missions", description: "Supporting evangelism" },
-  { value: "welfare", label: "💝 Welfare", description: "Helping those in need" },
-  { value: "special_project", label: "⭐ Special Project", description: "Designated giving" },
+const CATEGORIES = [
+  { value: "tithe", label: "Tithe" },
+  { value: "offering", label: "Offering" },
+  { value: "first_fruit", label: "First Fruit" },
+  { value: "building_fund", label: "Building Fund" },
+  { value: "missions", label: "Missions" },
+  { value: "welfare", label: "Welfare" },
+  { value: "special_seed", label: "Special Seed" },
+  { value: "other", label: "Other" },
 ];
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
 
 export default function MemberGiveClient() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [memberId, setMemberId] = useState<string>("");
-  const [memberName, setMemberName] = useState<string>("");
-  const [memberDbId, setMemberDbId] = useState<string>("");
+  const [memberName, setMemberName] = useState("");
+  const [memberId, setMemberId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     amount: "",
     category: "tithe",
-    payment_reference: "",
+    donation_date: new Date().toISOString().split("T")[0],
     notes: "",
   });
 
   useEffect(() => {
-    const session = localStorage.getItem("tfam_member_session");
-    if (session) {
-      const parsed = JSON.parse(session);
-      setMemberId(parsed.member_id);
-      setMemberName(parsed.full_name);
-      setMemberDbId(parsed.id);
-    }
+    loadMember();
   }, []);
 
-  const copyAccountNumber = () => {
+  const loadMember = async () => {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.includes("member") || key.includes("tfam")) {
+          try {
+            const val = localStorage.getItem(key);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (parsed.full_name) {
+                setMemberName(parsed.full_name);
+                if (parsed.id) setMemberId(parsed.id);
+                break;
+              }
+            }
+          } catch { /* not JSON */ }
+        }
+      }
+    } catch { /* ignore */ }
+  };
+
+  const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Max 5MB");
+      return;
+    }
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
+  const copyAccount = () => {
     navigator.clipboard.writeText("1027481531");
     setCopied(true);
     toast.success("Account number copied!");
     setTimeout(() => setCopied(false), 3000);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("File too large! Max 5 MB");
-      return;
-    }
-
-    setSelectedFile(file);
-  };
-
-  const resetForm = () => {
-    setFormData({ amount: "", category: "tithe", payment_reference: "", notes: "" });
-    setSelectedFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    setShowForm(false);
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      toast.error("Please enter a valid amount");
+    if (!formData.amount || Number(formData.amount) <= 0) {
+      toast.error("Enter a valid amount");
       return;
     }
 
@@ -86,15 +96,14 @@ export default function MemberGiveClient() {
 
     try {
       const supabase = createClient();
-      let proofUrl = null;
+      let proofUrl: string | null = null;
 
-      if (selectedFile) {
-        const fileExt = selectedFile.name.split(".").pop();
-        const fileName = `proof-${Date.now()}.${fileExt}`;
-
+      // Upload proof if provided
+      if (proofFile) {
+        const fileName = `giving-proof/${Date.now()}-${proofFile.name}`;
         const { error: uploadError } = await supabase.storage
           .from("tfam-members")
-          .upload(`payment-proofs/${fileName}`, selectedFile);
+          .upload(fileName, proofFile);
 
         if (uploadError) {
           toast.error("Failed to upload proof");
@@ -102,272 +111,225 @@ export default function MemberGiveClient() {
           return;
         }
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data: urlData } = supabase.storage
           .from("tfam-members")
-          .getPublicUrl(`payment-proofs/${fileName}`);
+          .getPublicUrl(fileName);
 
-        proofUrl = publicUrl;
+        proofUrl = urlData.publicUrl;
       }
 
+      // Generate receipt number
+      const receiptNumber = `TFAM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+
+      // Save donation
       const { error } = await supabase.from("tfam_donations").insert({
-        member_id: memberDbId,
-        member_name: memberName,
-        amount: parseFloat(formData.amount),
+        member_id: memberId || null,
+        member_name: memberName || "Anonymous",
+        amount: Number(formData.amount),
         category: formData.category,
         payment_method: "bank_transfer",
-        payment_reference: formData.payment_reference.trim() || null,
+        payment_status: "pending",
         payment_proof_url: proofUrl,
-        payment_status: proofUrl ? "pending_verification" : "pending",
         notes: formData.notes.trim() || null,
-        donation_date: new Date().toISOString().split("T")[0],
+        donation_date: formData.donation_date,
+        submitted_by_member: true,
+        receipt_number: receiptNumber,
       });
 
       if (error) {
-        toast.error(`Failed: ${error.message}`);
+        toast.error(error.message);
         setIsSubmitting(false);
         return;
       }
 
-      toast.success("🎉 Giving recorded! Thank you for your generosity.", {
-        style: { background: "#6B1F8A", color: "#fff", border: "1px solid #FFC72C" },
-        duration: 5000,
-      });
-
-      resetForm();
-    } catch (err) {
-      console.error("Give error:", err);
-      toast.error("Something went wrong");
+      setShowSuccess(true);
+      toast.success("🙏 Giving submitted for verification!");
+    } catch {
+      toast.error("Failed to submit");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const resetForm = () => {
+    setFormData({ amount: "", category: "tithe", donation_date: new Date().toISOString().split("T")[0], notes: "" });
+    setProofFile(null);
+    setProofPreview(null);
+    setShowSuccess(false);
+  };
+
+  const firstName = memberName.split(" ")[0] || "";
+
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-brand-purple-900 mb-2">
-          💰 Give to the Ministry
-        </h1>
-        <p className="text-gray-600 text-sm">
-          Every seed sown advances the Kingdom of God
-        </p>
-      </div>
-
-      {/* Scripture */}
-      <div className="bg-brand-gold-50 border-2 border-brand-gold-200 rounded-2xl p-5">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0">
-            <span className="text-lg">📖</span>
+    <div className="space-y-6">
+      {/* ━━━ BRAND HEADER ━━━ */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
+              Give
+            </span>
           </div>
-          <div>
-            <p className="text-brand-purple-800 text-sm italic leading-relaxed">
-              &ldquo;Every man according as he purposeth in his heart, so let him give; not grudgingly, or of necessity: for God loveth a cheerful giver.&rdquo;
+          <p className="text-white/80 font-semibold text-lg mb-1">
+            {getGreeting()}{firstName ? `, ${firstName}` : ""}!
+          </p>
+          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+            Give to The Triumphant Family
+          </h1>
+          <div className="mt-4 pt-4 border-t border-brand-gold-400/30">
+            <p className="text-brand-purple-200 italic text-sm">
+              &ldquo;Give, and it shall be given unto you; good measure, pressed down, and shaken together.&rdquo;
             </p>
-            <p className="text-brand-purple-600 text-xs font-semibold mt-1">— 2 Corinthians 9:7</p>
+            <p className="text-brand-purple-300 text-xs mt-1 font-semibold">— Luke 6:38</p>
           </div>
         </div>
       </div>
 
-      {/* Bank Account Card */}
-      <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-        <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-b-2 border-brand-gold-400/40 p-6">
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl">🏦</span>
-            <div>
-              <h2 className="font-heading text-xl font-bold text-white">Bank Transfer Details</h2>
-              <p className="text-brand-purple-200 text-xs">Transfer to this account and record your giving below</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="bg-brand-purple-950/60 rounded-xl p-3 border border-brand-gold-400/30">
-              <p className="text-brand-gold-400 text-[10px] uppercase tracking-widest font-semibold">Bank Name</p>
-              <p className="text-white font-bold">UBA (United Bank for Africa)</p>
-            </div>
-
-            <div className="bg-brand-purple-950/60 rounded-xl p-3 border border-brand-gold-400/30">
-              <p className="text-brand-gold-400 text-[10px] uppercase tracking-widest font-semibold">Account Name</p>
-              <p className="text-white font-bold text-sm">THE TRIUMPHANT FAMILY OF THE GLEAM OF SALVATION A.P</p>
-            </div>
-
-            <div className="bg-brand-purple-950/60 rounded-xl p-3 border border-brand-gold-400/30 flex items-center justify-between">
-              <div>
-                <p className="text-brand-gold-400 text-[10px] uppercase tracking-widest font-semibold">Account Number</p>
-                <p className="text-white font-bold text-2xl tracking-wider">1027481531</p>
-              </div>
-              <button
-                onClick={copyAccountNumber}
-                className="px-4 py-2 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:scale-105 transition-all"
-              >
-                {copied ? "✅ Copied!" : "📋 Copy"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Steps */}
-        <div className="p-6">
-          <h3 className="font-heading font-bold text-brand-purple-900 mb-3">How to Give:</h3>
-          <div className="space-y-3">
-            {[
-              { step: "1", text: "Transfer your desired amount to the account above" },
-              { step: "2", text: "Click 'Record My Giving' below" },
-              { step: "3", text: "Enter your amount and upload proof (optional)" },
-              { step: "4", text: "Admin will verify and confirm your donation" },
-            ].map((item) => (
-              <div key={item.step} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-brand-purple-100 flex items-center justify-center text-brand-purple-900 font-bold text-sm flex-shrink-0">
-                  {item.step}
-                </div>
-                <p className="text-gray-700 text-sm pt-1">{item.text}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Record Button */}
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="w-full mt-6 inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all"
-            >
-              💰 Record My Giving
+      {/* ━━━ SUCCESS STATE ━━━ */}
+      {showSuccess && (
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-green-400/60 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-400" />
+          <div className="text-5xl mb-4">✅</div>
+          <h2 className="font-heading text-2xl font-bold text-white mb-3">
+            Giving Submitted Successfully!
+          </h2>
+          <p className="text-brand-purple-200 text-sm mb-4">
+            Your giving has been submitted for verification. Admin will confirm your payment and you will see it in your giving history.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={resetForm} className="px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
+              💰 Give Again
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* ━━━ GIVING FORM ━━━ */}
-      {showForm && (
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-green-50 border-b-2 border-green-100 p-5">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📝</span>
-              <div>
-                <h2 className="font-heading text-lg font-bold text-brand-purple-900">Record Your Giving</h2>
-                <p className="text-gray-600 text-xs">Fill in the details after your transfer</p>
-              </div>
-            </div>
+            <a href="/member/giving-history" className="px-6 py-3 rounded-full bg-brand-purple-950/60 text-white font-bold border border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors text-center">
+              📋 View Giving History
+            </a>
           </div>
-
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            {/* Amount */}
-            <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">
-                Amount (₦) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                placeholder="e.g. 10000"
-                className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 text-xl font-bold"
-                required
-              />
-            </div>
-
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Category</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {GIVING_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, category: cat.value })}
-                    className={`flex items-start gap-2 p-3 rounded-xl border-2 text-left transition-all ${
-                      formData.category === cat.value
-                        ? "border-brand-gold-400 bg-brand-gold-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <span className="text-lg">{cat.label.split(" ")[0]}</span>
-                    <div>
-                      <p className={`text-sm font-bold ${formData.category === cat.value ? "text-brand-purple-900" : "text-gray-700"}`}>
-                        {cat.label.split(" ").slice(1).join(" ")}
-                      </p>
-                      <p className="text-xs text-gray-500">{cat.description}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Payment Reference */}
-            <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Transfer Reference (Optional)</label>
-              <input
-                type="text"
-                value={formData.payment_reference}
-                onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
-                placeholder="Bank transaction reference number"
-                className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
-              />
-            </div>
-
-            {/* Payment Proof */}
-            <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Upload Payment Proof (Optional)</label>
-              <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" id="payment-proof" />
-              <label
-                htmlFor="payment-proof"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 font-bold cursor-pointer transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                {selectedFile ? "Change File" : "Upload Screenshot/Receipt"}
-              </label>
-              <p className="text-xs text-gray-500 mt-2">Screenshot of transfer or bank receipt • Max 5 MB</p>
-
-              {selectedFile && (
-                <div className="mt-3 p-3 bg-green-50 border-2 border-green-200 rounded-xl">
-                  <p className="text-sm text-green-700 font-semibold">✅ {selectedFile.name}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Notes (Optional)</label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Any special notes for this giving..."
-                rows={3}
-                className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-gray-100">
-              <button type="button" onClick={resetForm} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? "Recording..." : "🎉 Record Giving"}
-              </button>
-            </div>
-          </form>
         </div>
       )}
 
-      {/* Giving History Link */}
-      <div className="text-center">
-        <Link
-          href="/member/giving-history"
-          className="inline-flex items-center gap-2 text-brand-purple-600 hover:text-brand-purple-700 font-bold text-sm"
-        >
-          📊 View My Giving History →
-        </Link>
-      </div>
+      {!showSuccess && (
+        <>
+          {/* ━━━ BANK DETAILS CARD ━━━ */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
+            <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+            <h2 className="font-black text-white text-lg mb-4">🏦 Bank Transfer Details</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+                <div>
+                  <p className="text-brand-purple-300 text-xs font-semibold uppercase tracking-widest">Bank</p>
+                  <p className="text-white font-bold text-lg">UBA</p>
+                </div>
+                <div className="text-3xl">🏦</div>
+              </div>
+              <div className="flex items-center justify-between bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+                <div>
+                  <p className="text-brand-purple-300 text-xs font-semibold uppercase tracking-widest">Account Number</p>
+                  <p className="text-white font-black text-2xl tracking-wider">1027481531</p>
+                </div>
+                <button onClick={copyAccount} className="px-4 py-2 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold hover:scale-105 transition-all">
+                  {copied ? "✅ Copied!" : "📋 Copy"}
+                </button>
+              </div>
+              <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+                <p className="text-brand-purple-300 text-xs font-semibold uppercase tracking-widest">Account Name</p>
+                <p className="text-white font-bold text-sm">THE TRIUMPHANT FAMILY OF THE GLEAM OF SALVATION A.P</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ━━━ SUBMISSION FORM ━━━ */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
+            <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+            <h2 className="font-black text-white text-lg mb-2">📤 Submit Payment Proof</h2>
+            <p className="text-brand-purple-200 text-sm mb-6">After transferring, fill this form so we can verify your payment</p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-black text-white mb-2">Amount (₦) <span className="text-red-400">*</span></label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  placeholder="e.g. 50000"
+                  required
+                  className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold text-lg"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-black text-white mb-2">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-black text-white mb-2">Date of Transfer</label>
+                  <input
+                    type="date"
+                    value={formData.donation_date}
+                    onChange={(e) => setFormData({ ...formData, donation_date: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-black text-white mb-2">Payment Proof (Screenshot)</label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProofChange}
+                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-brand-gold-400 file:text-brand-purple-900 file:font-bold file:text-xs"
+                  />
+                </div>
+                {proofPreview && (
+                  <div className="mt-3 relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={proofPreview} alt="Payment proof" className="w-full max-w-xs rounded-xl border-2 border-brand-gold-400/40" />
+                    <button
+                      type="button"
+                      onClick={() => { setProofFile(null); setProofPreview(null); }}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-brand-purple-900/80 text-white flex items-center justify-center text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-black text-white mb-2">Note (Optional)</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={2}
+                  placeholder="Any additional info..."
+                  className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full px-6 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-lg shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {isSubmitting ? "Submitting..." : "✅ Submit for Verification"}
+              </button>
+            </form>
+          </div>
+        </>
+      )}
     </div>
   );
 }

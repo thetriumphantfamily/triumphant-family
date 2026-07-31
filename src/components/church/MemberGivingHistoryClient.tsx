@@ -1,234 +1,450 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER GIVING HISTORY CLIENT — View all personal donations
+// MEMBER GIVING HISTORY CLIENT — View donations + resubmit queried ones
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 
 interface Donation {
   id: string;
   amount: number;
   category: string;
-  payment_method: string;
-  payment_reference: string | null;
   payment_status: string;
+  payment_proof_url: string | null;
   notes: string | null;
+  admin_note: string | null;
+  receipt_number: string | null;
   donation_date: string;
+  verified_at: string | null;
   created_at: string;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  tithe: "💰 Tithe",
-  offering: "🙏 Offering",
-  seed_faith: "🌱 Seed Faith",
-  building_fund: "🏛️ Building Fund",
-  missions: "🌍 Missions",
-  welfare: "💝 Welfare",
-  special_project: "⭐ Special Project",
-};
+function formatAmount(n: number) {
+  return "₦" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
+}
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700 border-yellow-300",
-  pending_verification: "bg-blue-100 text-blue-700 border-blue-300",
-  verified: "bg-green-100 text-green-700 border-green-300",
-  rejected: "bg-red-100 text-red-700 border-red-300",
-};
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+function formatDate(d: string) {
+  return new Date(d + "T12:00:00").toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric",
   });
 }
 
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-  }).format(amount);
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
+function getStatusInfo(status: string) {
+  switch (status) {
+    case "confirmed":
+      return { label: "✅ Confirmed", color: "bg-green-500/20 text-green-300 border-green-400/40" };
+    case "queried":
+      return { label: "❓ Queried", color: "bg-amber-500/20 text-amber-300 border-amber-400/40" };
+    default:
+      return { label: "⏳ Pending", color: "bg-blue-500/20 text-blue-300 border-blue-400/40" };
+  }
 }
 
 export default function MemberGivingHistoryClient() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
+  const [memberId, setMemberId] = useState("");
+  const [memberName, setMemberName] = useState("");
+
+  // Resubmit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editProofFile, setEditProofFile] = useState<File | null>(null);
+  const [editProofPreview, setEditProofPreview] = useState<string | null>(null);
+  const [isResubmitting, setIsResubmitting] = useState(false);
 
   useEffect(() => {
-    loadHistory();
+    loadMemberAndDonations();
   }, []);
 
-  const loadHistory = async () => {
+  const loadMemberAndDonations = async () => {
+    let foundId = "";
+    let foundName = "";
+
     try {
-      const session = localStorage.getItem("tfam_member_session");
-      if (!session) return;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.includes("member") || key.includes("tfam")) {
+          try {
+            const val = localStorage.getItem(key);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (parsed.full_name) {
+                foundName = parsed.full_name;
+                if (parsed.id) foundId = parsed.id;
+                break;
+              }
+            }
+          } catch { /* not JSON */ }
+        }
+      }
+    } catch { /* ignore */ }
 
-      const sessionData = JSON.parse(session);
+    setMemberId(foundId);
+    setMemberName(foundName);
+
+    if (foundId) {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("tfam_donations")
+          .select("*")
+          .eq("member_id", foundId)
+          .order("donation_date", { ascending: false });
+        setDonations(data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    setLoading(false);
+  };
+
+  const openResubmit = (d: Donation) => {
+    setEditingId(d.id);
+    setEditAmount(String(d.amount));
+    setEditNotes(d.notes || "");
+    setEditProofFile(null);
+    setEditProofPreview(null);
+  };
+
+  const closeResubmit = () => {
+    setEditingId(null);
+    setEditAmount("");
+    setEditNotes("");
+    setEditProofFile(null);
+    setEditProofPreview(null);
+  };
+
+  const handleEditProof = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Max 5MB");
+      return;
+    }
+    setEditProofFile(file);
+    setEditProofPreview(URL.createObjectURL(file));
+  };
+
+  const handleResubmit = async () => {
+    if (!editingId) return;
+    if (!editAmount || Number(editAmount) <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+
+    setIsResubmitting(true);
+
+    try {
       const supabase = createClient();
+      let newProofUrl: string | null = null;
 
-      const { data } = await supabase
+      // Upload new proof if provided
+      if (editProofFile) {
+        const fileName = `giving-proof/${Date.now()}-${editProofFile.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("tfam-members")
+          .upload(fileName, editProofFile);
+
+        if (uploadError) {
+          toast.error("Failed to upload new proof");
+          setIsResubmitting(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("tfam-members")
+          .getPublicUrl(fileName);
+
+        newProofUrl = urlData.publicUrl;
+      }
+
+      // Update the donation
+      const updatePayload: Record<string, unknown> = {
+        amount: Number(editAmount),
+        notes: editNotes.trim() || null,
+        payment_status: "pending",
+        admin_note: null,
+      };
+
+      if (newProofUrl) {
+        updatePayload.payment_proof_url = newProofUrl;
+      }
+
+      const { error } = await supabase
         .from("tfam_donations")
-        .select("*")
-        .eq("member_id", sessionData.id)
-        .order("donation_date", { ascending: false });
+        .update(updatePayload)
+        .eq("id", editingId);
 
-      setDonations(data || []);
-      setLoading(false);
-    } catch (err) {
-      console.error("Load error:", err);
-      setLoading(false);
+      if (error) {
+        toast.error(error.message);
+        setIsResubmitting(false);
+        return;
+      }
+
+      // Update local state
+      setDonations((prev) =>
+        prev.map((d) =>
+          d.id === editingId
+            ? {
+                ...d,
+                amount: Number(editAmount),
+                notes: editNotes.trim() || null,
+                payment_status: "pending",
+                admin_note: null,
+                payment_proof_url: newProofUrl || d.payment_proof_url,
+              }
+            : d
+        )
+      );
+
+      toast.success("✅ Resubmitted for verification!");
+      closeResubmit();
+    } catch {
+      toast.error("Failed to resubmit");
+    } finally {
+      setIsResubmitting(false);
     }
   };
 
-  const filteredDonations = donations.filter((d) =>
-    filter === "all" ? true : d.category === filter
-  );
+  const totalGiven = donations
+    .filter((d) => d.payment_status === "confirmed")
+    .reduce((sum, d) => sum + Number(d.amount), 0);
 
-  const totalGiving = donations.reduce((sum, d) => sum + d.amount, 0);
-  const totalTithe = donations.filter((d) => d.category === "tithe").reduce((sum, d) => sum + d.amount, 0);
-  const totalOffering = donations.filter((d) => d.category === "offering").reduce((sum, d) => sum + d.amount, 0);
-
-  const uniqueCategories = Array.from(new Set(donations.map((d) => d.category)));
+  const pendingCount = donations.filter((d) => d.payment_status === "pending").length;
+  const queriedCount = donations.filter((d) => d.payment_status === "queried").length;
+  const firstName = memberName.split(" ")[0] || "";
 
   if (loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-gray-500">Loading giving history...</p>
+        <div className="text-center">
+          <div className="text-4xl mb-3 animate-pulse">💰</div>
+          <p className="text-gray-500">Loading giving history...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-brand-purple-900 mb-2">
-          📊 My Giving History
-        </h1>
-        <p className="text-gray-600 text-sm">
-          Track all your tithes, offerings, and donations
-        </p>
+    <div className="space-y-6">
+      {/* ━━━ BRAND HEADER ━━━ */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
+              Giving History
+            </span>
+          </div>
+          <p className="text-white/80 font-semibold text-lg mb-1">
+            {getGreeting()}{firstName ? `, ${firstName}` : ""}!
+          </p>
+          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+            Your Giving Record
+          </h1>
+          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30 flex-wrap">
+            <div className="text-center">
+              <p className="text-white font-black text-2xl">{formatAmount(totalGiven)}</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Confirmed</p>
+            </div>
+            <div className="text-center">
+              <p className="text-white font-black text-2xl">{donations.length}</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Records</p>
+            </div>
+            {pendingCount > 0 && (
+              <div className="text-center">
+                <p className="text-blue-300 font-black text-2xl">{pendingCount}</p>
+                <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Pending</p>
+              </div>
+            )}
+            {queriedCount > 0 && (
+              <div className="text-center">
+                <p className="text-amber-300 font-black text-2xl">{queriedCount}</p>
+                <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Queried</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-brand-purple-50 border-b-2 border-brand-purple-100 p-4">
-            <p className="text-xs text-brand-purple-600 uppercase tracking-widest font-semibold">Total Giving</p>
-          </div>
-          <div className="p-4">
-            <p className="text-3xl font-bold text-brand-purple-900">{formatAmount(totalGiving)}</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-brand-gold-50 border-b-2 border-brand-gold-100 p-4">
-            <p className="text-xs text-brand-gold-600 uppercase tracking-widest font-semibold">Total Tithe</p>
-          </div>
-          <div className="p-4">
-            <p className="text-3xl font-bold text-brand-purple-900">{formatAmount(totalTithe)}</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-green-50 border-b-2 border-green-100 p-4">
-            <p className="text-xs text-green-600 uppercase tracking-widest font-semibold">Total Offering</p>
-          </div>
-          <div className="p-4">
-            <p className="text-3xl font-bold text-brand-purple-900">{formatAmount(totalOffering)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter */}
-      {uniqueCategories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-              filter === "all"
-                ? "bg-brand-purple-600 text-white shadow-md"
-                : "bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200"
-            }`}
-          >
-            All ({donations.length})
-          </button>
-          {uniqueCategories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilter(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                filter === cat
-                  ? "bg-brand-purple-600 text-white shadow-md"
-                  : "bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200"
-              }`}
-            >
-              {CATEGORY_LABELS[cat] || cat}
-            </button>
-          ))}
+      {/* ━━━ NO DONATIONS ━━━ */}
+      {donations.length === 0 && (
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="text-5xl mb-4">💰</div>
+          <h2 className="font-heading text-xl font-bold text-white mb-2">No Giving Records Yet</h2>
+          <p className="text-brand-purple-200 text-sm mb-4">Your giving history will appear here after you submit</p>
+          <a href="/member/give" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
+            💰 Give Now
+          </a>
         </div>
       )}
 
-      {/* Give CTA */}
-      <div className="flex justify-center">
-        <Link
-          href="/member/give"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all"
-        >
-          💰 Record New Giving
-        </Link>
-      </div>
-
-      {/* Donations List */}
-      {filteredDonations.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-purple-100 mb-4">
-            <span className="text-4xl">💰</span>
-          </div>
-          <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">
-            No giving records yet
-          </h3>
-          <p className="text-gray-500 mb-4">
-            Your giving history will appear here
-          </p>
-        </div>
-      ) : (
+      {/* ━━━ DONATIONS LIST ━━━ */}
+      {donations.length > 0 && (
         <div className="space-y-3">
-          {filteredDonations.map((donation) => {
-            const statusColor = STATUS_COLORS[donation.payment_status] || STATUS_COLORS.pending;
+          {donations.map((d) => {
+            const statusInfo = getStatusInfo(d.payment_status);
+            const isEditing = editingId === d.id;
 
             return (
-              <div
-                key={donation.id}
-                className="bg-white rounded-2xl p-5 border-2 border-gray-100 shadow-md hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-brand-purple-100 text-brand-purple-700 text-xs font-bold">
-                        {CATEGORY_LABELS[donation.category] || donation.category}
-                      </span>
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border capitalize ${statusColor}`}>
-                        {donation.payment_status.replace("_", " ")}
+              <div key={d.id} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                d.payment_status === "confirmed" ? "border-green-400/40" :
+                d.payment_status === "queried" ? "border-amber-400/40" :
+                "border-brand-gold-400/40"
+              } p-5 shadow-xl`}>
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+
+                {/* ━━━ NORMAL VIEW ━━━ */}
+                {!isEditing && (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black border ${statusInfo.color}`}>
+                            {statusInfo.label}
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white border border-brand-gold-400/30 capitalize">
+                            {d.category.replace(/_/g, " ")}
+                          </span>
+                        </div>
+
+                        <p className="text-white font-black text-2xl">{formatAmount(Number(d.amount))}</p>
+                        <p className="text-brand-purple-200 font-semibold text-xs mt-1">📅 {formatDate(d.donation_date)}</p>
+
+                        {d.notes && <p className="text-brand-purple-300 text-sm mt-2">📝 {d.notes}</p>}
+
+                        {/* Admin Query Note */}
+                        {d.payment_status === "queried" && d.admin_note && (
+                          <div className="mt-3 bg-amber-500/10 border border-amber-400/30 rounded-xl p-3">
+                            <p className="text-amber-300 text-xs font-black uppercase tracking-widest mb-1">Admin Message:</p>
+                            <p className="text-white font-semibold text-sm">{d.admin_note}</p>
+                          </div>
+                        )}
+
+                        {d.payment_status === "confirmed" && d.verified_at && (
+                          <p className="text-green-300 text-xs font-semibold mt-2">
+                            ✅ Verified on {new Date(d.verified_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </p>
+                        )}
+
+                        {d.payment_status === "confirmed" && d.receipt_number && (
+                          <p className="text-brand-purple-200 text-xs font-semibold mt-1">🧾 Receipt: {d.receipt_number}</p>
+                        )}
+                      </div>
+
+                      {d.payment_proof_url && (
+                        <a href={d.payment_proof_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={d.payment_proof_url} alt="Proof" className="w-16 h-16 rounded-xl object-cover border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors" />
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Resubmit Button for Queried */}
+                    {d.payment_status === "queried" && (
+                      <div className="pt-3 border-t border-amber-400/30 mt-3">
+                        <button
+                          onClick={() => openResubmit(d)}
+                          className="w-full px-4 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold hover:scale-105 transition-all"
+                        >
+                          ✏️ Edit & Resubmit
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* ━━━ EDIT/RESUBMIT VIEW ━━━ */}
+                {isEditing && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                        ✏️ Editing & Resubmitting
                       </span>
                     </div>
 
-                    <p className="text-xs text-gray-500">
-                      📅 {formatDate(donation.donation_date)}
-                      {donation.payment_reference && ` • Ref: ${donation.payment_reference}`}
-                    </p>
-
-                    {donation.notes && (
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-1">{donation.notes}</p>
+                    {d.admin_note && (
+                      <div className="bg-amber-500/10 border border-amber-400/30 rounded-xl p-3">
+                        <p className="text-amber-300 text-xs font-black uppercase tracking-widest mb-1">Admin said:</p>
+                        <p className="text-white font-semibold text-sm">{d.admin_note}</p>
+                      </div>
                     )}
-                  </div>
 
-                  <p className="text-2xl font-bold text-brand-purple-900 flex-shrink-0">
-                    {formatAmount(donation.amount)}
-                  </p>
-                </div>
+                    <div>
+                      <label className="block text-sm font-black text-white mb-2">Amount (₦)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                        className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold text-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black text-white mb-2">Upload New Proof (Optional)</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleEditProof}
+                        className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-brand-gold-400 file:text-brand-purple-900 file:font-bold file:text-xs"
+                      />
+                      {editProofPreview && (
+                        <div className="mt-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={editProofPreview} alt="New proof" className="w-full max-w-xs rounded-xl border-2 border-brand-gold-400/40" />
+                        </div>
+                      )}
+                      {!editProofPreview && d.payment_proof_url && (
+                        <p className="text-brand-purple-300 text-xs mt-2 font-semibold">
+                          Current proof will be kept if you don&apos;t upload a new one
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black text-white mb-2">Note (Optional)</label>
+                      <textarea
+                        value={editNotes}
+                        onChange={(e) => setEditNotes(e.target.value)}
+                        rows={2}
+                        placeholder="Any additional info for admin..."
+                        className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold"
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={closeResubmit}
+                        className="flex-1 px-4 py-3 rounded-full bg-brand-purple-950/60 text-white font-bold border border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleResubmit}
+                        disabled={isResubmitting}
+                        className="flex-1 px-4 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50"
+                      >
+                        {isResubmitting ? "Resubmitting..." : "✅ Resubmit for Verification"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
