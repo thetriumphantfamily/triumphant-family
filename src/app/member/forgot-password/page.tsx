@@ -1,19 +1,18 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// JOIN CHURCH PAGE — Membership registration (with logo + back button)
+// MEMBER FORGOT PASSWORD PAGE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import MemberRegisterForm from "@/components/church/MemberRegisterForm";
+import MemberForgotPasswordClient from "@/components/church/MemberForgotPasswordClient";
 
 export const metadata: Metadata = {
-  title: "Become a Member | The Triumphant Family",
-  description:
-    "Join The Triumphant Family Ministry. Register as a member and become part of our growing family of believers.",
+  title: "Forgot Password | The Triumphant Family",
+  description: "Reset your member account password at The Triumphant Family Ministry.",
 };
 
-export default function JoinChurchPage() {
+export default function MemberForgotPasswordPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
       <section className="relative pt-8 pb-14 lg:pt-10 lg:pb-20 overflow-hidden">
@@ -32,7 +31,7 @@ export default function JoinChurchPage() {
             </Link>
           </div>
 
-          {/* LOGO */}
+          {/* Logo */}
           <div className="flex justify-center mb-8">
             <Link href="/" className="flex flex-col items-center gap-3">
               <Image
@@ -61,21 +60,20 @@ export default function JoinChurchPage() {
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 shadow-lg">
                 <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
                 <span className="text-white font-black text-sm uppercase tracking-widest">
-                  Church Membership
+                  Reset Password
                 </span>
               </div>
             </div>
 
             <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3">
-              Become a{" "}
+              Forgot Your{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-                Member
+                Password?
               </span>
             </h1>
 
             <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed">
-              Join The Triumphant Family and become part of our growing
-              community of believers. Fill in your details below to register.
+              Verify your identity with your email and phone number to reset your password.
             </p>
 
             <div className="flex items-center justify-center mt-4">
@@ -83,17 +81,14 @@ export default function JoinChurchPage() {
             </div>
           </div>
 
-          {/* Registration Form */}
-          <MemberRegisterForm />
+          {/* Form */}
+          <MemberForgotPasswordClient />
 
           {/* Login link */}
           <div className="text-center mt-8">
             <p className="text-brand-purple-100 text-sm">
-              Already a member?{" "}
-              <Link
-                href="/member/login"
-                className="text-brand-gold-400 font-bold hover:underline"
-              >
+              Remember your password?{" "}
+              <Link href="/member/login" className="text-brand-gold-400 font-bold hover:underline">
                 Login here
               </Link>
             </p>

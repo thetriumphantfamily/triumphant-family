@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER REGISTER FORM — Church membership registration + notify admin
+// MEMBER REGISTER FORM — Church membership registration + notify admin + save password
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -73,17 +73,8 @@ export default function MemberRegisterForm() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > MAX_PHOTO_SIZE) {
-      toast.error("Photo too large! Max 2 MB");
-      return;
-    }
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-
+    if (file.size > MAX_PHOTO_SIZE) { toast.error("Photo too large! Max 2 MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -91,11 +82,7 @@ export default function MemberRegisterForm() {
   const generateMemberId = async (): Promise<string> => {
     const supabase = createClient();
     const year = new Date().getFullYear();
-
-    const { count } = await supabase
-      .from("tfam_members")
-      .select("*", { count: "exact", head: true });
-
+    const { count } = await supabase.from("tfam_members").select("*", { count: "exact", head: true });
     const nextNumber = (count || 0) + 1;
     return `TFAM${year}-${String(nextNumber).padStart(4, "0")}`;
   };
@@ -135,10 +122,7 @@ export default function MemberRegisterForm() {
 
       const { error: uploadError } = await supabase.storage
         .from("tfam-members")
-        .upload(`photos/${fileName}`, selectedFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .upload(`photos/${fileName}`, selectedFile, { cacheControl: "3600", upsert: false });
 
       if (uploadError) {
         toast.error(`Photo upload failed: ${uploadError.message}`);
@@ -146,9 +130,7 @@ export default function MemberRegisterForm() {
         return;
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from("tfam-members")
         .getPublicUrl(`photos/${fileName}`);
 
@@ -172,12 +154,11 @@ export default function MemberRegisterForm() {
         date_joined: new Date().toISOString().split("T")[0],
         emergency_contact_name: formData.emergency_contact_name.trim() || null,
         emergency_contact_phone: formData.emergency_contact_phone.trim() || null,
+        password: formData.password,
         status: "pending",
       };
 
-      const { error: dbError } = await supabase
-        .from("tfam_members")
-        .insert(payload);
+      const { error: dbError } = await supabase.from("tfam_members").insert(payload);
 
       if (dbError) {
         toast.error(`Registration failed: ${dbError.message}`);
@@ -185,7 +166,7 @@ export default function MemberRegisterForm() {
         return;
       }
 
-      // 🔔 NOTIFY ADMIN OF NEW REGISTRATION
+      // 🔔 NOTIFY ADMIN
       await notifyAdmin({
         title: "👥 New Member Registration",
         message: `${formData.full_name.trim()} just registered (${formData.email.trim().toLowerCase()}) and is awaiting approval.`,
@@ -194,18 +175,11 @@ export default function MemberRegisterForm() {
       });
 
       toast.success("🎉 Registration successful!", {
-        style: {
-          background: "#6B1F8A",
-          color: "#fff",
-          border: "1px solid #FFC72C",
-        },
+        style: { background: "#6B1F8A", color: "#fff", border: "1px solid #FFC72C" },
         duration: 5000,
       });
 
-      setRegistrationSuccess({
-        memberId,
-        name: formData.full_name.trim(),
-      });
+      setRegistrationSuccess({ memberId, name: formData.full_name.trim() });
     } catch (err) {
       console.error("Registration error:", err);
       toast.error("Something went wrong. Please try again.");
@@ -213,7 +187,7 @@ export default function MemberRegisterForm() {
     }
   };
 
-  // ━━━ SUCCESS SCREEN ━━━
+  // Success screen
   if (registrationSuccess) {
     return (
       <div className="max-w-2xl mx-auto">
@@ -235,15 +209,9 @@ export default function MemberRegisterForm() {
           </p>
 
           <div className="bg-brand-purple-950/60 border-2 border-brand-gold-400/40 rounded-2xl p-6 mb-6">
-            <p className="text-brand-purple-200 text-xs uppercase tracking-widest font-semibold mb-2">
-              Your Member ID
-            </p>
-            <p className="font-heading text-3xl md:text-4xl font-bold text-brand-gold-400">
-              {registrationSuccess.memberId}
-            </p>
-            <p className="text-brand-purple-100 text-sm mt-2">
-              Save this ID for future reference
-            </p>
+            <p className="text-brand-purple-200 text-xs uppercase tracking-widest font-semibold mb-2">Your Member ID</p>
+            <p className="font-heading text-3xl md:text-4xl font-bold text-brand-gold-400">{registrationSuccess.memberId}</p>
+            <p className="text-brand-purple-100 text-sm mt-2">Save this ID for future reference</p>
           </div>
 
           <div className="bg-brand-gold-400/10 border border-brand-gold-400/30 rounded-2xl p-5 mb-6 text-left">
@@ -257,16 +225,10 @@ export default function MemberRegisterForm() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/member/login"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all"
-            >
+            <Link href="/member/login" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all">
               Go to Login
             </Link>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold hover:border-brand-gold-400 transition-all"
-            >
+            <Link href="/" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold hover:border-brand-gold-400 transition-all">
               Back to Home
             </Link>
           </div>
@@ -275,13 +237,9 @@ export default function MemberRegisterForm() {
     );
   }
 
-  // ━━━ REGISTRATION FORM ━━━
   return (
     <div className="max-w-3xl mx-auto">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 shadow-2xl relative overflow-hidden"
-      >
+      <form onSubmit={handleSubmit} className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
         {/* PHOTO UPLOAD */}
@@ -290,9 +248,7 @@ export default function MemberRegisterForm() {
             <span className="text-2xl">📸</span>
             Passport Photograph <span className="text-red-400">*</span>
           </h3>
-
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" id="member-photo" />
-
           <div className="flex flex-col sm:flex-row items-center gap-4">
             {previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -305,7 +261,6 @@ export default function MemberRegisterForm() {
                 </svg>
               </div>
             )}
-
             <div>
               <label htmlFor="member-photo" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold cursor-pointer hover:border-brand-gold-400 transition-all">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -324,7 +279,6 @@ export default function MemberRegisterForm() {
             <span className="text-2xl">👤</span>
             Personal Information
           </h3>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-white mb-2">Full Name <span className="text-brand-gold-400">*</span></label>
@@ -365,7 +319,6 @@ export default function MemberRegisterForm() {
             <span className="text-2xl">📍</span>
             Location
           </h3>
-
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-white mb-2">Home Address</label>
@@ -393,7 +346,6 @@ export default function MemberRegisterForm() {
             <span className="text-2xl">⛪</span>
             Church Information
           </h3>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-white mb-2">Department (if any)</label>
@@ -414,7 +366,6 @@ export default function MemberRegisterForm() {
             <span className="text-2xl">🆘</span>
             Emergency Contact
           </h3>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-white mb-2">Contact Name</label>
@@ -433,7 +384,6 @@ export default function MemberRegisterForm() {
             <span className="text-2xl">🔐</span>
             Account Setup
           </h3>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-white mb-2">Password <span className="text-brand-gold-400">*</span></label>
@@ -467,11 +417,8 @@ export default function MemberRegisterForm() {
         </div>
 
         {/* SUBMIT */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base lg:text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-        >
+        <button type="submit" disabled={isSubmitting}
+          className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base lg:text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100">
           {isSubmitting ? (
             <>
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -1,8 +1,9 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBERSHIP LANDING PAGE — Choose Register or Login
+// MEMBERSHIP LANDING PAGE — Choose Register or Login (with logo)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,10 +14,10 @@ export const metadata: Metadata = {
 
 export default function MembershipPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 py-16 md:py-24 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 py-8 md:py-16 px-4">
       <div className="container-custom max-w-5xl">
         {/* Back to Website */}
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 hover:bg-brand-purple-950/80 transition-all"
@@ -25,6 +26,31 @@ export default function MembershipPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             Back to Website
+          </Link>
+        </div>
+
+        {/* LOGO */}
+        <div className="flex justify-center mb-8">
+          <Link href="/" className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <Image
+                src="/images/logo/logo.png"
+                alt="The Triumphant Family"
+                width={90}
+                height={90}
+                unoptimized
+                className="w-20 h-20 md:w-24 md:h-24 object-contain drop-shadow-2xl"
+                priority
+              />
+            </div>
+            <div className="text-center">
+              <p className="font-heading font-bold text-white text-lg md:text-xl">
+                The Triumphant Family
+              </p>
+              <p className="text-brand-gold-400 text-xs md:text-sm font-semibold uppercase tracking-widest">
+                The Gleam of Salvation Apostolic Ministry
+              </p>
+            </div>
           </Link>
         </div>
 

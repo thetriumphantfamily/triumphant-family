@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER LOGIN FORM — Church member login with status checking
+// MEMBER LOGIN FORM — Church member login with password verification
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -56,6 +56,13 @@ export default function MemberLoginForm() {
         return;
       }
 
+      // VERIFY PASSWORD
+      if (member.password !== formData.password) {
+        toast.error("Incorrect password. Try again or use Forgot Password.");
+        setIsSubmitting(false);
+        return;
+      }
+
       // Check status
       if (member.status === "pending") {
         setStatusMessage({
@@ -70,17 +77,7 @@ export default function MemberLoginForm() {
       if (member.status === "rejected") {
         setStatusMessage({
           type: "rejected",
-          title: "❌ Registration Not Approved",
-          message: "Your membership was not approved. Please contact the church administrator for more information.",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (member.status !== "approved") {
-        setStatusMessage({
-          type: "error",
-          title: "⚠️ Account Issue",
+          title: "❌ Account Issue",
           message: "There is an issue with your account. Please contact the administrator.",
         });
         setIsSubmitting(false);
@@ -118,71 +115,36 @@ export default function MemberLoginForm() {
     }
   };
 
-  // ━━━ STATUS MESSAGE ━━━
-  if (statusMessage) {
-    const bgColor =
-      statusMessage.type === "pending"
-        ? "from-yellow-500 to-yellow-600"
-        : statusMessage.type === "rejected"
-        ? "from-red-500 to-red-600"
-        : "from-gray-500 to-gray-600";
-
-    return (
-      <div className="max-w-md mx-auto">
-        <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-8 border-2 border-brand-gold-400/40 shadow-2xl text-center">
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-
-          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br ${bgColor} shadow-lg mb-4`}>
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              {statusMessage.type === "pending" ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              )}
-            </svg>
-          </div>
-
-          <h2 className="font-heading text-xl md:text-2xl font-bold text-white mb-3">
-            {statusMessage.title}
-          </h2>
-
-          <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed mb-6">
-            {statusMessage.message}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => setStatusMessage(null)}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all"
-            >
-              Try Again
-            </button>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold hover:border-brand-gold-400 transition-all"
-            >
-              Back to Home
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ━━━ LOGIN FORM ━━━
   return (
     <div className="max-w-md mx-auto">
+      {/* Status Messages */}
+      {statusMessage && (
+        <div className={`mb-6 p-6 rounded-3xl border-2 shadow-xl text-center ${
+          statusMessage.type === "pending"
+            ? "bg-gradient-to-br from-amber-500/20 to-amber-600/20 border-amber-400/60"
+            : "bg-gradient-to-br from-red-500/20 to-red-600/20 border-red-400/60"
+        }`}>
+          <h3 className="font-heading text-xl font-black text-white mb-2">
+            {statusMessage.title}
+          </h3>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {statusMessage.message}
+          </p>
+        </div>
+      )}
+
+      {/* Login Form */}
       <form
         onSubmit={handleSubmit}
-        className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-8 border-2 border-brand-gold-400/40 shadow-2xl relative overflow-hidden"
+        className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-8 border-2 border-brand-gold-400/40 shadow-2xl"
       >
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-        <div className="space-y-5">
+        <div className="relative z-10 space-y-5">
           {/* Email */}
           <div>
             <label className="block text-sm font-bold text-white mb-2">
-              Email Address <span className="text-brand-gold-400">*</span>
+              Email <span className="text-brand-gold-400">*</span>
             </label>
             <input
               type="email"
@@ -197,9 +159,17 @@ export default function MemberLoginForm() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-bold text-white mb-2">
-              Password <span className="text-brand-gold-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-bold text-white">
+                Password <span className="text-brand-gold-400">*</span>
+              </label>
+              <Link
+                href="/member/forgot-password"
+                className="text-brand-gold-400 text-xs font-bold hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -236,21 +206,13 @@ export default function MemberLoginForm() {
               </>
             ) : (
               <>
-                🔓 Login to Portal
+                Login to Member Portal
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </>
             )}
           </button>
-        </div>
-
-        {/* Scripture */}
-        <div className="mt-6 pt-6 border-t border-brand-gold-400/30 text-center">
-          <p className="text-brand-gold-400 text-sm italic font-medium">
-            &ldquo;Behold, how good and how pleasant it is for brethren to dwell together in unity!&rdquo;
-          </p>
-          <p className="text-brand-purple-200 text-xs mt-1">— Psalm 133:1</p>
         </div>
       </form>
     </div>

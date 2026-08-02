@@ -1,6 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // MEMBER LAYOUT CLIENT — Conditionally wraps member pages
-// Login page gets no sidebar, other pages get full layout
+// Public pages (login, forgot-password) get no sidebar/auth guard
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -9,15 +9,22 @@ import { usePathname } from "next/navigation";
 import MemberAuthGuard from "./MemberAuthGuard";
 import MemberSidebar from "./MemberSidebar";
 
+// Pages that don't require authentication
+const PUBLIC_MEMBER_PAGES = [
+  "/member/login",
+  "/member/forgot-password",
+  "/member/register",
+];
+
 export default function MemberLayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/member/login";
+  const isPublicPage = PUBLIC_MEMBER_PAGES.includes(pathname);
 
-  if (isLoginPage) {
+  if (isPublicPage) {
     return <>{children}</>;
   }
 

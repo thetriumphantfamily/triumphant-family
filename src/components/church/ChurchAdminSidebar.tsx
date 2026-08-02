@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN SIDEBAR — Church management navigation with notifications
+// CHURCH ADMIN SIDEBAR — Church management navigation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin/church/dashboard", icon: "📊", hasCount: false },
   { name: "Notifications", href: "/admin/church/notifications", icon: "🔔", hasCount: true },
+  { name: "Church Chat", href: "/admin/church/church-chat", icon: "💬", hasCount: false },
   { name: "Members", href: "/admin/church/members", icon: "👥", hasCount: false },
   { name: "Visitors", href: "/admin/church/visitors", icon: "🆕", hasCount: false },
   { name: "Attendance", href: "/admin/church/attendance", icon: "✅", hasCount: false },
@@ -21,7 +22,10 @@ const NAV_ITEMS = [
   { name: "Devotionals", href: "/admin/church/devotionals", icon: "📖", hasCount: false },
   { name: "Announcements", href: "/admin/church/announcements", icon: "📢", hasCount: false },
   { name: "Pastoral Care", href: "/admin/church/pastoral-care", icon: "💝", hasCount: false },
+  { name: "Care Requests", href: "/admin/church/care-requests", icon: "🏥", hasCount: false },
   { name: "Ask Pastor", href: "/admin/church/ask-pastor", icon: "❓", hasCount: false },
+  { name: "Discipleship", href: "/admin/church/discipleship", icon: "🎯", hasCount: false },
+  { name: "Small Groups", href: "/admin/church/small-groups", icon: "👥", hasCount: false },
   { name: "Departments", href: "/admin/church/departments", icon: "⛪", hasCount: false },
   { name: "TFAM AI", href: "/admin/church/ai-assistant", icon: "🤖", hasCount: false },
   { name: "Reports", href: "/admin/church/reports", icon: "📈", hasCount: false },
@@ -50,9 +54,7 @@ export default function ChurchAdminSidebar() {
         .eq("recipient_type", "admin")
         .eq("is_read", false);
       setUnreadCount(count || 0);
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   };
 
   const handleLogout = () => {
@@ -60,9 +62,7 @@ export default function ChurchAdminSidebar() {
     setIsLoggingOut(true);
     localStorage.removeItem("church_admin_session");
     toast.success("Logged out successfully");
-    setTimeout(() => {
-      router.push("/admin/login");
-    }, 500);
+    setTimeout(() => { router.push("/admin/login"); }, 500);
   };
 
   return (
@@ -93,19 +93,8 @@ export default function ChurchAdminSidebar() {
         } lg:translate-x-0`}
       >
         <div className="flex-shrink-0 p-4 border-b border-brand-gold-400/20">
-          <Link
-            href="/admin/church/dashboard"
-            className="flex items-center gap-3"
-            onClick={() => setMobileOpen(false)}
-          >
-            <Image
-              src="/images/logo/logo.png"
-              alt="TFAM"
-              width={48}
-              height={48}
-              unoptimized
-              className="w-12 h-12 object-contain flex-shrink-0"
-            />
+          <Link href="/admin/church/dashboard" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
+            <Image src="/images/logo/logo.png" alt="TFAM" width={48} height={48} unoptimized className="w-12 h-12 object-contain flex-shrink-0" />
             <div>
               <p className="font-heading font-bold text-white text-sm">Church Admin</p>
               <p className="text-xs text-brand-purple-200 font-semibold">Management</p>
@@ -147,19 +136,11 @@ export default function ChurchAdminSidebar() {
         </nav>
 
         <div className="flex-shrink-0 p-3 border-t border-brand-gold-400/20 space-y-2 bg-brand-purple-900/50">
-          <Link
-            href="/"
-            target="_blank"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm"
-          >
+          <Link href="/" target="_blank" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm">
             <span className="text-lg">🌐</span>
             <span>View Website</span>
           </Link>
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm disabled:opacity-50"
-          >
+          <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm disabled:opacity-50">
             <span className="text-lg">🚪</span>
             <span>{isLoggingOut ? "Logging out..." : "Sign Out"}</span>
           </button>
