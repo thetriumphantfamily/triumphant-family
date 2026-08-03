@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER SIDEBAR — Church member portal navigation
+// MEMBER SIDEBAR – Church member portal navigation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { name: "Live", href: "/member/live", icon: "📺", hasCount: false },
   { name: "Celebrations", href: "/member/celebrations", icon: "🎂", hasCount: false },
   { name: "Ask Pastor", href: "/member/ask-pastor", icon: "❓", hasCount: false },
-  { name: "Request Care", href: "/member/request-care", icon: "💝", hasCount: false },
+  { name: "Request Care", href: "/member/request-care", icon: "💗", hasCount: false },
   { name: "Discipleship", href: "/member/next-steps", icon: "🎯", hasCount: false },
   { name: "Small Groups", href: "/member/community", icon: "👥", hasCount: false },
   { name: "Invite Friends", href: "/member/invite", icon: "🎁", hasCount: false },
@@ -43,6 +43,7 @@ interface Member {
   member_id?: string;
   department?: string;
   photo_url?: string;
+  email?: string;
 }
 
 export default function MemberSidebar() {
@@ -52,11 +53,15 @@ export default function MemberSidebar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [member, setMember] = useState<Member | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [tdaStatus, setTdaStatus] = useState<"approved" | "pending" | "none">("none");
+  const [tdaLoading, setTdaLoading] = useState(true);
 
+  // ── Load member from localStorage
   useEffect(() => {
     loadMember();
   }, []);
 
+  // ── Load unread count when member.id is available
   useEffect(() => {
     if (member?.id) {
       loadUnreadCount(member.id);
@@ -64,6 +69,15 @@ export default function MemberSidebar() {
       return () => clearInterval(interval);
     }
   }, [member?.id]);
+
+  // ── Check TDA status when member.email is available
+  useEffect(() => {
+    if (member?.email) {
+      checkTdaStatus(member.email);
+    } else {
+      setTdaLoading(false);
+    }
+  }, [member?.email]);
 
   const loadMember = () => {
     try {
@@ -84,6 +98,29 @@ export default function MemberSidebar() {
         }
       }
     } catch { /* ignore */ }
+  };
+
+  const checkTdaStatus = async (email: string) => {
+    if (!email) {
+      setTdaLoading(false);
+      return;
+    }
+    setTdaLoading(true);
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("tda_students")
+        .select("id, status")
+        .eq("email", email.toLowerCase().trim())
+        .maybeSingle();
+
+      if (data) {
+        setTdaStatus(data.status === "approved" ? "approved" : "pending");
+      } else {
+        setTdaStatus("none");
+      }
+    } catch { /* ignore */ }
+    finally { setTdaLoading(false); }
   };
 
   const loadUnreadCount = async (memberId: string) => {
@@ -109,8 +146,28 @@ export default function MemberSidebar() {
 
   const firstName = member?.full_name?.split(" ")[0]?.toUpperCase() || "";
 
+  // TDA button config
+  const tdaHref = tdaStatus === "approved"
+    ? "/bible-school/portal/dashboard"
+    : "/bible-school/register";
+
+  const tdaLabel = tdaStatus === "approved"
+    ? "My TDA Portal"
+    : tdaStatus === "pending"
+    ? "TDA (Pending)"
+    : "Join Bible School";
+
+  const tdaSubLabel = tdaStatus === "approved"
+    ? "Triumphant Disciples Academy"
+    : tdaStatus === "pending"
+    ? "Application under review"
+    : "Enroll in Bible School";
+
+  const tdaIcon = tdaStatus === "approved" ? "🎓" : "📚";
+
   return (
     <>
+      {/* ── Mobile Toggle ── */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900"
@@ -127,48 +184,126 @@ export default function MemberSidebar() {
         )}
       </button>
 
+      {/* ── Mobile Overlay ── */}
       {mobileOpen && (
-        <div onClick={() => setMobileOpen(false)} className="lg:hidden fixed inset-0 bg-black/50 z-30" />
+        <div
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+        />
       )}
 
+      {/* ── Sidebar ── */}
       <aside
         className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 text-white z-40 transform transition-transform duration-300 flex flex-col shadow-2xl ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
+        {/* ── Logo ── */}
         <div className="flex-shrink-0 p-4 border-b border-brand-gold-400/20">
-          <Link href="/member/dashboard" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-            <Image src="/images/logo/logo.png" alt="TFAM" width={48} height={48} unoptimized className="w-12 h-12 object-contain flex-shrink-0" />
+          <Link
+            href="/member/dashboard"
+            className="flex items-center gap-3"
+            onClick={() => setMobileOpen(false)}
+          >
+            <Image
+              src="/images/logo/logo.png"
+              alt="TFAM"
+              width={48}
+              height={48}
+              unoptimized
+              className="w-12 h-12 object-contain flex-shrink-0"
+            />
             <div>
               <p className="font-heading font-bold text-white text-base">Member Portal</p>
-              <p className="text-xs text-brand-gold-400 font-semibold">Triumphant Family</p>
+              <p className="text-xs text-brand-purple-200 font-semibold">Triumphant Family</p>
             </div>
           </Link>
         </div>
 
+        {/* ── Profile Card ── */}
         {member && (
           <div className="flex-shrink-0 p-4 border-b border-brand-gold-400/20">
-            <Link href="/member/profile" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
+            <Link
+              href="/member/profile"
+              className="flex items-center gap-3"
+              onClick={() => setMobileOpen(false)}
+            >
               {member.photo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={member.photo_url} alt={member.full_name} className="w-14 h-14 rounded-full object-cover border-2 border-brand-gold-400 flex-shrink-0" />
+                <img
+                  src={member.photo_url}
+                  alt={member.full_name}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-brand-gold-400/40 flex-shrink-0"
+                />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 flex items-center justify-center text-brand-purple-900 font-black text-lg flex-shrink-0 border-2 border-brand-gold-400">
+                <div className="w-14 h-14 rounded-full bg-brand-purple-950/80 border-2 border-brand-gold-400/40 flex items-center justify-center text-white font-black text-lg flex-shrink-0">
                   {firstName.charAt(0)}
                 </div>
               )}
               <div className="min-w-0">
                 <p className="font-black text-white text-sm truncate">{firstName}</p>
-                <p className="text-xs text-brand-gold-400 font-bold truncate">{member.member_id || "MEMBER"}</p>
+                <p className="text-xs text-brand-purple-200 font-bold truncate">
+                  {member.member_id || "MEMBER"}
+                </p>
                 {member.department && (
-                  <p className="text-xs text-brand-purple-200 font-semibold uppercase tracking-wide truncate">{member.department}</p>
+                  <p className="text-xs text-brand-purple-200 font-semibold uppercase tracking-wide truncate">
+                    {member.department}
+                  </p>
                 )}
               </div>
             </Link>
           </div>
         )}
 
-        <nav className="flex-1 overflow-y-auto py-4">
+        {/* ── TDA BUTTON ── */}
+        {!tdaLoading && (
+          <div className="flex-shrink-0 px-3 pt-3 pb-1">
+            <Link
+              href={tdaHref}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full ${
+                tdaStatus === "approved"
+                  ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
+                  : "bg-brand-purple-950/60 border border-brand-gold-400/40 text-white hover:bg-white/10"
+              }`}
+            >
+              <span className="text-xl flex-shrink-0">{tdaIcon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-sm truncate">{tdaLabel}</p>
+                <p className={`text-xs font-semibold truncate ${
+                  tdaStatus === "approved"
+                    ? "text-brand-purple-900/70"
+                    : "text-brand-purple-200"
+                }`}>
+                  {tdaSubLabel}
+                </p>
+              </div>
+              {tdaStatus === "approved" && (
+                <span className="text-xs font-black text-brand-purple-900 flex-shrink-0">→</span>
+              )}
+            </Link>
+          </div>
+        )}
+
+        {/* Loading state for TDA button */}
+        {tdaLoading && (
+          <div className="flex-shrink-0 px-3 pt-3 pb-1">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-purple-950/60 border border-brand-gold-400/20 animate-pulse">
+              <span className="text-xl flex-shrink-0">📚</span>
+              <div className="flex-1 min-w-0">
+                <div className="h-3 bg-brand-purple-700 rounded w-24 mb-1" />
+                <div className="h-2 bg-brand-purple-800 rounded w-32" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="px-3 py-2">
+          <div className="h-px bg-brand-gold-400/20" />
+        </div>
+
+        {/* ── Navigation ── */}
+        <nav className="flex-1 overflow-y-auto pb-4">
           <div className="px-3 space-y-1">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
@@ -191,7 +326,7 @@ export default function MemberSidebar() {
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className="text-sm flex-1">{item.name}</span>
                   {showCount && (
-                    <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black shadow-lg shadow-red-500/50 animate-pulse ring-2 ring-red-400">
+                    <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black animate-pulse ring-2 ring-red-400">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
@@ -201,12 +336,21 @@ export default function MemberSidebar() {
           </div>
         </nav>
 
+        {/* ── Footer ── */}
         <div className="flex-shrink-0 p-3 border-t border-brand-gold-400/20 space-y-2 bg-brand-purple-900/50">
-          <Link href="/" target="_blank" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm">
-            <span className="text-lg">🌐</span>
+          <Link
+            href="/"
+            target="_blank"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm"
+          >
+            <span className="text-lg">🌍</span>
             <span>View Website</span>
           </Link>
-          <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm disabled:opacity-50">
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm disabled:opacity-50"
+          >
             <span className="text-lg">🚪</span>
             <span>{isLoggingOut ? "Logging out..." : "Sign Out"}</span>
           </button>
