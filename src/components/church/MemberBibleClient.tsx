@@ -1,300 +1,283 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER BIBLE CLIENT — KJV reader + Yoruba embedded via iframe
+// MEMBER BIBLE — Tap verse to Copy/Share, continuous flow
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState } from "react";
-
-const BOOKS = [
-  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
-  "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra",
-  "Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon",
-  "Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
-  "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah",
-  "Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians",
-  "2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
-  "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon",
-  "Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"
-];
-
-const BIBLE_COM_BOOKS: Record<string, string> = {
-  "Genesis":"GEN","Exodus":"EXO","Leviticus":"LEV","Numbers":"NUM","Deuteronomy":"DEU",
-  "Joshua":"JOS","Judges":"JDG","Ruth":"RUT","1 Samuel":"1SA","2 Samuel":"2SA",
-  "1 Kings":"1KI","2 Kings":"2KI","1 Chronicles":"1CH","2 Chronicles":"2CH",
-  "Ezra":"EZR","Nehemiah":"NEH","Esther":"EST","Job":"JOB","Psalms":"PSA",
-  "Proverbs":"PRO","Ecclesiastes":"ECC","Song of Solomon":"SNG","Isaiah":"ISA",
-  "Jeremiah":"JER","Lamentations":"LAM","Ezekiel":"EZK","Daniel":"DAN",
-  "Hosea":"HOS","Joel":"JOL","Amos":"AMO","Obadiah":"OBA","Jonah":"JON",
-  "Micah":"MIC","Nahum":"NAM","Habakkuk":"HAB","Zephaniah":"ZEP","Haggai":"HAG",
-  "Zechariah":"ZEC","Malachi":"MAL","Matthew":"MAT","Mark":"MRK","Luke":"LUK",
-  "John":"JHN","Acts":"ACT","Romans":"ROM","1 Corinthians":"1CO","2 Corinthians":"2CO",
-  "Galatians":"GAL","Ephesians":"EPH","Philippians":"PHP","Colossians":"COL",
-  "1 Thessalonians":"1TH","2 Thessalonians":"2TH","1 Timothy":"1TI","2 Timothy":"2TI",
-  "Titus":"TIT","Philemon":"PHM","Hebrews":"HEB","James":"JAS","1 Peter":"1PE",
-  "2 Peter":"2PE","1 John":"1JN","2 John":"2JN","3 John":"3JN","Jude":"JUD","Revelation":"REV"
-};
+import toast from "react-hot-toast";
+import LoadingScreen from "./LoadingScreen";
 
 interface Verse {
+  book_name: string;
+  chapter: number;
   verse: number;
   text: string;
 }
 
-type Translation = "kjv" | "yoruba";
+const BOOKS = [
+  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+  "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
+  "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
+  "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
+  "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
+  "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel",
+  "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
+  "Zephaniah", "Haggai", "Zechariah", "Malachi",
+  "Matthew", "Mark", "Luke", "John", "Acts",
+  "Romans", "1 Corinthians", "2 Corinthians", "Galatians",
+  "Ephesians", "Philippians", "Colossians",
+  "1 Thessalonians", "2 Thessalonians",
+  "1 Timothy", "2 Timothy", "Titus", "Philemon",
+  "Hebrews", "James", "1 Peter", "2 Peter",
+  "1 John", "2 John", "3 John", "Jude", "Revelation",
+];
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
 
 export default function MemberBibleClient() {
   const [selectedBook, setSelectedBook] = useState("John");
   const [selectedChapter, setSelectedChapter] = useState(3);
-  const [translation, setTranslation] = useState<Translation>("kjv");
   const [verses, setVerses] = useState<Verse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fontSize, setFontSize] = useState<"sm" | "base" | "lg">("base");
-  const [iframeKey, setIframeKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [fontSize, setFontSize] = useState("text-base");
+  const [translation, setTranslation] = useState<"kjv" | "yoruba">("kjv");
+  const [memberName, setMemberName] = useState("");
+  const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
 
   useEffect(() => {
-    if (translation === "kjv") {
-      loadKJV();
-    } else {
-      setIframeKey((prev) => prev + 1);
-    }
+    loadMember();
+    loadVerses();
+  }, []);
+
+  useEffect(() => {
+    loadVerses();
+    setSelectedVerse(null);
   }, [selectedBook, selectedChapter, translation]);
 
-  const loadKJV = async () => {
-    setLoading(true);
-    setError(null);
-    setVerses([]);
-
+  const loadMember = () => {
     try {
-      const response = await fetch(
-        `https://bible-api.com/${encodeURIComponent(selectedBook)}+${selectedChapter}?translation=kjv`
-      );
-      const data = await response.json();
-
-      if (data.verses) {
-        setVerses(data.verses.map((v: { verse: number; text: string }) => ({
-          verse: v.verse,
-          text: v.text.trim(),
-        })));
-      } else {
-        setError("Chapter not found. Try a different chapter number.");
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.includes("member") || key.includes("tfam")) {
+          try {
+            const val = localStorage.getItem(key);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (parsed.full_name) { setMemberName(parsed.full_name.split(" ")[0]); break; }
+            }
+          } catch { /* ignore */ }
+        }
       }
+    } catch { /* ignore */ }
+  };
+
+  const loadVerses = async () => {
+    setLoading(true);
+    try {
+      if (translation === "kjv") {
+        const res = await fetch(
+          `https://bible-api.com/${encodeURIComponent(selectedBook)}+${selectedChapter}?translation=kjv`
+        );
+        const data = await res.json();
+
+        if (data.verses) {
+          setVerses(
+            data.verses.map((v: { book_name: string; chapter: number; verse: number; text: string }) => ({
+              book_name: v.book_name,
+              chapter: v.chapter,
+              verse: v.verse,
+              text: v.text,
+            }))
+          );
+        } else {
+          setVerses([]);
+        }
+      } else {
+        setVerses([]);
+      }
+      setLoading(false);
     } catch (err) {
-      console.error("Bible API error:", err);
-      setError("Failed to load. Check your internet connection.");
-    } finally {
+      console.error(err);
+      setVerses([]);
       setLoading(false);
     }
   };
 
-  const getYorubaUrl = () => {
-    const bookCode = BIBLE_COM_BOOKS[selectedBook] || "JHN";
-    return `https://www.bible.com/bible/911/${bookCode}.${selectedChapter}.BAYO`;
+  const copyVerse = (v: Verse) => {
+    const text = `${v.book_name} ${v.chapter}:${v.verse} (KJV)\n"${v.text.trim()}"`;
+    navigator.clipboard.writeText(text);
+    toast.success("📋 Verse copied!");
   };
 
-  const fontSizeClass = fontSize === "sm" ? "text-sm" : fontSize === "lg" ? "text-lg" : "text-base";
+  const shareVerse = (v: Verse) => {
+    const text = `📖 ${v.book_name} ${v.chapter}:${v.verse} (KJV)\n\n"${v.text.trim()}"\n\n— The Triumphant Family`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const toggleVerse = (verseNum: number) => {
+    setSelectedVerse(selectedVerse === verseNum ? null : verseNum);
+  };
+
+  const prevChapter = () => {
+    if (selectedChapter > 1) setSelectedChapter(selectedChapter - 1);
+  };
+
+  const nextChapter = () => {
+    setSelectedChapter(selectedChapter + 1);
+  };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-brand-purple-900 mb-2">📕 Bible</h1>
-        <p className="text-gray-600 text-sm">Read the Word of God in English (KJV) or Yoruba</p>
+    <div className="space-y-6">
+      {/* Brand Header */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Bible</span>
+          </div>
+          <p className="text-white/80 font-semibold text-lg mb-1">{getGreeting()}{memberName ? `, ${memberName}` : ""}!</p>
+          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">Read The Word</h1>
+          <p className="text-brand-purple-100 text-sm md:text-base">KJV + Yoruba Bible Reader</p>
+        </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-        <div className="bg-brand-purple-50 border-b-2 border-brand-purple-100 p-4">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
+        <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-          {/* Translation Toggle */}
-          <div className="flex justify-center mb-4">
-            <div className="inline-flex rounded-full border-2 border-brand-purple-200 overflow-hidden">
-              <button
-                onClick={() => setTranslation("kjv")}
-                className={`px-6 py-2.5 text-sm font-bold transition-all ${
-                  translation === "kjv"
-                    ? "bg-brand-purple-600 text-white"
-                    : "bg-white text-brand-purple-600 hover:bg-brand-purple-50"
-                }`}
-              >
-                🇬🇧 KJV (English)
-              </button>
-              <button
-                onClick={() => setTranslation("yoruba")}
-                className={`px-6 py-2.5 text-sm font-bold transition-all ${
-                  translation === "yoruba"
-                    ? "bg-brand-purple-600 text-white"
-                    : "bg-white text-brand-purple-600 hover:bg-brand-purple-50"
-                }`}
-              >
-                🇳🇬 Yorùbá
-              </button>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Book</label>
+            <select value={selectedBook} onChange={(e) => { setSelectedBook(e.target.value); setSelectedChapter(1); }}
+              className="w-full p-2.5 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold text-sm">
+              {BOOKS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Chapter</label>
+            <div className="flex gap-1">
+              <button onClick={prevChapter} disabled={selectedChapter <= 1} className="px-3 py-2.5 rounded-xl bg-brand-purple-950/60 text-white border border-brand-gold-400/40 font-bold disabled:opacity-30">←</button>
+              <input type="number" min="1" value={selectedChapter} onChange={(e) => setSelectedChapter(Math.max(1, parseInt(e.target.value) || 1))}
+                className="flex-1 p-2.5 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold text-sm text-center" />
+              <button onClick={nextChapter} className="px-3 py-2.5 rounded-xl bg-brand-purple-950/60 text-white border border-brand-gold-400/40 font-bold">→</button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Book */}
-            <div>
-              <label className="block text-xs font-bold text-brand-purple-900 mb-1">Book</label>
-              <select
-                value={selectedBook}
-                onChange={(e) => { setSelectedBook(e.target.value); setSelectedChapter(1); }}
-                className="w-full p-2.5 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white text-sm"
-              >
-                {BOOKS.map((book) => (<option key={book} value={book}>{book}</option>))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Translation</label>
+            <select value={translation} onChange={(e) => setTranslation(e.target.value as "kjv" | "yoruba")}
+              className="w-full p-2.5 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold text-sm">
+              <option value="kjv">KJV (English)</option>
+              <option value="yoruba">Yoruba</option>
+            </select>
+          </div>
 
-            {/* Chapter */}
-            <div>
-              <label className="block text-xs font-bold text-brand-purple-900 mb-1">Chapter</label>
-              <input
-                type="number"
-                min="1"
-                value={selectedChapter}
-                onChange={(e) => setSelectedChapter(parseInt(e.target.value) || 1)}
-                className="w-full p-2.5 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white text-sm"
-              />
-            </div>
-
-            {/* Font Size (KJV only) */}
-            {translation === "kjv" && (
-              <div>
-                <label className="block text-xs font-bold text-brand-purple-900 mb-1">Text Size</label>
-                <div className="flex gap-2">
-                  {(["sm", "base", "lg"] as const).map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setFontSize(size)}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                        fontSize === size
-                          ? "bg-brand-purple-600 text-white"
-                          : "bg-white border-2 border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {size === "sm" ? "A" : size === "base" ? "A+" : "A++"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div>
+            <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Size</label>
+            <select value={fontSize} onChange={(e) => setFontSize(e.target.value)}
+              className="w-full p-2.5 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold text-sm">
+              <option value="text-sm">Small</option>
+              <option value="text-base">Medium</option>
+              <option value="text-lg">Large</option>
+              <option value="text-xl">Extra Large</option>
+            </select>
           </div>
         </div>
-
-        {/* ━━━ KJV READING AREA ━━━ */}
-        {translation === "kjv" && (
-          <>
-            {/* Navigation */}
-            <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
-              <button
-                onClick={() => setSelectedChapter(Math.max(1, selectedChapter - 1))}
-                disabled={selectedChapter <= 1}
-                className="px-4 py-2 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 text-sm font-bold disabled:opacity-30 transition-all"
-              >
-                ← Previous
-              </button>
-              <p className="font-heading font-bold text-brand-purple-900">
-                {selectedBook} {selectedChapter}
-                <span className="text-xs text-gray-500 ml-2">(KJV)</span>
-              </p>
-              <button
-                onClick={() => setSelectedChapter(selectedChapter + 1)}
-                className="px-4 py-2 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 text-sm font-bold transition-all"
-              >
-                Next →
-              </button>
-            </div>
-
-            {/* Verses */}
-            <div className="p-5 md:p-8">
-              {loading ? (
-                <div className="text-center py-10">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-purple-100 mb-3 animate-pulse">
-                    <span className="text-2xl">📖</span>
-                  </div>
-                  <p className="text-gray-500">Loading chapter...</p>
-                </div>
-              ) : error ? (
-                <div className="text-center py-10">
-                  <p className="text-gray-500">{error}</p>
-                </div>
-              ) : verses.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-gray-500">No verses found.</p>
-                </div>
-              ) : (
-                <div className={`${fontSizeClass} leading-relaxed text-gray-800 space-y-1`}>
-                  {verses.map((verse) => (
-                    <span key={verse.verse} className="inline">
-                      <sup className="text-brand-gold-600 font-bold text-xs mr-1">{verse.verse}</sup>
-                      <span>{verse.text} </span>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ━━━ YORUBA READING AREA (EMBEDDED IFRAME) ━━━ */}
-        {translation === "yoruba" && (
-          <>
-            {/* Navigation */}
-            <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
-              <button
-                onClick={() => setSelectedChapter(Math.max(1, selectedChapter - 1))}
-                disabled={selectedChapter <= 1}
-                className="px-4 py-2 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 text-sm font-bold disabled:opacity-30 transition-all"
-              >
-                ← Previous
-              </button>
-              <p className="font-heading font-bold text-brand-purple-900">
-                {selectedBook} {selectedChapter}
-                <span className="text-xs text-gray-500 ml-2">(Yorùbá)</span>
-              </p>
-              <button
-                onClick={() => setSelectedChapter(selectedChapter + 1)}
-                className="px-4 py-2 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 text-sm font-bold transition-all"
-              >
-                Next →
-              </button>
-            </div>
-
-            {/* Embedded iframe */}
-            <div className="relative" style={{ minHeight: "600px" }}>
-              <iframe
-                key={iframeKey}
-                src={getYorubaUrl()}
-                title={`${selectedBook} ${selectedChapter} - Yorùbá Bible`}
-                className="w-full border-0"
-                style={{ height: "700px" }}
-                sandbox="allow-scripts allow-same-origin allow-popups"
-              />
-
-              {/* Fallback note */}
-              <div className="absolute bottom-0 left-0 right-0 bg-brand-gold-50 border-t-2 border-brand-gold-200 p-3 text-center">
-                <p className="text-xs text-brand-purple-700">
-                  📖 Powered by Bible.com (YouVersion) • Bibeli Atoka Yoruba (BAYO)
-                </p>
-              </div>
-            </div>
-          </>
-        )}
       </div>
 
-      {/* Info */}
-      <div className="bg-brand-gold-50 border-2 border-brand-gold-200 rounded-2xl p-5">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">💡</span>
-          <div>
-            <p className="font-bold text-brand-purple-900 mb-1">About the Bible Reader</p>
-            <ul className="text-brand-purple-700 text-sm space-y-1 list-disc pl-4">
-              <li><strong>KJV (English)</strong> — reads directly in your portal</li>
-              <li><strong>Yorùbá</strong> — reads inside your portal via Bible.com</li>
-              <li>Select any book and chapter from either translation</li>
-              <li>Use Previous/Next to navigate chapters</li>
-              <li>Adjust text size for comfortable reading (KJV)</li>
-            </ul>
-          </div>
+      {/* Bible Content */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-xl">
+        <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+
+        <div className="p-5 border-b border-brand-gold-400/30">
+          <h2 className="font-heading text-xl md:text-2xl font-black text-white text-center">
+            {selectedBook} {selectedChapter}
+          </h2>
+          <p className="text-brand-purple-200 text-xs text-center mt-1 uppercase tracking-widest">
+            {translation === "kjv" ? "King James Version" : "Bibeli Mimọ (Yoruba)"}
+          </p>
+          <p className="text-brand-purple-300 text-xs text-center mt-1">Tap any verse to copy or share</p>
+        </div>
+
+        <div className="p-5 md:p-8">
+          {loading ? (
+            <LoadingScreen message="Loading scripture..." />
+          ) : translation === "yoruba" ? (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-4">📖</div>
+              <h3 className="text-white font-bold text-lg mb-2">Yoruba Bible</h3>
+              <p className="text-brand-purple-200 text-sm mb-4">Opening Yoruba Bible via Bible.com</p>
+              <a
+                href={`https://www.bible.com/bible/911/${selectedBook.toLowerCase().replace(/\s/g, "")}.${selectedChapter}.YOR`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all"
+              >
+                📖 Open Yoruba Bible
+              </a>
+            </div>
+          ) : verses.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-4">📖</div>
+              <p className="text-white font-bold">No verses found for this chapter</p>
+              <p className="text-brand-purple-200 text-sm mt-2">Try a different chapter</p>
+            </div>
+          ) : (
+            <div className={`text-white/90 leading-relaxed text-justify ${fontSize}`}>
+              {verses.map((v) => (
+                <span key={v.verse} className="relative inline">
+                  <span
+                    onClick={() => toggleVerse(v.verse)}
+                    className={`cursor-pointer transition-all ${
+                      selectedVerse === v.verse
+                        ? "bg-brand-gold-400/20 rounded px-0.5"
+                        : "hover:bg-white/5 rounded px-0.5"
+                    }`}
+                  >
+                    <sup className="text-brand-purple-300 font-black text-[10px] mr-1">{v.verse}</sup>
+                    {v.text.trim()}{" "}
+                  </span>
+
+                  {selectedVerse === v.verse && (
+                    <span className="inline-flex gap-2 ml-1 align-middle">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); copyVerse(v); }}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-purple-950/80 border border-brand-gold-400/40 text-brand-gold-300 text-[10px] font-black hover:bg-brand-purple-950 transition-colors"
+                      >
+                        📋 Copy
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); shareVerse(v); }}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-500/80 text-white text-[10px] font-black hover:bg-green-600 transition-colors"
+                      >
+                        📱 Share
+                      </button>
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="p-5 border-t border-brand-gold-400/30 flex justify-between">
+          <button onClick={prevChapter} disabled={selectedChapter <= 1}
+            className="px-5 py-2.5 rounded-full bg-brand-purple-950/60 text-white font-bold text-sm border border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors disabled:opacity-30">
+            ← Previous
+          </button>
+          <button onClick={nextChapter}
+            className="px-5 py-2.5 rounded-full bg-brand-purple-950/60 text-white font-bold text-sm border border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors">
+            Next →
+          </button>
         </div>
       </div>
     </div>

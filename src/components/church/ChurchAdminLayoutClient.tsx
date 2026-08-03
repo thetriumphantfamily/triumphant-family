@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN LAYOUT CLIENT
+// CHURCH ADMIN LAYOUT CLIENT — Brand purple gradient (same as main website)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -14,7 +14,7 @@ export default function ChurchAdminLayoutClient({
 }) {
   return (
     <ChurchAdminAuthGuard>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
         <ChurchAdminSidebar />
         <div className="lg:ml-64 min-h-screen">
           <div className="p-4 lg:p-8 pt-20 lg:pt-8">{children}</div>

@@ -1,12 +1,14 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER COMMUNITY — Small groups + join/leave + notify admin
+// MEMBER COMMUNITY — Small Groups (fellowship type ONLY)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyAdmin } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface SmallGroup {
   id: string;
@@ -96,10 +98,12 @@ export default function MemberCommunityClient() {
     try {
       const supabase = createClient();
 
+      // FILTER: Only fellowship type groups
       const { data: groupsData } = await supabase
         .from("tfam_small_groups")
         .select("*")
         .eq("is_active", true)
+        .eq("group_type", "fellowship")
         .order("display_order");
 
       const groupsWithCounts = await Promise.all(
@@ -142,7 +146,6 @@ export default function MemberCommunityClient() {
 
       if (error) { toast.error(error.message); return; }
 
-      // 🔔 NOTIFY ADMIN
       await notifyAdmin({
         title: "💬 New Small Group Member",
         message: `${memberName || "A member"} just joined "${group.name}" small group.`,
@@ -167,7 +170,6 @@ export default function MemberCommunityClient() {
         .eq("group_id", group.id)
         .eq("member_id", memberId);
 
-      // 🔔 NOTIFY ADMIN
       await notifyAdmin({
         title: "🚪 Member Left Small Group",
         message: `${memberName || "A member"} left "${group.name}" small group.`,
@@ -185,14 +187,7 @@ export default function MemberCommunityClient() {
   const myGroupsCount = myGroups.length;
 
   if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">💬</div>
-          <p className="text-gray-500">Loading small groups...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Loading small groups..." />;
   }
 
   return (
@@ -203,26 +198,18 @@ export default function MemberCommunityClient() {
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
-              Small Groups
-            </span>
+            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Small Groups</span>
           </div>
-          <p className="text-white/80 font-semibold text-lg mb-1">
-            {getGreeting()}{firstName ? `, ${firstName}` : ""}!
-          </p>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-            Small Groups & Fellowship
-          </h1>
-          <p className="text-brand-purple-100 text-sm md:text-base">
-            Join a small group to grow together with other believers
-          </p>
+          <p className="text-white/80 font-semibold text-lg mb-1">{getGreeting()}{firstName ? `, ${firstName}` : ""}!</p>
+          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">Small Groups & Fellowship</h1>
+          <p className="text-brand-purple-100 text-sm md:text-base">Join a fellowship group to grow together with other believers</p>
           <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
               <p className="text-white font-black text-2xl">{groups.length}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Groups</p>
             </div>
             <div className="text-center">
-              <p className="text-brand-gold-400 font-black text-2xl">{myGroupsCount}</p>
+              <p className="text-white font-black text-2xl">{myGroupsCount}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Joined</p>
             </div>
           </div>
@@ -231,10 +218,11 @@ export default function MemberCommunityClient() {
 
       {/* Groups Grid */}
       {groups.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
-          <div className="text-4xl mb-4">💬</div>
-          <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">No small groups yet</h3>
-          <p className="text-gray-500">Small groups will be listed here soon</p>
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="text-5xl mb-4">💬</div>
+          <h2 className="font-heading text-xl font-bold text-white mb-2">No Small Groups Yet</h2>
+          <p className="text-brand-purple-200 text-sm">Small groups will be listed here soon</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -268,7 +256,7 @@ export default function MemberCommunityClient() {
                 </div>
 
                 {group.description && (
-                  <p className="text-white/80 font-semibold text-sm mb-4">{group.description}</p>
+                  <p className="text-white/80 font-semibold text-sm mb-4 text-justify">{group.description}</p>
                 )}
 
                 <div className="space-y-1.5 text-xs text-brand-purple-200 mb-4">
@@ -283,26 +271,32 @@ export default function MemberCommunityClient() {
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30">
-                  {joined ? (
-                    <button
-                      onClick={() => leaveGroup(group)}
-                      className="flex-1 px-4 py-2.5 rounded-full bg-brand-purple-950/60 text-white text-sm font-bold border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all"
+                <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30">
+                  {joined && (
+                    <Link
+                      href={`/member/community/${group.id}`}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold hover:scale-105 transition-all"
                     >
+                      💬 Open Group
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </Link>
+                  )}
+
+                  {joined ? (
+                    <button onClick={() => leaveGroup(group)}
+                      className="w-full px-4 py-2.5 rounded-full bg-brand-purple-950/60 text-white text-sm font-bold border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all">
                       🚪 Leave Group
                     </button>
                   ) : isFull ? (
-                    <button
-                      disabled
-                      className="flex-1 px-4 py-2.5 rounded-full bg-gray-500/20 text-gray-400 text-sm font-bold border border-gray-400/40 cursor-not-allowed"
-                    >
+                    <button disabled
+                      className="w-full px-4 py-2.5 rounded-full bg-brand-purple-950/60 text-brand-purple-400 text-sm font-bold border border-brand-gold-400/20 cursor-not-allowed">
                       🔒 Group Full
                     </button>
                   ) : (
-                    <button
-                      onClick={() => joinGroup(group)}
-                      className="flex-1 px-4 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold hover:scale-105 transition-all"
-                    >
+                    <button onClick={() => joinGroup(group)}
+                      className="w-full px-4 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold hover:scale-105 transition-all">
                       ✅ Join Group
                     </button>
                   )}

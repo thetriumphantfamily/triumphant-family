@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER ATTENDANCE CLIENT — Self check-in with time control
+// MEMBER ATTENDANCE CLIENT – Self check-in with time control
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 interface ServiceTemplate {
   id: string;
@@ -96,7 +97,6 @@ export default function MemberAttendanceClient() {
 
   useEffect(() => {
     loadEverything();
-    // Refresh every 30 seconds to update time window status
     const interval = setInterval(loadEverything, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -137,7 +137,7 @@ export default function MemberAttendanceClient() {
     const todayStr = getLocalToday();
     const todayDayOfWeek = new Date().getDay();
 
-    // 1. Check if there's a service for today (created or auto-generate from template)
+    // 1. Check if there's a service for today
     let { data: existingService } = await supabase
       .from("tfam_services")
       .select("*")
@@ -154,7 +154,6 @@ export default function MemberAttendanceClient() {
         .maybeSingle();
 
       if (template) {
-        // Auto-generate service from template
         const { data: newService } = await supabase
           .from("tfam_services")
           .insert({
@@ -254,7 +253,7 @@ export default function MemberAttendanceClient() {
     }
   }
 
-  // Calculate stats
+  // Stats
   const totalAttended = attendanceHistory.length;
   const thisMonth = attendanceHistory.filter((a) => {
     if (!a.service?.service_date) return false;
@@ -263,20 +262,13 @@ export default function MemberAttendanceClient() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">✅</div>
-          <p className="text-gray-500">Loading attendance...</p>
-        </div>
-      </div>
-    );
-  }
+  // ✅ LOADING SCREEN — from report pattern
+  if (loading) return <LoadingScreen message="Loading attendance..." />;
 
   return (
     <div className="space-y-6">
-      {/* Brand Header */}
+
+      {/* ── Brand Header ── */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -293,7 +285,7 @@ export default function MemberAttendanceClient() {
             Service Attendance
           </h1>
           <p className="text-brand-purple-100 text-sm md:text-base">
-            Check in when you attend service and track your presence
+            Check in when you attend service and track your presence.
           </p>
           <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
@@ -308,36 +300,37 @@ export default function MemberAttendanceClient() {
         </div>
       </div>
 
-      {/* TODAY'S SERVICE CARD */}
+      {/* ── No Service Today ── */}
       {!todayService && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="text-5xl mb-4">📅</div>
-          <h2 className="font-heading text-xl font-bold text-white mb-2">
-            No Service Today
-          </h2>
+          <h2 className="font-heading text-xl font-bold text-white mb-2">No Service Today</h2>
           <p className="text-brand-purple-200 text-sm">
             There is no service scheduled for today.
           </p>
         </div>
       )}
 
+      {/* ── Today's Service Card ── */}
       {todayService && (
         <div className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
-          alreadyCheckedIn ? "border-green-400" :
-          checkInStatus === "open" ? "border-brand-gold-400" :
-          "border-brand-gold-400/40"
+          alreadyCheckedIn
+            ? "border-green-400"
+            : "border-brand-gold-400/40"
         } p-6 md:p-8 shadow-xl`}>
           <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${
-            alreadyCheckedIn ? "from-green-400 via-green-500 to-green-400" :
-            "from-brand-gold-300 via-brand-gold-400 to-brand-gold-500"
+            alreadyCheckedIn
+              ? "from-green-400 via-green-500 to-green-400"
+              : "from-brand-gold-300 via-brand-gold-400 to-brand-gold-500"
           }`} />
 
           <div className="relative z-10">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
-              <span className="text-brand-gold-300 text-xs font-black uppercase tracking-widest">
-                📅 Today's Service
+              <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
+              <span className="text-white text-xs font-black uppercase tracking-widest">
+                Today&apos;s Service
               </span>
             </div>
 
@@ -345,14 +338,16 @@ export default function MemberAttendanceClient() {
             <h2 className="font-heading text-2xl md:text-3xl font-bold text-white mb-2">
               {todayService.title}
             </h2>
-
             <div className="space-y-1 mb-6">
               <p className="text-brand-purple-100 text-sm">
                 📅 {formatDate(todayService.service_date)}
               </p>
               {todayService.service_time && (
                 <p className="text-brand-purple-100 text-sm">
-                  🕐 Service Time: <span className="font-bold text-white">{formatTime(todayService.service_time)}</span>
+                  🕐 Service Time:{" "}
+                  <span className="font-bold text-white">
+                    {formatTime(todayService.service_time)}
+                  </span>
                 </p>
               )}
               {todayService.location && (
@@ -362,7 +357,7 @@ export default function MemberAttendanceClient() {
               )}
             </div>
 
-            {/* CHECK-IN STATUS */}
+            {/* ── Check-in Status ── */}
             {alreadyCheckedIn ? (
               <div className="bg-green-500/20 border-2 border-green-400 rounded-2xl p-5 text-center">
                 <div className="text-4xl mb-2">✅</div>
@@ -370,7 +365,8 @@ export default function MemberAttendanceClient() {
                   You&apos;re Checked In!
                 </p>
                 <p className="text-green-300 font-bold text-sm">
-                  Checked in at {new Date(alreadyCheckedIn.checked_in_at).toLocaleTimeString("en-US", {
+                  Checked in at{" "}
+                  {new Date(alreadyCheckedIn.checked_in_at).toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -389,7 +385,7 @@ export default function MemberAttendanceClient() {
               </div>
             ) : checkInStatus === "open" ? (
               <div className="space-y-3">
-                <div className="bg-brand-gold-400/20 border-2 border-brand-gold-400 rounded-2xl p-4 text-center">
+                <div className="bg-brand-purple-950/60 border-2 border-brand-gold-400/40 rounded-2xl p-4 text-center">
                   <p className="text-white font-black text-sm">
                     ✅ {statusMessage}
                   </p>
@@ -423,17 +419,18 @@ export default function MemberAttendanceClient() {
         </div>
       )}
 
-      {/* ATTENDANCE HISTORY */}
+      {/* ── Attendance History ── */}
       {attendanceHistory.length > 0 && (
         <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">📋</div>
-            <h2 className="font-heading text-xl font-bold text-brand-purple-900">Recent Attendance</h2>
-          </div>
-
+          <h2 className="text-white font-heading font-bold text-xl mb-4">
+            📋 Recent Attendance
+          </h2>
           <div className="space-y-2">
             {attendanceHistory.map((record) => (
-              <div key={record.id} className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-4 shadow-xl">
+              <div
+                key={record.id}
+                className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-4 shadow-xl"
+              >
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -446,7 +443,8 @@ export default function MemberAttendanceClient() {
                       </p>
                     )}
                     <p className="text-brand-purple-300 text-xs">
-                      ✅ Checked in at {new Date(record.checked_in_at).toLocaleTimeString("en-US", {
+                      ✅ Checked in at{" "}
+                      {new Date(record.checked_in_at).toLocaleTimeString("en-US", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -461,6 +459,7 @@ export default function MemberAttendanceClient() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN SIDEBAR — Church management navigation
+// CHURCH ADMIN SIDEBAR — With Testimonies added
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -19,7 +19,8 @@ const NAV_ITEMS = [
   { name: "Attendance", href: "/admin/church/attendance", icon: "✅", hasCount: false },
   { name: "Giving", href: "/admin/church/giving", icon: "💰", hasCount: false },
   { name: "Prayer Requests", href: "/admin/church/prayer", icon: "🙏", hasCount: false },
-  { name: "Devotionals", href: "/admin/church/devotionals", icon: "📖", hasCount: false },
+  { name: "Testimonies", href: "/admin/church/testimonies", icon: "📖", hasCount: false },
+  { name: "Devotionals", href: "/admin/church/devotionals", icon: "📕", hasCount: false },
   { name: "Announcements", href: "/admin/church/announcements", icon: "📢", hasCount: false },
   { name: "Pastoral Care", href: "/admin/church/pastoral-care", icon: "💝", hasCount: false },
   { name: "Care Requests", href: "/admin/church/care-requests", icon: "🏥", hasCount: false },

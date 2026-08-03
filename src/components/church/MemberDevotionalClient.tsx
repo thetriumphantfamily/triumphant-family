@@ -1,11 +1,11 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER DEVOTIONAL CLIENT — Date-responsive daily devotional
-// Always addresses member by their real name
+// MEMBER DEVOTIONAL — Dashboard pattern (purple cards, limited gold, white text)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 interface Devotional {
   id: string;
@@ -21,18 +21,7 @@ interface Devotional {
 
 function formatDateFull(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatDateShort(d: string) {
-  return new Date(d + "T12:00:00").toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
 }
 
@@ -55,8 +44,7 @@ function isToday(dateStr: string): boolean {
 function isYesterday(dateStr: string): boolean {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const yStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
-  return dateStr === yStr;
+  return dateStr === `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
 }
 
 function getDateLabel(dateStr: string): string {
@@ -68,18 +56,12 @@ function getDateLabel(dateStr: string): string {
 function getDaysAgo(dateStr: string): string {
   const now = new Date(getLocalToday() + "T12:00:00");
   const then = new Date(dateStr + "T12:00:00");
-  const diffMs = now.getTime() - then.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? "s" : ""} ago`;
-  return formatDateShort(dateStr);
-}
-
-function getFirstName(fullName: string): string {
-  if (!fullName) return "";
-  return fullName.split(" ")[0];
+  return new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function MemberDevotionalClient() {
@@ -90,99 +72,29 @@ export default function MemberDevotionalClient() {
   const [memberName, setMemberName] = useState("");
 
   useEffect(() => {
-    loadMember();
     loadDevotionals();
+    loadMember();
   }, []);
 
   const loadMember = async () => {
-    let nameFound = false;
-
-    // TRY 1: Check localStorage with key "tfam_member"
     try {
-      const stored = localStorage.getItem("tfam_member");
-      if (stored) {
-        const member = JSON.parse(stored);
-        if (member.full_name) {
-          setMemberName(getFirstName(member.full_name));
-          nameFound = true;
-        }
-      }
-    } catch {
-      // ignore
-    }
-
-    // TRY 2: Check localStorage with key "member_data"
-    if (!nameFound) {
-      try {
-        const stored = localStorage.getItem("member_data");
-        if (stored) {
-          const member = JSON.parse(stored);
-          if (member.full_name) {
-            setMemberName(getFirstName(member.full_name));
-            nameFound = true;
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    // TRY 3: Check localStorage with key "tfam_member_session"
-    if (!nameFound) {
-      try {
-        const stored = localStorage.getItem("tfam_member_session");
-        if (stored) {
-          const session = JSON.parse(stored);
-          if (session.full_name) {
-            setMemberName(getFirstName(session.full_name));
-            nameFound = true;
-          } else if (session.email) {
-            // Use email to fetch from database
-            const supabase = createClient();
-            const { data } = await supabase
-              .from("tfam_members")
-              .select("full_name")
-              .eq("email", session.email)
-              .single();
-            if (data?.full_name) {
-              setMemberName(getFirstName(data.full_name));
-              nameFound = true;
-            }
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    // TRY 4: Scan all localStorage keys for member data
-    if (!nameFound) {
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (!key) continue;
-          if (key.includes("member") || key.includes("tfam")) {
-            try {
-              const val = localStorage.getItem(key);
-              if (val) {
-                const parsed = JSON.parse(val);
-                if (parsed.full_name) {
-                  setMemberName(getFirstName(parsed.full_name));
-                  nameFound = true;
-                  break;
-                }
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.includes("member") || key.includes("tfam")) {
+          try {
+            const val = localStorage.getItem(key);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (parsed.full_name) {
+                setMemberName(parsed.full_name.split(" ")[0]);
+                break;
               }
-            } catch {
-              // not JSON, skip
             }
-          }
+          } catch { /* ignore */ }
         }
-      } catch {
-        // ignore
       }
-    }
-
-    // If still no name found, leave it empty (greeting won't show name)
+    } catch { /* ignore */ }
   };
 
   const loadDevotionals = async () => {
@@ -215,128 +127,85 @@ export default function MemberDevotionalClient() {
 
   const shareToWhatsApp = (d: Devotional) => {
     const text = `📖 *${d.title}*\n\n📜 *${d.scripture}*\n\n${d.body}\n\n🙏 *Prayer:* ${d.prayer_point || ""}\n\n💪 *Confession:* ${d.confession || ""}\n\n— The Triumphant Family Ministry\n🌐 triumphantfamily.vercel.app`;
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const todayStr = getLocalToday();
 
   if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">📖</div>
-          <p className="text-gray-500">Loading today&apos;s word...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Loading today's word..." />;
   }
 
   return (
     <div className="space-y-6">
-      {/* ━━━ BRAND HEADER CARD ━━━ */}
+      {/* Brand Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          {/* Daily Devotional badge — White, Bold, Bigger */}
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
-              Daily Devotional
-            </span>
+            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Daily Devotional</span>
           </div>
-
-          {/* Greeting — ALWAYS shows member's real name */}
-          <p className="text-brand-gold-400 font-semibold text-lg mb-1">
-            {getGreeting()}
-            {memberName ? `, ${memberName}` : ""}!
+          <p className="text-white/80 font-semibold text-lg mb-1">
+            {getGreeting()}{memberName ? `, ${memberName}` : ""}!
           </p>
-
           <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-            Today&apos;s{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-              Word of God
-            </span>
+            Today&apos;s Word of God
           </h1>
-
           <p className="text-brand-purple-100 text-sm md:text-base">
             📅 {formatDateFull(todayStr)}
           </p>
-
           {latestDevotional && !isToday(latestDevotional.publish_date) && (
             <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-400/40">
-              <span className="text-amber-300 text-sm">
-                📌 Showing most recent devotional from{" "}
-                <strong>{getDaysAgo(latestDevotional.publish_date)}</strong>
-              </span>
+              <span className="text-white text-sm">📌 Showing most recent from <strong className="text-white">{getDaysAgo(latestDevotional.publish_date)}</strong></span>
             </div>
           )}
-
           <div className="mt-4 pt-4 border-t border-brand-gold-400/30">
-            <p className="text-brand-gold-400 italic text-sm">
-              &ldquo;Thy word is a lamp unto my feet, and a light unto my path.&rdquo;
-            </p>
-            <p className="text-brand-purple-200 text-xs mt-1 font-semibold">
-              — Psalm 119:105
-            </p>
+            <p className="text-brand-purple-200 italic text-sm">&ldquo;Thy word is a lamp unto my feet, and a light unto my path.&rdquo;</p>
+            <p className="text-brand-purple-300 text-xs mt-1 font-semibold">— Psalm 119:105</p>
           </div>
         </div>
       </div>
 
-      {/* ━━━ NO DEVOTIONAL AT ALL ━━━ */}
+      {/* No Devotional */}
       {!latestDevotional && recentDevotionals.length === 0 && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="text-5xl mb-4">📖</div>
-          <h2 className="font-heading text-xl font-bold text-white mb-2">
-            Devotionals Coming Soon!
-          </h2>
-          <p className="text-brand-purple-200 text-sm">
-            Pastor is preparing powerful daily words for you. Check back soon!
-          </p>
+          <h2 className="font-heading text-xl font-bold text-white mb-2">Devotionals Coming Soon!</h2>
+          <p className="text-brand-purple-200 text-sm">Pastor is preparing powerful daily words for you.</p>
         </div>
       )}
 
-      {/* ━━━ SELECTED DEVOTIONAL — FULL VIEW ━━━ */}
+      {/* Selected Devotional */}
       {selected && (
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-2xl">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-2xl">
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
           <div className="px-6 pt-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-gold-400/20 border border-brand-gold-400/60">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40">
               <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
-              <span className="text-brand-gold-300 font-bold text-xs uppercase tracking-widest">
+              <span className="text-white font-bold text-xs uppercase tracking-widest">
                 {getDateLabel(selected.publish_date)}
               </span>
             </div>
-
             {!isToday(selected.publish_date) && selected.id === latestDevotional?.id && (
-              <p className="text-amber-300 text-xs mt-2">
-                ⏰ No new devotional for today yet — showing latest available
-              </p>
+              <p className="text-white text-xs mt-2">⏰ No new devotional for today yet — showing latest available</p>
             )}
           </div>
 
           <div className="p-6 space-y-5">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-white leading-tight">
-              {selected.title}
-            </h2>
+            <h2 className="font-heading text-2xl md:text-3xl font-bold text-white leading-tight">{selected.title}</h2>
 
-            <div className="relative rounded-2xl overflow-hidden bg-brand-purple-950/60 border border-brand-gold-400/40 p-4">
+            <div className="relative rounded-2xl overflow-hidden bg-brand-purple-950/60 border border-brand-gold-400/30 p-4">
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-              <p className="text-brand-gold-300 font-bold text-xs uppercase tracking-widest mb-1">
-                📜 Scripture
-              </p>
-              <p className="text-white font-heading font-bold text-xl">
-                {selected.scripture}
-              </p>
+              <p className="text-brand-purple-200 font-bold text-xs uppercase tracking-widest mb-1">📜 Scripture</p>
+              <p className="text-white font-heading font-bold text-xl">{selected.scripture}</p>
             </div>
 
             <div>
-              <p className="text-brand-gold-300 font-bold text-xs uppercase tracking-widest mb-3">
-                ✉️ Message
-              </p>
-              <div className="text-brand-purple-100 leading-relaxed space-y-3 text-sm md:text-base">
+              <p className="text-brand-purple-200 font-bold text-xs uppercase tracking-widest mb-3">✉️ Message</p>
+             <div className="text-white/90 leading-relaxed space-y-3 text-sm md:text-base text-justify">
                 {selected.body.split("\n\n").length > 1
                   ? selected.body.split("\n\n").map((para, i) => <p key={i}>{para}</p>)
                   : selected.body.split("\n").map((para, i) => <p key={i}>{para}</p>)}
@@ -344,39 +213,27 @@ export default function MemberDevotionalClient() {
             </div>
 
             {selected.prayer_point && (
-              <div className="relative rounded-2xl overflow-hidden bg-brand-purple-950/60 border border-brand-gold-400/40 p-4">
+              <div className="relative rounded-2xl overflow-hidden bg-brand-purple-950/60 border border-brand-gold-400/30 p-4">
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-                <p className="text-brand-gold-300 font-bold text-xs uppercase tracking-widest mb-2">
-                  🙏 Prayer Point
-                </p>
-                <p className="text-brand-purple-100 leading-relaxed italic">
-                  {selected.prayer_point}
-                </p>
+                <p className="text-brand-purple-200 font-bold text-xs uppercase tracking-widest mb-2">🙏 Prayer Point</p>
+                <p className="text-white/90 leading-relaxed italic">{selected.prayer_point}</p>
               </div>
             )}
 
             {selected.confession && (
-              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-gold-400/10 to-brand-gold-500/10 border border-brand-gold-400/60 p-4">
-                <p className="text-brand-gold-300 font-bold text-xs uppercase tracking-widest mb-2">
-                  💪 Confession / Declaration
-                </p>
-                <p className="text-white font-bold leading-relaxed">
-                  {selected.confession}
-                </p>
+              <div className="relative rounded-2xl overflow-hidden bg-brand-purple-950/60 border border-brand-gold-400/30 p-4">
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+                <p className="text-brand-purple-200 font-bold text-xs uppercase tracking-widest mb-2">💪 Confession / Declaration</p>
+                <p className="text-white font-bold leading-relaxed">{selected.confession}</p>
               </div>
             )}
 
             <div className="pt-4 border-t border-brand-gold-400/30 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="text-brand-purple-300 text-xs">Written by</p>
-                <p className="text-white font-bold text-sm">
-                  {selected.author || "Prophet Olayiwole Ogunsola"}
-                </p>
-                <p className="text-brand-gold-400 text-xs">
-                  The Triumphant Family Ministry
-                </p>
+                <p className="text-white font-bold text-sm">{selected.author || "Prophet Olayiwole Ogunsola"}</p>
+                <p className="text-brand-purple-200 text-xs">The Triumphant Family Ministry</p>
               </div>
-
               <button
                 onClick={() => shareToWhatsApp(selected)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all hover:scale-105 shadow-lg"
@@ -391,52 +248,34 @@ export default function MemberDevotionalClient() {
         </div>
       )}
 
-      {/* ━━━ RECENT DEVOTIONALS ARCHIVE ━━━ */}
+      {/* Recent */}
       {recentDevotionals.length > 1 && (
         <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">
-              📚
-            </div>
-            <h2 className="font-heading text-xl font-bold text-brand-purple-900">
-              Past Devotionals
-            </h2>
-          </div>
-
+          <h2 className="text-white font-heading font-bold text-xl mb-4">📚 Past Devotionals</h2>
           <div className="space-y-2">
             {recentDevotionals.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setSelected(d)}
+              <button key={d.id} onClick={() => setSelected(d)}
                 className={`w-full text-left relative rounded-2xl overflow-hidden border-2 p-4 transition-all hover:-translate-y-0.5 ${
                   selected?.id === d.id
                     ? "bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-brand-gold-400 shadow-xl"
                     : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-brand-gold-400/30 hover:border-brand-gold-400/60"
-                }`}
-              >
+                }`}>
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-white truncate">{d.title}</p>
-                    <p className="text-brand-gold-300 text-xs">{d.scripture}</p>
+                    <p className="text-brand-purple-200 text-xs">{d.scripture}</p>
                     <p className="text-brand-purple-300 text-xs mt-0.5">{getDaysAgo(d.publish_date)}</p>
                   </div>
-
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {isToday(d.publish_date) && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-brand-gold-400 text-brand-purple-900">
-                        TODAY
-                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-brand-gold-400 text-brand-purple-900">TODAY</span>
                     )}
                     {isYesterday(d.publish_date) && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/40">
-                        YESTERDAY
-                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/40">YESTERDAY</span>
                     )}
                     {selected?.id === d.id && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300 border border-green-400/40">
-                        Reading
-                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300 border border-green-400/40">Reading</span>
                     )}
                   </div>
                 </div>

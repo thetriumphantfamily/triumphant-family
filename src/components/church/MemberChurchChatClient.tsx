@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER CHURCH-WIDE CHAT — Real-time + notify all members + admin
+// MEMBER CHURCH-WIDE CHAT – Real-time + notify all members + admin
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyAdmin } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface Message {
   id: string;
@@ -112,7 +113,10 @@ export default function MemberChurchChatClient() {
         .limit(200);
       setMessages(data || []);
       setLoading(false);
-    } catch (err) { console.error(err); setLoading(false); }
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
   };
 
   const loadOnlineCount = async () => {
@@ -129,7 +133,10 @@ export default function MemberChurchChatClient() {
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
-    if (!memberId) { toast.error("Please login"); return; }
+    if (!memberId) {
+      toast.error("Please login");
+      return;
+    }
 
     setIsSending(true);
     try {
@@ -147,7 +154,7 @@ export default function MemberChurchChatClient() {
 
       // 2. Notify admin
       await notifyAdmin({
-        title: `💬 Church Chat`,
+        title: "💬 Church Chat",
         message: `${memberName}: ${messageText.substring(0, 100)}${messageText.length > 100 ? "..." : ""}`,
         type: "church_chat",
         link: "/admin/church/church-chat",
@@ -171,13 +178,15 @@ export default function MemberChurchChatClient() {
           is_read: false,
         }));
 
-        // Bulk insert notifications
         await supabase.from("tfam_notifications").insert(notifications);
       }
 
       setChatInput("");
-    } catch { toast.error("Failed"); }
-    finally { setIsSending(false); }
+    } catch {
+      toast.error("Failed");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const deleteMyMessage = async (msgId: string, senderId: string | null) => {
@@ -186,24 +195,19 @@ export default function MemberChurchChatClient() {
     try {
       const supabase = createClient();
       await supabase.from("tfam_church_messages").delete().eq("id", msgId);
-    } catch { toast.error("Failed"); }
+    } catch {
+      toast.error("Failed");
+    }
   };
 
   const firstName = memberName.split(" ")[0] || "";
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">💬</div>
-          <p className="text-gray-500">Loading chat...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen message="Loading chat..." />;
 
   return (
     <div className="space-y-6">
+
+      {/* ── Brand Header ── */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -220,17 +224,21 @@ export default function MemberChurchChatClient() {
             Family Chatroom
           </h1>
           <p className="text-brand-purple-100 text-sm md:text-base">
-            Fellowship with all {onlineCount}+ TFAM members in real-time
+            Fellowship with all {onlineCount}+ TFAM members in real-time.
           </p>
         </div>
       </div>
 
+      {/* ── Chat Container ── */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-2xl flex flex-col h-[600px]">
         <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+        {/* Chat Header Bar */}
         <div className="flex-shrink-0 p-4 border-b border-brand-gold-400/30 bg-brand-purple-950/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">💬</div>
+            <div className="w-10 h-10 rounded-full bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-lg">
+              💬
+            </div>
             <div>
               <p className="text-white font-black text-sm">TFAM Family Chat</p>
               <p className="text-brand-purple-200 text-xs">🟢 Real-time • All members notified</p>
@@ -238,66 +246,111 @@ export default function MemberChurchChatClient() {
           </div>
         </div>
 
+        {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-5xl mb-3">💬</div>
-              <p className="text-brand-purple-200 font-black mb-2">Welcome to the Family Chatroom!</p>
-              <p className="text-brand-purple-300 text-sm">Be the first to say hello 👋</p>
+              <p className="text-white font-black mb-2">Welcome to the Family Chatroom!</p>
+              <p className="text-brand-purple-200 text-sm">Be the first to say hello 👋</p>
             </div>
-          ) : messages.map((m) => {
-            const isMine = m.member_id === memberId;
-            const isAdmin = m.is_from_admin;
-            return (
-              <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"} group`}>
-                <div className="max-w-[85%] flex gap-2 items-start">
-                  {!isMine && !isAdmin && (
-                    <>
-                      {m.member_photo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={m.member_photo} alt={m.member_name} className="w-8 h-8 rounded-full object-cover border border-brand-gold-400/40 flex-shrink-0 mt-1" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-black text-xs flex-shrink-0 mt-1">
-                          {m.member_name.charAt(0)}
-                        </div>
-                      )}
-                    </>
-                  )}
-                  <div className={`rounded-2xl p-3 relative ${
-                    isAdmin
-                      ? "bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 border-2 border-brand-gold-300 shadow-lg"
-                      : isMine
-                      ? "bg-brand-purple-950/80 text-white border border-brand-gold-400/40"
-                      : "bg-brand-purple-950/60 text-white border border-brand-gold-400/30"
-                  }`}>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      {isAdmin ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-brand-purple-900 text-brand-gold-400">👑 PASTOR</span>
-                      ) : !isMine ? (
-                        <p className="text-xs font-black text-brand-gold-300">{m.member_name}</p>
-                      ) : null}
-                    </div>
-                    <p className="text-sm font-semibold whitespace-pre-wrap break-words">{m.message}</p>
-                    <div className="flex items-center justify-between gap-2 mt-1">
-                      <p className={`text-xs ${isAdmin ? "text-brand-purple-900/70" : "text-brand-purple-300"}`}>
-                        {timeAgo(m.created_at)}
+          ) : (
+            messages.map((m) => {
+              const isMine = m.member_id === memberId;
+              const isAdmin = m.is_from_admin;
+              return (
+                <div
+                  key={m.id}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"} group`}
+                >
+                  <div className="max-w-[85%] flex gap-2 items-start">
+                    {/* Avatar for other members */}
+                    {!isMine && !isAdmin && (
+                      <>
+                        {m.member_photo ? (
+                          <img
+                            src={m.member_photo}
+                            alt={m.member_name}
+                            className="w-8 h-8 rounded-full object-cover border border-brand-gold-400/40 flex-shrink-0 mt-1"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-white font-black text-xs flex-shrink-0 mt-1">
+                            {m.member_name.charAt(0)}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Message Bubble */}
+                    <div
+                      className={`rounded-2xl p-3 relative ${
+                        isAdmin
+                          ? "bg-brand-purple-950/80 text-white border-2 border-green-400/60 shadow-lg"
+                          : isMine
+                          ? "bg-brand-purple-950/80 text-white border border-brand-gold-400/40"
+                          : "bg-brand-purple-950/60 text-white border border-brand-gold-400/30"
+                      }`}
+                    >
+                      {/* Sender Name / Pastor Badge */}
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {isAdmin ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-white text-brand-purple-900">
+                            👑 PASTOR
+                          </span>
+                        ) : !isMine ? (
+                          <p className="text-xs font-black text-white/60">
+                            {m.member_name}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      {/* Message Text */}
+                      <p className="text-sm font-semibold whitespace-pre-wrap break-words">
+                        {m.message}
                       </p>
-                      {isMine && (
-                        <button onClick={() => deleteMyMessage(m.id, m.member_id)} className="text-xs opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all">🗑️</button>
-                      )}
+
+                      {/* Timestamp + Delete */}
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <p className="text-xs text-brand-purple-300">
+                          {timeAgo(m.created_at)}
+                        </p>
+                        {isMine && (
+                          <button
+                            onClick={() => deleteMyMessage(m.id, m.member_id)}
+                            className="text-xs opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
           <div ref={chatEndRef} />
         </div>
 
-        <form onSubmit={sendMessage} className="p-3 border-t border-brand-gold-400/30 bg-brand-purple-950/40 flex gap-2">
-          <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Type a message..." disabled={isSending} maxLength={500}
-            className="flex-1 p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold text-sm disabled:opacity-50" />
-          <button type="submit" disabled={isSending || !chatInput.trim()} className="px-5 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0">
+        {/* ── Message Input ── */}
+        <form
+          onSubmit={sendMessage}
+          className="p-3 border-t border-brand-gold-400/30 bg-brand-purple-950/40 flex gap-2"
+        >
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            placeholder="Type a message..."
+            disabled={isSending}
+            maxLength={500}
+            className="flex-1 p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold text-sm disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={isSending || !chatInput.trim()}
+            className="px-5 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0"
+          >
             {isSending ? "..." : "Send →"}
           </button>
         </form>

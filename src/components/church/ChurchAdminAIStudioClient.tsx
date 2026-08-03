@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TFAM AI — AI Ministry Assistant (Tools + Chat)
-// Tabs have brand purple cards. No gold blobs.
+// TFAM AI — Ministry Assistant (Tools + Persistent Chat)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -12,8 +11,16 @@ type ActiveTab = "tools" | "chat";
 interface ChatMessage {
   role: "user" | "ai";
   content: string;
-  timestamp: Date;
+  timestamp: string;
 }
+
+const CHAT_STORAGE_KEY = "tfam_ai_chat_history";
+
+const DEFAULT_WELCOME: ChatMessage = {
+  role: "ai",
+  content: "Hello Prophet! I am TFAM AI, your intelligent ministry assistant. Ask me anything — sermon ideas, social media posts, how to handle church situations, personal leadership advice, or any topic at all. How can I help you today?",
+  timestamp: new Date().toISOString(),
+};
 
 const ALL_TOOLS = [
   { id: "sermon-outline", label: "🎙️ Sermon Outline", desc: "3-point sermon with scriptures" },
@@ -64,29 +71,50 @@ function getSystemPrompt(toolId: string): string {
 export default function ChurchAdminAIStudioClient() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("tools");
 
-  // Tools state
   const [selectedTool, setSelectedTool] = useState("");
   const [toolPrompt, setToolPrompt] = useState("");
   const [toolResult, setToolResult] = useState("");
   const [isToolGenerating, setIsToolGenerating] = useState(false);
 
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      role: "ai",
-      content: "Hello Prophet! I am TFAM AI, your intelligent ministry assistant. Ask me anything — sermon ideas, social media posts, how to handle church situations, personal leadership advice, or any topic at all. How can I help you today?",
-      timestamp: new Date(),
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [chatLoaded, setChatLoaded] = useState(false);
+
+  // Load chat from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setChatMessages(parsed);
+        } else {
+          setChatMessages([DEFAULT_WELCOME]);
+        }
+      } else {
+        setChatMessages([DEFAULT_WELCOME]);
+      }
+    } catch {
+      setChatMessages([DEFAULT_WELCOME]);
+    }
+    setChatLoaded(true);
+  }, []);
+
+  // Save chat to localStorage whenever it changes
+  useEffect(() => {
+    if (chatLoaded && chatMessages.length > 0) {
+      try {
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages));
+      } catch { /* ignore */ }
+    }
+  }, [chatMessages, chatLoaded]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // ━━━ TOOL GENERATION ━━━
   const handleToolGenerate = async () => {
     if (!selectedTool) { toast.error("Select a tool first"); return; }
     if (!toolPrompt.trim()) { toast.error("Enter your prompt"); return; }
@@ -115,14 +143,13 @@ export default function ChurchAdminAIStudioClient() {
     }
   };
 
-  // ━━━ CHAT ━━━
   const handleChatSend = async () => {
     if (!chatInput.trim()) return;
 
     const userMessage: ChatMessage = {
       role: "user",
       content: chatInput.trim(),
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
 
     setChatMessages((prev) => [...prev, userMessage]);
@@ -143,14 +170,14 @@ export default function ChurchAdminAIStudioClient() {
       const aiMessage: ChatMessage = {
         role: "ai",
         content: data.error ? "Sorry, I encountered an error. Please try again." : data.result,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
 
       setChatMessages((prev) => [...prev, aiMessage]);
     } catch {
       setChatMessages((prev) => [
         ...prev,
-        { role: "ai", content: "Connection error. Please try again.", timestamp: new Date() },
+        { role: "ai", content: "Connection error. Please try again.", timestamp: new Date().toISOString() },
       ]);
     } finally {
       setIsChatLoading(false);
@@ -174,20 +201,28 @@ export default function ChurchAdminAIStudioClient() {
   };
 
   const clearChat = () => {
-    setChatMessages([
-      {
-        role: "ai",
-        content: "Chat cleared! How can I help you, Prophet?",
-        timestamp: new Date(),
-      },
-    ]);
+    if (!confirm("Clear all chat history? This cannot be undone.")) return;
+    const cleared = [DEFAULT_WELCOME];
+    setChatMessages(cleared);
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(cleared));
+    } catch { /* ignore */ }
+    toast.success("Chat cleared");
   };
 
   const selectedToolData = ALL_TOOLS.find((t) => t.id === selectedTool);
 
+  const formatTime = (timestamp: string) => {
+    try {
+      return new Date(timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* ━━━ BRAND HEADER ━━━ */}
+      {/* Brand Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -212,7 +247,7 @@ export default function ChurchAdminAIStudioClient() {
         </div>
       </div>
 
-      {/* ━━━ TABS — BRAND PURPLE CARDS ━━━ */}
+      {/* Tabs */}
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => setActiveTab("tools")}
@@ -224,17 +259,12 @@ export default function ChurchAdminAIStudioClient() {
         >
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg flex-shrink-0">
-              🛠️
-            </div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg flex-shrink-0">🛠️</div>
             <div>
               <p className="font-black text-white text-sm">Tools</p>
               <p className="text-brand-purple-200 text-xs font-semibold">{ALL_TOOLS.length} AI tools</p>
             </div>
           </div>
-          {activeTab === "tools" && (
-            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          )}
         </button>
 
         <button
@@ -247,31 +277,25 @@ export default function ChurchAdminAIStudioClient() {
         >
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg flex-shrink-0">
-              💬
-            </div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg flex-shrink-0">💬</div>
             <div>
               <p className="font-black text-white text-sm">AI Chat</p>
-              <p className="text-brand-purple-200 text-xs font-semibold">Ask anything</p>
+              <p className="text-brand-purple-200 text-xs font-semibold">
+                {chatMessages.length > 1 ? `${chatMessages.length - 1} messages saved` : "Ask anything"}
+              </p>
             </div>
           </div>
-          {activeTab === "chat" && (
-            <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          )}
         </button>
       </div>
 
-      {/* ━━━ TAB: TOOLS ━━━ */}
+      {/* TOOLS TAB */}
       {activeTab === "tools" && (
         <div className="space-y-4">
-          {/* Tool Selector */}
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
             <div className="relative z-10 space-y-4">
               <div>
-                <label className="block text-sm font-black text-white mb-2 uppercase tracking-widest">
-                  Select Tool
-                </label>
+                <label className="block text-sm font-black text-white mb-2 uppercase tracking-widest">Select Tool</label>
                 <select
                   value={selectedTool}
                   onChange={(e) => { setSelectedTool(e.target.value); setToolResult(""); }}
@@ -305,17 +329,13 @@ export default function ChurchAdminAIStudioClient() {
               </div>
 
               {selectedToolData && (
-                <p className="text-brand-purple-200 text-sm font-semibold">
-                  {selectedToolData.desc}
-                </p>
+                <p className="text-brand-purple-200 text-sm font-semibold">{selectedToolData.desc}</p>
               )}
 
               {selectedTool && (
                 <>
                   <div>
-                    <label className="block text-sm font-black text-white mb-2 uppercase tracking-widest">
-                      Your Prompt
-                    </label>
+                    <label className="block text-sm font-black text-white mb-2 uppercase tracking-widest">Your Prompt</label>
                     <textarea
                       value={toolPrompt}
                       onChange={(e) => setToolPrompt(e.target.value)}
@@ -338,16 +358,13 @@ export default function ChurchAdminAIStudioClient() {
                         </svg>
                         Generating...
                       </span>
-                    ) : (
-                      "🤖 Generate"
-                    )}
+                    ) : "🤖 Generate"}
                   </button>
                 </>
               )}
             </div>
           </div>
 
-          {/* Tool Result */}
           {toolResult && (
             <div className="space-y-3">
               <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-2xl">
@@ -358,9 +375,7 @@ export default function ChurchAdminAIStudioClient() {
                       ✅ Generated
                     </span>
                     {selectedToolData && (
-                      <span className="text-brand-purple-200 text-xs font-semibold">
-                        {selectedToolData.label}
-                      </span>
+                      <span className="text-brand-purple-200 text-xs font-semibold">{selectedToolData.label}</span>
                     )}
                   </div>
                   <div className="text-white font-semibold text-sm md:text-base leading-relaxed whitespace-pre-wrap">
@@ -370,15 +385,9 @@ export default function ChurchAdminAIStudioClient() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <button onClick={() => copyText(toolResult)} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 text-white font-bold text-sm transition-all">
-                  📋 Copy
-                </button>
-                <button onClick={() => shareWhatsApp(toolResult)} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all">
-                  📱 WhatsApp
-                </button>
-                <button onClick={handleToolGenerate} disabled={isToolGenerating} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 text-white font-bold text-sm transition-all disabled:opacity-50">
-                  🔄 Regenerate
-                </button>
+                <button onClick={() => copyText(toolResult)} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 text-white font-bold text-sm transition-all">📋 Copy</button>
+                <button onClick={() => shareWhatsApp(toolResult)} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all">📱 WhatsApp</button>
+                <button onClick={handleToolGenerate} disabled={isToolGenerating} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 text-white font-bold text-sm transition-all disabled:opacity-50">🔄 Regenerate</button>
               </div>
 
               <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-4 shadow-xl">
@@ -392,20 +401,17 @@ export default function ChurchAdminAIStudioClient() {
         </div>
       )}
 
-      {/* ━━━ TAB: AI CHAT ━━━ */}
+      {/* CHAT TAB */}
       {activeTab === "chat" && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-2xl">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-          {/* Chat Header */}
           <div className="p-4 border-b border-brand-gold-400/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">
-                🤖
-              </div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">🤖</div>
               <div>
                 <p className="text-white font-black text-sm">TFAM AI</p>
-                <p className="text-brand-purple-200 text-xs font-semibold">Ask me anything</p>
+                <p className="text-brand-purple-200 text-xs font-semibold">💾 Chat saved • Persistent history</p>
               </div>
             </div>
             <button
@@ -416,7 +422,6 @@ export default function ChurchAdminAIStudioClient() {
             </button>
           </div>
 
-          {/* Chat Messages */}
           <div className="h-[400px] md:h-[500px] overflow-y-auto p-4 space-y-4">
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -429,21 +434,13 @@ export default function ChurchAdminAIStudioClient() {
                     <span className="text-xs font-black text-brand-purple-200">
                       {msg.role === "user" ? "👤 You" : "🤖 TFAM AI"}
                     </span>
-                    <span className="text-xs text-brand-purple-400">
-                      {msg.timestamp.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-                    </span>
+                    <span className="text-xs text-brand-purple-400">{formatTime(msg.timestamp)}</span>
                   </div>
-                  <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap">
-                    {msg.content}
-                  </p>
+                  <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                   {msg.role === "ai" && i > 0 && (
                     <div className="flex gap-2 mt-3 pt-2 border-t border-white/10">
-                      <button onClick={() => copyText(msg.content)} className="text-xs text-brand-purple-300 hover:text-white font-bold transition-colors">
-                        📋 Copy
-                      </button>
-                      <button onClick={() => shareWhatsApp(msg.content)} className="text-xs text-brand-purple-300 hover:text-white font-bold transition-colors">
-                        📱 WhatsApp
-                      </button>
+                      <button onClick={() => copyText(msg.content)} className="text-xs text-brand-purple-300 hover:text-white font-bold transition-colors">📋 Copy</button>
+                      <button onClick={() => shareWhatsApp(msg.content)} className="text-xs text-brand-purple-300 hover:text-white font-bold transition-colors">📱 WhatsApp</button>
                     </div>
                   )}
                 </div>
@@ -468,7 +465,6 @@ export default function ChurchAdminAIStudioClient() {
             <div ref={chatEndRef} />
           </div>
 
-          {/* Chat Input */}
           <div className="p-4 border-t border-brand-gold-400/30">
             <div className="flex gap-2">
               <textarea
@@ -487,6 +483,9 @@ export default function ChurchAdminAIStudioClient() {
                 {isChatLoading ? "..." : "→"}
               </button>
             </div>
+            <p className="text-brand-purple-300 text-xs mt-2 text-center">
+              💾 Your chat history is saved automatically. It persists across pages and refreshes.
+            </p>
           </div>
         </div>
       )}

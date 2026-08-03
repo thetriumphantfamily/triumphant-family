@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER LAYOUT CLIENT — Conditionally wraps member pages
-// Public pages (login, forgot-password) get no sidebar/auth guard
+// MEMBER LAYOUT CLIENT — Brand purple gradient (same as main website)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -9,7 +8,6 @@ import { usePathname } from "next/navigation";
 import MemberAuthGuard from "./MemberAuthGuard";
 import MemberSidebar from "./MemberSidebar";
 
-// Pages that don't require authentication
 const PUBLIC_MEMBER_PAGES = [
   "/member/login",
   "/member/forgot-password",
@@ -30,7 +28,7 @@ export default function MemberLayoutClient({
 
   return (
     <MemberAuthGuard>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
         <MemberSidebar />
         <div className="lg:ml-64 min-h-screen">
           <div className="p-4 lg:p-8 pt-20 lg:pt-8">{children}</div>
