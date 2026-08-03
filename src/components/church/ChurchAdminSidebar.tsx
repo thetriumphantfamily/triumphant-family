@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN SIDEBAR — With Testimonies added
+// CHURCH ADMIN SIDEBAR – With Finance added
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -18,11 +18,12 @@ const NAV_ITEMS = [
   { name: "Visitors", href: "/admin/church/visitors", icon: "🆕", hasCount: false },
   { name: "Attendance", href: "/admin/church/attendance", icon: "✅", hasCount: false },
   { name: "Giving", href: "/admin/church/giving", icon: "💰", hasCount: false },
+  { name: "Church Finance", href: "/admin/church/finance", icon: "🏦", hasCount: false },
   { name: "Prayer Requests", href: "/admin/church/prayer", icon: "🙏", hasCount: false },
   { name: "Testimonies", href: "/admin/church/testimonies", icon: "📖", hasCount: false },
   { name: "Devotionals", href: "/admin/church/devotionals", icon: "📕", hasCount: false },
   { name: "Announcements", href: "/admin/church/announcements", icon: "📢", hasCount: false },
-  { name: "Pastoral Care", href: "/admin/church/pastoral-care", icon: "💝", hasCount: false },
+  { name: "Pastoral Care", href: "/admin/church/pastoral-care", icon: "💗", hasCount: false },
   { name: "Care Requests", href: "/admin/church/care-requests", icon: "🏥", hasCount: false },
   { name: "Ask Pastor", href: "/admin/church/ask-pastor", icon: "❓", hasCount: false },
   { name: "Discipleship", href: "/admin/church/discipleship", icon: "🎯", hasCount: false },
@@ -68,6 +69,7 @@ export default function ChurchAdminSidebar() {
 
   return (
     <>
+      {/* ── Mobile Toggle ── */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold text-brand-purple-900"
@@ -84,18 +86,35 @@ export default function ChurchAdminSidebar() {
         )}
       </button>
 
+      {/* ── Mobile Overlay ── */}
       {mobileOpen && (
-        <div onClick={() => setMobileOpen(false)} className="lg:hidden fixed inset-0 bg-black/50 z-30" />
+        <div
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+        />
       )}
 
+      {/* ── Sidebar ── */}
       <aside
         className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 text-white z-40 transform transition-transform duration-300 flex flex-col shadow-2xl ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
+        {/* ── Logo ── */}
         <div className="flex-shrink-0 p-4 border-b border-brand-gold-400/20">
-          <Link href="/admin/church/dashboard" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-            <Image src="/images/logo/logo.png" alt="TFAM" width={48} height={48} unoptimized className="w-12 h-12 object-contain flex-shrink-0" />
+          <Link
+            href="/admin/church/dashboard"
+            className="flex items-center gap-3"
+            onClick={() => setMobileOpen(false)}
+          >
+            <Image
+              src="/images/logo/logo.png"
+              alt="TFAM"
+              width={48}
+              height={48}
+              unoptimized
+              className="w-12 h-12 object-contain flex-shrink-0"
+            />
             <div>
               <p className="font-heading font-bold text-white text-sm">Church Admin</p>
               <p className="text-xs text-brand-purple-200 font-semibold">Management</p>
@@ -103,6 +122,7 @@ export default function ChurchAdminSidebar() {
           </Link>
         </div>
 
+        {/* ── Navigation ── */}
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="px-3 space-y-1">
             {NAV_ITEMS.map((item) => {
@@ -126,7 +146,7 @@ export default function ChurchAdminSidebar() {
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className="text-sm flex-1">{item.name}</span>
                   {showCount && (
-                    <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black shadow-lg shadow-red-500/50 animate-pulse ring-2 ring-red-400">
+                    <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black animate-pulse ring-2 ring-red-400">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
@@ -136,12 +156,21 @@ export default function ChurchAdminSidebar() {
           </div>
         </nav>
 
+        {/* ── Footer ── */}
         <div className="flex-shrink-0 p-3 border-t border-brand-gold-400/20 space-y-2 bg-brand-purple-900/50">
-          <Link href="/" target="_blank" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm">
-            <span className="text-lg">🌐</span>
+          <Link
+            href="/"
+            target="_blank"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm"
+          >
+            <span className="text-lg">🌍</span>
             <span>View Website</span>
           </Link>
-          <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm disabled:opacity-50">
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm disabled:opacity-50"
+          >
             <span className="text-lg">🚪</span>
             <span>{isLoggingOut ? "Logging out..." : "Sign Out"}</span>
           </button>
