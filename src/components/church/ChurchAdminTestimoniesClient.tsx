@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN TESTIMONIES — Auto-fill location from member profile
+// CHURCH ADMIN TESTIMONIES – Auto-fill location from member profile
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyMember } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface Testimony {
   id: string;
@@ -17,7 +18,13 @@ interface Testimony {
   is_approved: boolean;
   approval_type: string;
   created_at: string;
-  member?: { full_name: string; email: string; photo_url: string | null; city: string | null; state: string | null } | null;
+  member?: {
+    full_name: string;
+    email: string;
+    photo_url: string | null;
+    city: string | null;
+    state: string | null;
+  } | null;
 }
 
 type ActiveTab = "pending" | "approved" | "public" | "rejected" | "all";
@@ -67,7 +74,6 @@ export default function ChurchAdminTestimoniesClient() {
       }).eq("id", id);
 
       if (type === "public" && testimony) {
-        // Build location from member's city + state
         let location: string | null = null;
         if (testimony.member?.city && testimony.member?.state) {
           location = `${testimony.member.city}, ${testimony.member.state}`;
@@ -95,14 +101,16 @@ export default function ChurchAdminTestimoniesClient() {
             ? "🌍 Testimony Published on Website!"
             : "✅ Testimony Approved!",
           message: type === "public"
-            ? `Your testimony "${testimony.title}" has been approved and published on the church website for the world to see! Glory to God!`
+            ? `Your testimony "${testimony.title}" has been approved and published on the church website! Glory to God!`
             : `Your testimony "${testimony.title}" has been approved and is now visible to all church members!`,
           type: "testimony",
           link: "/member/testimonies",
         });
       }
 
-      setTestimonies((prev) => prev.map((t) => t.id === id ? { ...t, is_approved: true, approval_type: type } : t));
+      setTestimonies((prev) =>
+        prev.map((t) => t.id === id ? { ...t, is_approved: true, approval_type: type } : t)
+      );
       toast.success(type === "public" ? "🌍 Published on website!" : "✅ Approved for members!");
     } catch { toast.error("Failed"); }
     finally { setBusyId(null); }
@@ -129,7 +137,9 @@ export default function ChurchAdminTestimoniesClient() {
         });
       }
 
-      setTestimonies((prev) => prev.map((t) => t.id === id ? { ...t, is_approved: false, approval_type: "rejected" } : t));
+      setTestimonies((prev) =>
+        prev.map((t) => t.id === id ? { ...t, is_approved: false, approval_type: "rejected" } : t)
+      );
       toast.success("Rejected and member notified");
     } catch { toast.error("Failed"); }
     finally { setBusyId(null); }
@@ -151,11 +161,11 @@ export default function ChurchAdminTestimoniesClient() {
   const rejected = testimonies.filter((t) => t.approval_type === "rejected");
 
   const TABS = [
-    { id: "pending", label: "⏳ Pending", count: pending.length, alert: pending.length > 0 },
-    { id: "approved", label: "✅ Members", count: approved.length, alert: false },
-    { id: "public", label: "🌍 Public", count: publicT.length, alert: false },
-    { id: "rejected", label: "❌ Rejected", count: rejected.length, alert: false },
-    { id: "all", label: "📋 All", count: testimonies.length, alert: false },
+    { id: "pending", label: "⏳ Pending", count: pending.length },
+    { id: "approved", label: "✅ Members", count: approved.length },
+    { id: "public", label: "🌍 Public", count: publicT.length },
+    { id: "rejected", label: "❌ Rejected", count: rejected.length },
+    { id: "all", label: "📋 All", count: testimonies.length },
   ];
 
   const currentList =
@@ -165,103 +175,156 @@ export default function ChurchAdminTestimoniesClient() {
     activeTab === "rejected" ? rejected :
     testimonies;
 
-  if (loading) return <div className="min-h-[400px] flex items-center justify-center"><p className="text-gray-500">Loading...</p></div>;
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading testimonies..." />;
 
   return (
-    <div className="space-y-6">
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Member Testimonies</span>
+            <span className="text-white font-black text-xs uppercase tracking-widest">Testimonies</span>
           </div>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">Testimony Management</h1>
-          <p className="text-brand-purple-100 text-sm md:text-base">Review, approve for members or publish to main website</p>
-          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30 flex-wrap">
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2 leading-tight">
+            Testimony Management
+          </h1>
+          <p className="text-brand-purple-100 text-sm">
+            Review, approve for members or publish to main website.
+          </p>
+          <div className="flex gap-4 flex-wrap pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
-              <p className={`font-black text-2xl ${pending.length > 0 ? "text-amber-300" : "text-white"}`}>{pending.length}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase">Pending</p>
+              <p className="text-white font-black text-2xl">{pending.length}</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Pending</p>
             </div>
             <div className="text-center">
               <p className="text-white font-black text-2xl">{approved.length}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase">Members</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Members</p>
             </div>
             <div className="text-center">
               <p className="text-white font-black text-2xl">{publicT.length}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase">Public</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Public</p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── Pending Alert ── */}
       {pending.length > 0 && activeTab !== "pending" && (
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-700 via-amber-600 to-amber-700 border-2 border-amber-400/60 p-5 shadow-xl">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/60 p-5 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="flex items-center gap-4">
             <div className="text-3xl animate-pulse">📖</div>
-            <div className="flex-1">
-              <p className="font-black text-white text-lg">{pending.length} testimon{pending.length > 1 ? "ies" : "y"} awaiting review!</p>
-              <p className="text-white/80 font-semibold text-sm">Members are waiting for approval</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-base">
+                {pending.length} testimon{pending.length > 1 ? "ies" : "y"} awaiting review!
+              </p>
+              <p className="text-brand-purple-200 text-sm">Members are waiting for approval.</p>
             </div>
-            <button onClick={() => setActiveTab("pending")} className="px-4 py-2 rounded-full bg-white text-amber-700 font-black text-sm flex-shrink-0">Review Now</button>
+            <button
+              onClick={() => setActiveTab("pending")}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-xs flex-shrink-0 shadow-gold active:scale-95 transition-all"
+            >
+              Review Now
+            </button>
           </div>
         </div>
       )}
 
+      {/* ── Filter Tabs ── */}
       <div className="flex flex-wrap gap-2">
         {TABS.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as ActiveTab)}
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as ActiveTab)}
             className={`px-4 py-2 rounded-full text-xs md:text-sm font-black transition-all ${
               activeTab === tab.id
                 ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
-                : "bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200"
-            }`}>
-            {tab.label}
-            <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs ${tab.alert ? "bg-red-500 text-white" : ""}`}>{tab.count}</span>
+                : "bg-brand-purple-950/60 text-white border border-brand-gold-400/40"
+            }`}
+          >
+            {tab.label} ({tab.count})
           </button>
         ))}
       </div>
 
+      {/* ── Empty State ── */}
       {currentList.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="text-4xl mb-4">📖</div>
-          <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">No {activeTab} testimonies</h3>
+          <h3 className="font-heading text-xl font-bold text-white mb-2">
+            No {activeTab} testimonies
+          </h3>
         </div>
       ) : (
         <div className="space-y-3">
           {currentList.map((t) => {
             const isBusy = busyId === t.id;
             return (
-              <div key={t.id} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
-                t.approval_type === "public" ? "border-green-400" :
-                t.approval_type === "approved" ? "border-green-400/40" :
-                t.approval_type === "rejected" ? "border-red-400/40" :
-                "border-amber-400/60"
-              } p-5 shadow-xl`}>
+              <div
+                key={t.id}
+                className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                  t.approval_type === "public" ? "border-green-400" :
+                  t.approval_type === "approved" ? "border-green-400/40" :
+                  t.approval_type === "rejected" ? "border-red-400/40" :
+                  "border-brand-gold-400/40"
+                } p-5 shadow-xl`}
+              >
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+                {/* Status Badges */}
                 <div className="flex items-center gap-2 flex-wrap mb-3">
-                  {t.approval_type === "pending" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">⏳ Pending</span>}
-                  {t.approval_type === "approved" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">✅ Members Only</span>}
-                  {t.approval_type === "public" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500 text-white">🌍 Public Website</span>}
-                  {t.approval_type === "rejected" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-500/20 text-red-300 border border-red-400/40">❌ Rejected</span>}
-                  {t.category && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white border border-brand-gold-400/30">{t.category}</span>}
-                  <span className="text-brand-purple-300 text-xs font-semibold">{timeAgo(t.created_at)}</span>
+                  {t.approval_type === "pending" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-purple-950/60 text-white border border-brand-gold-400/40">
+                      ⏳ Pending
+                    </span>
+                  )}
+                  {t.approval_type === "approved" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">
+                      ✅ Members Only
+                    </span>
+                  )}
+                  {t.approval_type === "public" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500 text-white">
+                      🌍 Public Website
+                    </span>
+                  )}
+                  {t.approval_type === "rejected" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-500/20 text-red-300 border border-red-400/40">
+                      ❌ Rejected
+                    </span>
+                  )}
+                  {t.category && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white border border-brand-gold-400/30">
+                      {t.category}
+                    </span>
+                  )}
+                  <span className="text-brand-purple-200 text-xs font-semibold">
+                    {timeAgo(t.created_at)}
+                  </span>
                 </div>
 
+                {/* Member Info */}
                 {t.member && (
                   <div className="flex items-center gap-3 mb-3">
                     {t.member.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={t.member.photo_url} alt={t.member.full_name} className="w-10 h-10 rounded-full object-cover border-2 border-brand-gold-400 flex-shrink-0" />
+                      <img
+                        src={t.member.photo_url}
+                        alt={t.member.full_name}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-brand-gold-400/40 flex-shrink-0"
+                      />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-black flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-brand-purple-950/80 border-2 border-brand-gold-400/40 flex items-center justify-center text-white font-black flex-shrink-0">
                         {t.member.full_name.charAt(0)}
                       </div>
                     )}
                     <div>
                       <p className="text-white font-black text-sm">{t.member.full_name}</p>
-                      <p className="text-brand-purple-300 text-xs">{t.member.email}</p>
+                      <p className="text-brand-purple-200 text-xs">{t.member.email}</p>
                       {(t.member.city || t.member.state) && (
                         <p className="text-brand-purple-200 text-xs">
                           📍 {[t.member.city, t.member.state].filter(Boolean).join(", ")}
@@ -271,24 +334,63 @@ export default function ChurchAdminTestimoniesClient() {
                   </div>
                 )}
 
-                <p className="font-black text-white text-lg mb-2">{t.title}</p>
-                <p className="text-white/80 font-semibold text-sm leading-relaxed whitespace-pre-wrap">{t.testimony_text}</p>
+                {/* Testimony Content */}
+                <p className="font-black text-white text-base mb-2">{t.title}</p>
+                <p className="text-white font-semibold text-sm leading-relaxed whitespace-pre-wrap">
+                  {t.testimony_text}
+                </p>
 
-                <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 mt-3 flex-wrap">
+                {/* Actions — full width stacked mobile */}
+                <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30 mt-3">
                   {t.approval_type === "pending" && (
                     <>
-                      <button onClick={() => approveTestimony(t.id, "approved")} disabled={isBusy} className="px-3 py-1.5 rounded-full bg-green-500 hover:bg-green-600 text-white text-xs font-black transition-all disabled:opacity-50">✅ Approve (Members)</button>
-                      <button onClick={() => approveTestimony(t.id, "public")} disabled={isBusy} className="px-3 py-1.5 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-black transition-all disabled:opacity-50">🌍 Publish to Website</button>
-                      <button onClick={() => rejectTestimony(t.id)} disabled={isBusy} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold disabled:opacity-50">❌ Reject</button>
+                      <button
+                        onClick={() => approveTestimony(t.id, "approved")}
+                        disabled={isBusy}
+                        className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-black disabled:opacity-50 active:scale-95 transition-all"
+                      >
+                        ✅ Approve for Members
+                      </button>
+                      <button
+                        onClick={() => approveTestimony(t.id, "public")}
+                        disabled={isBusy}
+                        className="w-full py-3 rounded-xl bg-blue-600 text-white text-sm font-black disabled:opacity-50 active:scale-95 transition-all"
+                      >
+                        🌍 Publish to Website
+                      </button>
+                      <button
+                        onClick={() => rejectTestimony(t.id)}
+                        disabled={isBusy}
+                        className="w-full py-3 rounded-xl bg-red-500/20 text-red-300 text-sm font-bold border border-red-400/40 disabled:opacity-50"
+                      >
+                        ❌ Reject
+                      </button>
                     </>
                   )}
                   {t.approval_type === "approved" && (
-                    <button onClick={() => approveTestimony(t.id, "public")} disabled={isBusy} className="px-3 py-1.5 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-black transition-all disabled:opacity-50">🌍 Also Publish to Website</button>
+                    <button
+                      onClick={() => approveTestimony(t.id, "public")}
+                      disabled={isBusy}
+                      className="w-full py-3 rounded-xl bg-blue-600 text-white text-sm font-black disabled:opacity-50 active:scale-95 transition-all"
+                    >
+                      🌍 Also Publish to Website
+                    </button>
                   )}
                   {t.approval_type === "rejected" && (
-                    <button onClick={() => approveTestimony(t.id, "approved")} disabled={isBusy} className="px-3 py-1.5 rounded-full bg-green-500 hover:bg-green-600 text-white text-xs font-black transition-all disabled:opacity-50">✅ Approve Now</button>
+                    <button
+                      onClick={() => approveTestimony(t.id, "approved")}
+                      disabled={isBusy}
+                      className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-black disabled:opacity-50 active:scale-95 transition-all"
+                    >
+                      ✅ Approve Now
+                    </button>
                   )}
-                  <button onClick={() => deleteTestimony(t.id)} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold">🗑️ Delete</button>
+                  <button
+                    onClick={() => deleteTestimony(t.id)}
+                    className="w-full py-3 rounded-xl bg-red-500/20 text-red-300 text-sm font-bold border border-red-400/40 active:scale-95 transition-all"
+                  >
+                    🗑️ Delete Permanently
+                  </button>
                 </div>
               </div>
             );

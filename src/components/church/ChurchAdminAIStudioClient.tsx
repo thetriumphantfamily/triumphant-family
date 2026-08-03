@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TFAM AI — Ministry Assistant (Tools + Persistent Chat)
+// TFAM AI – Ministry Assistant (Tools + Persistent Chat)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -44,7 +44,6 @@ const ALL_TOOLS = [
 
 function getSystemPrompt(toolId: string): string {
   const base = "You are a Spirit-filled ministry assistant for The Triumphant Family church led by Prophet Olayiwole Ogunsola in Akute, Ogun State, Nigeria.";
-
   const prompts: Record<string, string> = {
     "sermon-outline": `${base} Generate a sermon outline with title, main scripture, 3 points (each with scripture, explanation, application), altar call and closing prayer.`,
     "pastoral-letter": `${base} Write a compassionate pastoral letter. Tone: Loving, Biblical, Fatherly. Format as a proper letter.`,
@@ -52,37 +51,33 @@ function getSystemPrompt(toolId: string): string {
     "bulletin": `${base} Write a church bulletin with welcome message, weekly highlights, upcoming events, word of encouragement and closing.`,
     "devotional-single": `${base} Generate a devotional with: TITLE, SCRIPTURE, MESSAGE (2-3 paragraphs), PRAYER point, CONFESSION/declaration.`,
     "facebook-post": `${base} Write an engaging Facebook post. Use emojis. Include church name and location. Add 3-5 relevant hashtags. Make it shareable and inviting.`,
-    "whatsapp-broadcast": `${base} Write a short WhatsApp broadcast message. Keep it under 200 words. Use emojis. Include time, location and contact where relevant. Make it clear and punchy.`,
-    "instagram-caption": `${base} Write a short Instagram/TikTok caption. Under 100 words. Catchy opening hook. Include 5-8 hashtags at the end. Use emojis.`,
-    "youtube-description": `${base} Write a YouTube video description. Include title, full description, key points covered, timestamps template, and 10 relevant tags/keywords.`,
-    "birthday-message": `${base} Write a warm, personalized birthday message from the Pastor. Include scripture, blessing and prayer. Make it personal and loving.`,
+    "whatsapp-broadcast": `${base} Write a short WhatsApp broadcast message. Keep it under 200 words. Use emojis. Include time, location and contact where relevant.`,
+    "instagram-caption": `${base} Write a short Instagram/TikTok caption. Under 100 words. Catchy opening hook. Include 5-8 hashtags at the end.`,
+    "youtube-description": `${base} Write a YouTube video description. Include title, full description, key points covered, timestamps template, and 10 relevant tags.`,
+    "birthday-message": `${base} Write a warm, personalized birthday message from the Pastor. Include scripture, blessing and prayer.`,
     "anniversary-message": `${base} Write a heartfelt wedding anniversary message. Include scripture on marriage, blessing and prayer for the couple.`,
-    "follow-up-message": `${base} Write a warm follow-up message. For first-time visitors or absent members. Welcoming, non-judgmental, inviting them back.`,
-    "condolence-message": `${base} Write a compassionate condolence message. Include comforting scriptures, words of hope and prayer. Very sensitive and caring tone.`,
+    "follow-up-message": `${base} Write a warm follow-up message for first-time visitors or absent members. Welcoming, non-judgmental.`,
+    "condolence-message": `${base} Write a compassionate condolence message. Include comforting scriptures, words of hope and prayer.`,
     "get-well-message": `${base} Write a healing and get-well message. Include healing scriptures, prayer for restoration and words of faith.`,
     "fasting-schedule": `${base} Create a fasting and prayer schedule. Include daily prayer points, scriptures, times of prayer, and daily declarations.`,
     "bible-study": `${base} Create a Bible study outline. Include topic, key scriptures, study points, discussion questions, and practical application.`,
-    "altar-call": `${base} Write a powerful altar call script. Heartfelt, urgent, compassionate. Include salvation prayer, healing prayer, or rededication prayer as appropriate.`,
+    "altar-call": `${base} Write a powerful altar call script. Heartfelt, urgent, compassionate. Include salvation prayer, healing prayer, or rededication prayer.`,
   };
-
   return prompts[toolId] || base;
 }
 
 export default function ChurchAdminAIStudioClient() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("tools");
-
   const [selectedTool, setSelectedTool] = useState("");
   const [toolPrompt, setToolPrompt] = useState("");
   const [toolResult, setToolResult] = useState("");
   const [isToolGenerating, setIsToolGenerating] = useState(false);
-
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [chatLoaded, setChatLoaded] = useState(false);
 
-  // Load chat from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(CHAT_STORAGE_KEY);
@@ -102,7 +97,6 @@ export default function ChurchAdminAIStudioClient() {
     setChatLoaded(true);
   }, []);
 
-  // Save chat to localStorage whenever it changes
   useEffect(() => {
     if (chatLoaded && chatMessages.length > 0) {
       try {
@@ -118,10 +112,8 @@ export default function ChurchAdminAIStudioClient() {
   const handleToolGenerate = async () => {
     if (!selectedTool) { toast.error("Select a tool first"); return; }
     if (!toolPrompt.trim()) { toast.error("Enter your prompt"); return; }
-
     setIsToolGenerating(true);
     setToolResult("");
-
     try {
       const systemPrompt = getSystemPrompt(selectedTool);
       const res = await fetch("/api/gemini", {
@@ -145,34 +137,29 @@ export default function ChurchAdminAIStudioClient() {
 
   const handleChatSend = async () => {
     if (!chatInput.trim()) return;
-
     const userMessage: ChatMessage = {
       role: "user",
       content: chatInput.trim(),
       timestamp: new Date().toISOString(),
     };
-
     setChatMessages((prev) => [...prev, userMessage]);
     setChatInput("");
     setIsChatLoading(true);
-
     try {
       const res = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: `You are TFAM AI, the intelligent assistant for The Triumphant Family church led by Prophet Olayiwole Ogunsola in Akute, Ogun State, Nigeria. You can help with anything — ministry, leadership, personal issues, administration, social media, counseling, general knowledge, or any topic. Respond helpfully and wisely.\n\nUser: ${userMessage.content}`,
+          prompt: `You are TFAM AI, the intelligent assistant for The Triumphant Family church led by Prophet Olayiwole Ogunsola in Akute, Ogun State, Nigeria. You can help with anything — ministry, leadership, personal issues, administration, social media, counseling, general knowledge. Respond helpfully and wisely.\n\nUser: ${userMessage.content}`,
           type: "chat",
         }),
       });
       const data = await res.json();
-
       const aiMessage: ChatMessage = {
         role: "ai",
         content: data.error ? "Sorry, I encountered an error. Please try again." : data.result,
         timestamp: new Date().toISOString(),
       };
-
       setChatMessages((prev) => [...prev, aiMessage]);
     } catch {
       setChatMessages((prev) => [
@@ -204,9 +191,7 @@ export default function ChurchAdminAIStudioClient() {
     if (!confirm("Clear all chat history? This cannot be undone.")) return;
     const cleared = [DEFAULT_WELCOME];
     setChatMessages(cleared);
-    try {
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(cleared));
-    } catch { /* ignore */ }
+    try { localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(cleared)); } catch { /* ignore */ }
     toast.success("Chat cleared");
   };
 
@@ -215,94 +200,93 @@ export default function ChurchAdminAIStudioClient() {
   const formatTime = (timestamp: string) => {
     try {
       return new Date(timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-    } catch {
-      return "";
-    }
+    } catch { return ""; }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Brand Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
-              TFAM AI
-            </span>
+            <span className="text-white font-black text-xs uppercase tracking-widest">TFAM AI</span>
           </div>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-            TFAM AI
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2 leading-tight">
+            TFAM AI Studio
           </h1>
-          <p className="text-brand-purple-100 text-sm md:text-base">
-            Your intelligent ministry assistant — generate content or chat freely
+          <p className="text-brand-purple-100 text-sm">
+            Your intelligent ministry assistant — generate content or chat freely.
           </p>
           <div className="mt-4 pt-4 border-t border-brand-gold-400/30">
-            <p className="text-brand-purple-200 italic text-sm">
+            <p className="text-white/70 italic text-sm">
               &ldquo;For the Holy Ghost shall teach you in the same hour what ye ought to say.&rdquo;
             </p>
-            <p className="text-brand-purple-300 text-xs mt-1 font-semibold">— Luke 12:12</p>
+            <p className="text-brand-purple-200 text-xs mt-1 font-semibold">— Luke 12:12</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => setActiveTab("tools")}
-          className={`relative rounded-2xl overflow-hidden p-4 transition-all hover:-translate-y-0.5 text-left ${
+          className={`relative rounded-2xl overflow-hidden p-4 transition-all text-left ${
             activeTab === "tools"
               ? "bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-xl"
-              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40 hover:border-brand-gold-400/70"
+              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40"
           }`}
         >
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg flex-shrink-0">🛠️</div>
-            <div>
-              <p className="font-black text-white text-sm">Tools</p>
-              <p className="text-brand-purple-200 text-xs font-semibold">{ALL_TOOLS.length} AI tools</p>
+          <div className="flex flex-col gap-2">
+            <div className="w-10 h-10 rounded-xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">
+              🛠️
             </div>
+            <p className="font-black text-white text-sm">Tools</p>
+            <p className="text-brand-purple-200 text-xs">{ALL_TOOLS.length} AI tools</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveTab("chat")}
-          className={`relative rounded-2xl overflow-hidden p-4 transition-all hover:-translate-y-0.5 text-left ${
+          className={`relative rounded-2xl overflow-hidden p-4 transition-all text-left ${
             activeTab === "chat"
               ? "bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-xl"
-              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40 hover:border-brand-gold-400/70"
+              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40"
           }`}
         >
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg flex-shrink-0">💬</div>
-            <div>
-              <p className="font-black text-white text-sm">AI Chat</p>
-              <p className="text-brand-purple-200 text-xs font-semibold">
-                {chatMessages.length > 1 ? `${chatMessages.length - 1} messages saved` : "Ask anything"}
-              </p>
+          <div className="flex flex-col gap-2">
+            <div className="w-10 h-10 rounded-xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">
+              💬
             </div>
+            <p className="font-black text-white text-sm">AI Chat</p>
+            <p className="text-brand-purple-200 text-xs">
+              {chatMessages.length > 1 ? `${chatMessages.length - 1} messages saved` : "Ask anything"}
+            </p>
           </div>
         </button>
       </div>
 
-      {/* TOOLS TAB */}
+      {/* ── TOOLS TAB ── */}
       {activeTab === "tools" && (
         <div className="space-y-4">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
             <div className="relative z-10 space-y-4">
               <div>
-                <label className="block text-sm font-black text-white mb-2 uppercase tracking-widest">Select Tool</label>
+                <label className="block text-xs font-black text-white/80 mb-2 uppercase tracking-widest">
+                  Select Tool
+                </label>
                 <select
                   value={selectedTool}
                   onChange={(e) => { setSelectedTool(e.target.value); setToolResult(""); }}
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
                 >
                   <option value="">— Choose a tool —</option>
-                  <optgroup label="📝 Ministry">
+                  <optgroup label="📖 Ministry">
                     <option value="sermon-outline">🎙️ Sermon Outline</option>
                     <option value="devotional-single">📖 Devotional</option>
                     <option value="prayer-guide">🙏 Prayer Guide</option>
@@ -335,7 +319,9 @@ export default function ChurchAdminAIStudioClient() {
               {selectedTool && (
                 <>
                   <div>
-                    <label className="block text-sm font-black text-white mb-2 uppercase tracking-widest">Your Prompt</label>
+                    <label className="block text-xs font-black text-white/80 mb-2 uppercase tracking-widest">
+                      Your Prompt
+                    </label>
                     <textarea
                       value={toolPrompt}
                       onChange={(e) => setToolPrompt(e.target.value)}
@@ -344,11 +330,10 @@ export default function ChurchAdminAIStudioClient() {
                       className="w-full p-4 rounded-2xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold text-sm"
                     />
                   </div>
-
                   <button
                     onClick={handleToolGenerate}
                     disabled={isToolGenerating || !toolPrompt.trim()}
-                    className="w-full px-6 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-lg shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50"
                   >
                     {isToolGenerating ? (
                       <span className="flex items-center justify-center gap-2">
@@ -365,11 +350,12 @@ export default function ChurchAdminAIStudioClient() {
             </div>
           </div>
 
+          {/* ── Tool Result ── */}
           {toolResult && (
             <div className="space-y-3">
               <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-2xl">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-                <div className="relative z-10 p-6">
+                <div className="relative z-10 p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/40 text-green-300 text-xs font-black">
                       ✅ Generated
@@ -378,22 +364,39 @@ export default function ChurchAdminAIStudioClient() {
                       <span className="text-brand-purple-200 text-xs font-semibold">{selectedToolData.label}</span>
                     )}
                   </div>
-                  <div className="text-white font-semibold text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+                  <div className="text-white font-semibold text-sm leading-relaxed whitespace-pre-wrap">
                     {toolResult}
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button onClick={() => copyText(toolResult)} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 text-white font-bold text-sm transition-all">📋 Copy</button>
-                <button onClick={() => shareWhatsApp(toolResult)} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all">📱 WhatsApp</button>
-                <button onClick={handleToolGenerate} disabled={isToolGenerating} className="flex-1 min-w-[100px] px-4 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 text-white font-bold text-sm transition-all disabled:opacity-50">🔄 Regenerate</button>
+              {/* Action Buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => copyText(toolResult)}
+                  className="py-3 rounded-xl bg-brand-purple-950/60 text-white font-bold text-xs border border-brand-gold-400/40 active:scale-95 transition-all"
+                >
+                  📋 Copy
+                </button>
+                <button
+                  onClick={() => shareWhatsApp(toolResult)}
+                  className="py-3 rounded-xl bg-green-600 text-white font-bold text-xs active:scale-95 transition-all"
+                >
+                  📱 WhatsApp
+                </button>
+                <button
+                  onClick={handleToolGenerate}
+                  disabled={isToolGenerating}
+                  className="py-3 rounded-xl bg-brand-purple-950/60 text-white font-bold text-xs border border-brand-gold-400/40 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  🔄 Redo
+                </button>
               </div>
 
-              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-4 shadow-xl">
+              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-4">
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-                <p className="text-white font-bold text-sm">
-                  📝 <strong>Review before using:</strong> AI content is a draft. Always review and personalize before sharing.
+                <p className="text-white font-semibold text-xs">
+                  📝 Always review and personalize AI content before sharing.
                 </p>
               </div>
             </div>
@@ -401,46 +404,64 @@ export default function ChurchAdminAIStudioClient() {
         </div>
       )}
 
-      {/* CHAT TAB */}
+      {/* ── CHAT TAB ── */}
       {activeTab === "chat" && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-2xl">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+          {/* Chat Header */}
           <div className="p-4 border-b border-brand-gold-400/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">🤖</div>
+              <div className="w-10 h-10 rounded-full bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">
+                🤖
+              </div>
               <div>
                 <p className="text-white font-black text-sm">TFAM AI</p>
-                <p className="text-brand-purple-200 text-xs font-semibold">💾 Chat saved • Persistent history</p>
+                <p className="text-brand-purple-200 text-xs font-semibold">
+                  💾 Chat saved • Persistent history
+                </p>
               </div>
             </div>
             <button
               onClick={clearChat}
-              className="px-3 py-1.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/30 hover:border-brand-gold-400/60 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-black active:scale-95 transition-all"
             >
               🗑️ Clear
             </button>
           </div>
 
+          {/* Messages */}
           <div className="h-[400px] md:h-[500px] overflow-y-auto p-4 space-y-4">
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-2xl p-4 ${
                   msg.role === "user"
-                    ? "bg-brand-purple-950/80 border border-brand-gold-400/30 text-white"
-                    : "bg-brand-purple-950/40 border border-white/10 text-white"
+                    ? "bg-brand-purple-950/80 border border-brand-gold-400/30"
+                    : "bg-brand-purple-950/40 border border-white/10"
                 }`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-black text-brand-purple-200">
+                    <span className="text-xs font-black text-white/80">
                       {msg.role === "user" ? "👤 You" : "🤖 TFAM AI"}
                     </span>
-                    <span className="text-xs text-brand-purple-400">{formatTime(msg.timestamp)}</span>
+                    <span className="text-xs text-brand-purple-200">{formatTime(msg.timestamp)}</span>
                   </div>
-                  <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-white font-semibold text-sm leading-relaxed whitespace-pre-wrap">
+                    {msg.content}
+                  </p>
                   {msg.role === "ai" && i > 0 && (
-                    <div className="flex gap-2 mt-3 pt-2 border-t border-white/10">
-                      <button onClick={() => copyText(msg.content)} className="text-xs text-brand-purple-300 hover:text-white font-bold transition-colors">📋 Copy</button>
-                      <button onClick={() => shareWhatsApp(msg.content)} className="text-xs text-brand-purple-300 hover:text-white font-bold transition-colors">📱 WhatsApp</button>
+                    <div className="flex gap-3 mt-3 pt-2 border-t border-white/10">
+                      <button
+                        onClick={() => copyText(msg.content)}
+                        className="text-xs text-brand-purple-200 hover:text-white font-bold transition-colors"
+                      >
+                        📋 Copy
+                      </button>
+                      <button
+                        onClick={() => shareWhatsApp(msg.content)}
+                        className="text-xs text-brand-purple-200 hover:text-white font-bold transition-colors"
+                      >
+                        📱 WhatsApp
+                      </button>
                     </div>
                   )}
                 </div>
@@ -449,22 +470,22 @@ export default function ChurchAdminAIStudioClient() {
 
             {isChatLoading && (
               <div className="flex justify-start">
-                <div className="bg-brand-purple-950/40 border border-white/10 rounded-2xl p-4 max-w-[85%]">
+                <div className="bg-brand-purple-950/40 border border-white/10 rounded-2xl p-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-brand-purple-200">🤖 TFAM AI</span>
+                    <span className="text-xs font-black text-white/80">🤖 TFAM AI</span>
                     <div className="flex gap-1">
-                      <span className="w-2 h-2 rounded-full bg-brand-purple-300 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-2 h-2 rounded-full bg-brand-purple-300 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-2 h-2 rounded-full bg-brand-purple-300 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </div>
               </div>
             )}
-
             <div ref={chatEndRef} />
           </div>
 
+          {/* Chat Input */}
           <div className="p-4 border-t border-brand-gold-400/30">
             <div className="flex gap-2">
               <textarea
@@ -478,13 +499,13 @@ export default function ChurchAdminAIStudioClient() {
               <button
                 onClick={handleChatSend}
                 disabled={isChatLoading || !chatInput.trim()}
-                className="px-5 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0"
+                className="px-5 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50 flex-shrink-0"
               >
                 {isChatLoading ? "..." : "→"}
               </button>
             </div>
-            <p className="text-brand-purple-300 text-xs mt-2 text-center">
-              💾 Your chat history is saved automatically. It persists across pages and refreshes.
+            <p className="text-brand-purple-200 text-xs mt-2 text-center">
+              💾 Chat history saves automatically across pages and refreshes.
             </p>
           </div>
         </div>

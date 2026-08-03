@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ADMIN GROUP DETAIL — Full management + Pastor Chat notifies all
+// ADMIN GROUP DETAIL – Full management + Pastor Chat notifies all
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -8,6 +8,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyMember } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface Group {
   id: string;
@@ -89,7 +90,9 @@ function timeAgo(d: string): string {
 }
 
 function formatDate(d: string) {
-  return new Date(d + "T12:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  return new Date(d + "T12:00:00").toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric",
+  });
 }
 
 export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: string }) {
@@ -101,7 +104,6 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>("members");
-
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [showAddMember, setShowAddMember] = useState(false);
@@ -116,12 +118,9 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
   const [meetingForm, setMeetingForm] = useState({
-    title: "",
-    description: "",
+    title: "", description: "",
     meeting_date: new Date().toISOString().split("T")[0],
-    meeting_time: "",
-    location: "",
-    meeting_link: "",
+    meeting_time: "", location: "", meeting_link: "",
   });
 
   const [chatInput, setChatInput] = useState("");
@@ -130,7 +129,6 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
 
   useEffect(() => {
     loadEverything();
-
     const supabase = createClient();
     const channel = supabase
       .channel(`admin-group-messages-${groupId}`)
@@ -146,7 +144,6 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
         }
       )
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [groupId]);
 
@@ -167,7 +164,6 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
         supabase.from("tfam_group_meetings").select("*").eq("group_id", groupId).order("meeting_date", { ascending: false }),
         supabase.from("tfam_group_messages").select("*").eq("group_id", groupId).order("created_at", { ascending: true }).limit(200),
       ]);
-
       setGroup(groupRes.data);
       setMembers((membersRes.data as GroupMember[]) || []);
       setAllMembers(allMembersRes.data || []);
@@ -181,29 +177,14 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const addMember = async () => {
     if (!selectedMemberId) { toast.error("Select a member"); return; }
     if (members.some((m) => m.member_id === selectedMemberId)) { toast.error("Already a member"); return; }
-
     try {
       const supabase = createClient();
-      await supabase.from("tfam_small_group_members").insert({
-        group_id: groupId,
-        member_id: selectedMemberId,
-        role: "member",
-      });
-
+      await supabase.from("tfam_small_group_members").insert({ group_id: groupId, member_id: selectedMemberId, role: "member" });
       if (group) {
-        await notifyMember({
-          memberId: selectedMemberId,
-          title: "💬 Added to Small Group",
-          message: `You've been added to "${group.name}" small group by admin.`,
-          type: "small_group",
-          link: `/member/community/${groupId}`,
-        });
+        await notifyMember({ memberId: selectedMemberId, title: "💬 Added to Small Group", message: `You've been added to "${group.name}" small group by admin.`, type: "small_group", link: `/member/community/${groupId}` });
       }
-
       toast.success("✅ Member added!");
-      setSelectedMemberId("");
-      setSearchQuery("");
-      setShowAddMember(false);
+      setSelectedMemberId(""); setSearchQuery(""); setShowAddMember(false);
       loadEverything();
     } catch { toast.error("Failed"); }
   };
@@ -214,13 +195,7 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
       const supabase = createClient();
       await supabase.from("tfam_small_group_members").delete().eq("id", member.id);
       if (group && member.member_id) {
-        await notifyMember({
-          memberId: member.member_id,
-          title: "🚪 Removed from Small Group",
-          message: `You've been removed from "${group.name}" small group.`,
-          type: "small_group",
-          link: "/member/community",
-        });
+        await notifyMember({ memberId: member.member_id, title: "🚪 Removed from Small Group", message: `You've been removed from "${group.name}" small group.`, type: "small_group", link: "/member/community" });
       }
       toast.success("Member removed");
       loadEverything();
@@ -239,36 +214,25 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const postAnnouncement = async (e: FormEvent) => {
     e.preventDefault();
     if (!annTitle.trim() || !annMessage.trim()) { toast.error("Title and message required"); return; }
-
     setIsSubmitting(true);
     try {
       const supabase = createClient();
       await supabase.from("tfam_group_announcements").insert({
-        group_id: groupId,
-        title: annTitle.trim(),
-        message: annMessage.trim(),
-        is_important: annImportant,
-        is_from_admin: true,
-        posted_by_name: "Admin",
+        group_id: groupId, title: annTitle.trim(), message: annMessage.trim(),
+        is_important: annImportant, is_from_admin: true, posted_by_name: "Admin",
       });
-
       for (const m of members) {
         if (m.member_id && group) {
           await notifyMember({
             memberId: m.member_id,
             title: annImportant ? `🔴 Important: ${group.name}` : `📢 ${group.name}`,
-            message: annTitle,
-            type: "group_announcement",
+            message: annTitle, type: "group_announcement",
             link: `/member/community/${groupId}`,
           });
         }
       }
-
       toast.success("📢 Announcement posted!");
-      setAnnTitle("");
-      setAnnMessage("");
-      setAnnImportant(false);
-      setShowAnnForm(false);
+      setAnnTitle(""); setAnnMessage(""); setAnnImportant(false); setShowAnnForm(false);
       loadEverything();
     } catch { toast.error("Failed"); }
     finally { setIsSubmitting(false); }
@@ -287,24 +251,10 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const openMeetingForm = (m?: Meeting) => {
     if (m) {
       setEditingMeetingId(m.id);
-      setMeetingForm({
-        title: m.title,
-        description: m.description || "",
-        meeting_date: m.meeting_date,
-        meeting_time: m.meeting_time || "",
-        location: m.location || "",
-        meeting_link: m.meeting_link || "",
-      });
+      setMeetingForm({ title: m.title, description: m.description || "", meeting_date: m.meeting_date, meeting_time: m.meeting_time || "", location: m.location || "", meeting_link: m.meeting_link || "" });
     } else {
       setEditingMeetingId(null);
-      setMeetingForm({
-        title: "",
-        description: "",
-        meeting_date: new Date().toISOString().split("T")[0],
-        meeting_time: "",
-        location: "",
-        meeting_link: "",
-      });
+      setMeetingForm({ title: "", description: "", meeting_date: new Date().toISOString().split("T")[0], meeting_time: "", location: "", meeting_link: "" });
     }
     setShowMeetingForm(true);
   };
@@ -312,21 +262,14 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const saveMeeting = async (e: FormEvent) => {
     e.preventDefault();
     if (!meetingForm.title.trim()) { toast.error("Title required"); return; }
-
     setIsSubmitting(true);
     try {
       const supabase = createClient();
       const payload = {
-        group_id: groupId,
-        title: meetingForm.title.trim(),
-        description: meetingForm.description.trim() || null,
-        meeting_date: meetingForm.meeting_date,
-        meeting_time: meetingForm.meeting_time.trim() || null,
-        location: meetingForm.location.trim() || null,
-        meeting_link: meetingForm.meeting_link.trim() || null,
-        is_cancelled: false,
+        group_id: groupId, title: meetingForm.title.trim(), description: meetingForm.description.trim() || null,
+        meeting_date: meetingForm.meeting_date, meeting_time: meetingForm.meeting_time.trim() || null,
+        location: meetingForm.location.trim() || null, meeting_link: meetingForm.meeting_link.trim() || null, is_cancelled: false,
       };
-
       if (editingMeetingId) {
         await supabase.from("tfam_group_meetings").update(payload).eq("id", editingMeetingId);
         toast.success("Updated!");
@@ -334,18 +277,11 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
         await supabase.from("tfam_group_meetings").insert(payload);
         for (const m of members) {
           if (m.member_id && group) {
-            await notifyMember({
-              memberId: m.member_id,
-              title: `📅 New ${group.name} Meeting`,
-              message: `${payload.title} — ${formatDate(payload.meeting_date)}`,
-              type: "group_meeting",
-              link: `/member/community/${groupId}`,
-            });
+            await notifyMember({ memberId: m.member_id, title: `📅 New ${group.name} Meeting`, message: `${payload.title} — ${formatDate(payload.meeting_date)}`, type: "group_meeting", link: `/member/community/${groupId}` });
           }
         }
         toast.success("Meeting created!");
       }
-
       setShowMeetingForm(false);
       loadEverything();
     } catch { toast.error("Failed"); }
@@ -374,40 +310,23 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   const sendAdminMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
-
     setIsSendingChat(true);
     try {
       const supabase = createClient();
       const messageText = chatInput.trim();
-
-      // 1. Send message
       await supabase.from("tfam_group_messages").insert({
-        group_id: groupId,
-        member_id: null,
-        member_name: ADMIN_MARKER,
-        member_photo: null,
-        message: messageText,
+        group_id: groupId, member_id: null, member_name: ADMIN_MARKER,
+        member_photo: null, message: messageText,
       });
-
-      // 2. Notify ALL group members
       if (members.length > 0 && group) {
-        const notifications = members
-          .filter((m) => m.member_id)
-          .map((m) => ({
-            recipient_type: "member",
-            recipient_id: m.member_id,
-            title: `👑 Pastor in ${group.name}`,
-            message: messageText.substring(0, 100) + (messageText.length > 100 ? "..." : ""),
-            type: "group_chat",
-            link: `/member/community/${groupId}`,
-            is_read: false,
-          }));
-
-        if (notifications.length > 0) {
-          await supabase.from("tfam_notifications").insert(notifications);
-        }
+        const notifications = members.filter((m) => m.member_id).map((m) => ({
+          recipient_type: "member", recipient_id: m.member_id,
+          title: `👑 Pastor in ${group.name}`,
+          message: messageText.substring(0, 100) + (messageText.length > 100 ? "..." : ""),
+          type: "group_chat", link: `/member/community/${groupId}`, is_read: false,
+        }));
+        if (notifications.length > 0) await supabase.from("tfam_notifications").insert(notifications);
       }
-
       setChatInput("");
     } catch { toast.error("Failed"); }
     finally { setIsSendingChat(false); }
@@ -427,13 +346,23 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
     return m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || m.member_id.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  if (loading) return <div className="min-h-[400px] flex items-center justify-center"><p className="text-gray-500">Loading...</p></div>;
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading group..." />;
 
+  // ✅ GROUP NOT FOUND
   if (!group) {
     return (
-      <div className="text-center py-10">
-        <p className="text-gray-500 mb-4">Group not found</p>
-        <Link href="/admin/church/small-groups" className="text-brand-purple-600 font-bold hover:underline">← Back to Small Groups</Link>
+      <div className="space-y-4">
+        <Link href="/admin/church/small-groups" className="inline-flex items-center gap-2 text-white/80 font-bold hover:text-white text-sm">
+          ← Back to Small Groups
+        </Link>
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-10 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <p className="text-white font-bold">Group not found</p>
+          <Link href="/admin/church/small-groups" className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold mt-4">
+            ← Back
+          </Link>
+        </div>
       </div>
     );
   }
@@ -446,49 +375,65 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
   ];
 
   return (
-    <div className="space-y-6">
-      <Link href="/admin/church/small-groups" className="inline-flex items-center gap-2 text-brand-purple-600 font-bold hover:underline text-sm">← Back to All Groups</Link>
+    <div className="space-y-4 pb-6">
 
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+      {/* ── Back Link ── */}
+      <Link
+        href="/admin/church/small-groups"
+        className="inline-flex items-center gap-2 text-white/80 font-bold hover:text-white text-sm"
+      >
+        ← Back to All Groups
+      </Link>
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">{group.category}</span>
+            <span className="text-white font-black text-xs uppercase tracking-widest">{group.category}</span>
           </div>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3">{group.name}</h1>
-          {group.description && <p className="text-brand-purple-100 text-sm">{group.description}</p>}
-          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30 flex-wrap">
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2">{group.name}</h1>
+          {group.description && <p className="text-brand-purple-100 text-sm mb-3">{group.description}</p>}
+          <div className="flex gap-4 flex-wrap pt-4 border-t border-brand-gold-400/30">
             <div className="text-center"><p className="text-white font-black text-2xl">{members.length}</p><p className="text-brand-purple-200 text-xs font-semibold uppercase">Members</p></div>
-            <div className="text-center"><p className="text-white font-black text-2xl">{announcements.length}</p><p className="text-brand-purple-200 text-xs font-semibold uppercase">Announcements</p></div>
+            <div className="text-center"><p className="text-white font-black text-2xl">{announcements.length}</p><p className="text-brand-purple-200 text-xs font-semibold uppercase">Notices</p></div>
             <div className="text-center"><p className="text-white font-black text-2xl">{meetings.length}</p><p className="text-brand-purple-200 text-xs font-semibold uppercase">Meetings</p></div>
             <div className="text-center"><p className="text-white font-black text-2xl">{messages.length}</p><p className="text-brand-purple-200 text-xs font-semibold uppercase">Messages</p></div>
           </div>
         </div>
       </div>
 
+      {/* ── Tabs ── */}
       <div className="flex flex-wrap gap-2">
         {TABS.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as ActiveTab)}
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as ActiveTab)}
             className={`px-4 py-2 rounded-full text-xs md:text-sm font-black transition-all ${
               activeTab === tab.id
                 ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
-                : "bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200"
-            }`}>{tab.label}</button>
+                : "bg-brand-purple-950/60 text-white border border-brand-gold-400/40"
+            }`}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 
+      {/* ── MEMBERS TAB ── */}
       {activeTab === "members" && (
         <div className="space-y-4">
-          <div className="flex justify-end">
-            <button onClick={() => setShowAddMember(true)} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
-              ➕ Add Member
-            </button>
-          </div>
-
+          <button
+            onClick={() => setShowAddMember(true)}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+          >
+            ➕ Add Member
+          </button>
           {members.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 text-center border-2 border-dashed border-gray-200">
-              <p className="text-gray-500">No members yet</p>
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+              <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+              <p className="text-brand-purple-200 font-semibold">No members yet</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -497,28 +442,34 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
                   <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
                   <div className="flex items-center gap-3 mb-3">
                     {m.member?.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.member.photo_url} alt={m.member.full_name} className="w-14 h-14 rounded-full object-cover border-2 border-brand-gold-400 flex-shrink-0" />
+                      <img src={m.member.photo_url} alt={m.member.full_name} className="w-12 h-12 rounded-full object-cover border-2 border-brand-gold-400/40 flex-shrink-0" />
                     ) : (
-                      <div className="w-14 h-14 rounded-full bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-black text-xl flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-brand-purple-950/80 border-2 border-brand-gold-400/40 flex items-center justify-center text-white font-black text-lg flex-shrink-0">
                         {m.member?.full_name.charAt(0) || "?"}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-black text-white truncate">{m.member?.full_name || "Unknown"}</p>
+                      <p className="font-black text-white truncate text-sm">{m.member?.full_name || "Unknown"}</p>
                       {m.member?.email && <p className="text-xs text-brand-purple-200 truncate">📧 {m.member.email}</p>}
                       {m.member?.phone && <p className="text-xs text-brand-purple-200 truncate">📱 {m.member.phone}</p>}
                     </div>
                   </div>
-
-                  <div className="flex gap-2 pt-2 border-t border-brand-gold-400/30 flex-wrap">
-                    <select value={m.role} onChange={(e) => updateRole(m.id, e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/40">
+                  <div className="flex gap-2 pt-2 border-t border-brand-gold-400/30">
+                    <select
+                      value={m.role}
+                      onChange={(e) => updateRole(m.id, e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-xl bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/40 focus:outline-none"
+                    >
                       <option value="member">Member</option>
                       <option value="leader">👑 Leader</option>
                       <option value="assistant">⭐ Assistant</option>
                     </select>
-                    <button onClick={() => removeMember(m)} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold hover:bg-red-500/40">🗑️</button>
+                    <button
+                      onClick={() => removeMember(m)}
+                      className="px-3 py-2 rounded-xl bg-red-600 text-white text-xs font-black active:scale-95 transition-all"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
@@ -527,77 +478,104 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
         </div>
       )}
 
+      {/* ── ANNOUNCEMENTS TAB ── */}
       {activeTab === "announcements" && (
         <div className="space-y-4">
-          <div className="flex justify-end">
-            <button onClick={() => setShowAnnForm(true)} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
-              ➕ Post Announcement
-            </button>
-          </div>
-
+          <button
+            onClick={() => setShowAnnForm(true)}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+          >
+            ➕ Post Announcement
+          </button>
           {announcements.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 text-center border-2 border-dashed border-gray-200">
-              <p className="text-gray-500">No announcements yet</p>
-            </div>
-          ) : announcements.map((a) => (
-            <div key={a.id} className={`relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${a.is_important ? "border-red-400/60" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                {a.is_important && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white">🔴 IMPORTANT</span>}
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-brand-gold-400 text-brand-purple-900">👑 Admin</span>
-                <span className="text-brand-purple-300 text-xs font-semibold">{timeAgo(a.created_at)}</span>
-              </div>
-              <p className="font-black text-white text-lg">{a.title}</p>
-              <p className="text-white/80 font-semibold text-sm mt-2 whitespace-pre-wrap">{a.message}</p>
-              <div className="pt-3 border-t border-brand-gold-400/30 mt-3">
-                <button onClick={() => deleteAnnouncement(a.id)} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold">🗑️ Delete</button>
-              </div>
+              <p className="text-brand-purple-200 font-semibold">No announcements yet</p>
             </div>
-          ))}
+          ) : (
+            announcements.map((a) => (
+              <div key={a.id} className={`relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${a.is_important ? "border-red-400/60" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {a.is_important && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white">🔴 IMPORTANT</span>}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-white text-brand-purple-900">👑 Admin</span>
+                  <span className="text-brand-purple-200 text-xs font-semibold">{timeAgo(a.created_at)}</span>
+                </div>
+                <p className="font-black text-white text-base">{a.title}</p>
+                <p className="text-white font-semibold text-sm mt-2 whitespace-pre-wrap">{a.message}</p>
+                <div className="pt-3 border-t border-brand-gold-400/30 mt-3">
+                  <button
+                    onClick={() => deleteAnnouncement(a.id)}
+                    className="w-full py-2.5 rounded-xl bg-red-600 text-white text-xs font-black active:scale-95 transition-all"
+                  >
+                    🗑️ Delete Announcement
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
+      {/* ── MEETINGS TAB ── */}
       {activeTab === "meetings" && (
         <div className="space-y-4">
-          <div className="flex justify-end">
-            <button onClick={() => openMeetingForm()} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
-              ➕ Schedule Meeting
-            </button>
-          </div>
-
+          <button
+            onClick={() => openMeetingForm()}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+          >
+            ➕ Schedule Meeting
+          </button>
           {meetings.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 text-center border-2 border-dashed border-gray-200">
-              <p className="text-gray-500">No meetings scheduled</p>
-            </div>
-          ) : meetings.map((m) => (
-            <div key={m.id} className={`relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${m.is_cancelled ? "border-red-400/60" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-              {m.is_cancelled && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white mb-2">CANCELLED</span>}
-              <p className="font-black text-white text-lg">{m.title}</p>
-              <p className="text-brand-purple-200 text-sm">📅 {formatDate(m.meeting_date)} {m.meeting_time && `at ${m.meeting_time}`}</p>
-              {m.location && <p className="text-brand-purple-200 text-sm">📍 {m.location}</p>}
-              {m.description && <p className="text-white/80 text-sm mt-2">{m.description}</p>}
-              <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 mt-3 flex-wrap">
-                <button onClick={() => openMeetingForm(m)} className="px-3 py-1.5 rounded-full bg-brand-gold-400/20 text-brand-gold-300 text-xs font-bold">✏️ Edit</button>
-                <button onClick={() => toggleCancelMeeting(m.id, m.is_cancelled)} className="px-3 py-1.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/30">
-                  {m.is_cancelled ? "✅ Restore" : "❌ Cancel"}
-                </button>
-                <button onClick={() => deleteMeeting(m.id)} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold">🗑️ Delete</button>
-              </div>
+              <p className="text-brand-purple-200 font-semibold">No meetings scheduled</p>
             </div>
-          ))}
+          ) : (
+            meetings.map((m) => (
+              <div key={m.id} className={`relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${m.is_cancelled ? "border-red-400/60" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+                {m.is_cancelled && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white mb-2">CANCELLED</span>}
+                <p className="font-black text-white text-base">{m.title}</p>
+                <p className="text-brand-purple-200 text-sm">📅 {formatDate(m.meeting_date)} {m.meeting_time && `at ${m.meeting_time}`}</p>
+                {m.location && <p className="text-brand-purple-200 text-sm">📍 {m.location}</p>}
+                {m.description && <p className="text-white font-semibold text-sm mt-2">{m.description}</p>}
+                <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30 mt-3">
+                  <button
+                    onClick={() => openMeetingForm(m)}
+                    className="w-full py-2.5 rounded-xl bg-white text-brand-purple-900 text-xs font-black active:scale-95 transition-all"
+                  >
+                    ✏️ Edit Meeting
+                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => toggleCancelMeeting(m.id, m.is_cancelled)}
+                      className="py-2 rounded-xl bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/40"
+                    >
+                      {m.is_cancelled ? "✅ Restore" : "❌ Cancel"}
+                    </button>
+                    <button
+                      onClick={() => deleteMeeting(m.id)}
+                      className="py-2 rounded-xl bg-red-600 text-white text-xs font-black active:scale-95 transition-all"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
+      {/* ── CHAT TAB ── */}
       {activeTab === "chat" && (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-2xl flex flex-col h-[600px]">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-
           <div className="flex-shrink-0 p-4 border-b border-brand-gold-400/30 bg-brand-purple-950/40">
             <p className="text-white font-black text-sm">💬 {group.name} Chat</p>
-            <p className="text-brand-purple-200 text-xs">🟢 Real-time • Posting as 👑 Pastor • Auto-notifies {members.length} members</p>
+            <p className="text-brand-purple-200 text-xs">🟢 Real-time • Posting as 👑 Pastor • Notifies {members.length} members</p>
           </div>
-
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 ? (
               <div className="text-center py-8">
@@ -610,24 +588,25 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
                 <div key={m.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"} group`}>
                   <div className={`max-w-[80%] rounded-2xl p-3 relative ${
                     isAdmin
-                      ? "bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 border-2 border-brand-gold-300"
+                      ? "bg-brand-purple-950/80 text-white border-2 border-green-400/60"
                       : "bg-brand-purple-950/60 text-white border border-brand-gold-400/30"
                   }`}>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       {isAdmin ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-brand-purple-900 text-brand-gold-400">👑 PASTOR</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-white text-brand-purple-900">
+                          👑 PASTOR
+                        </span>
                       ) : (
-                        <p className="text-xs font-black text-brand-gold-300">{m.member_name}</p>
+                        <p className="text-xs font-black text-white/80">{m.member_name}</p>
                       )}
                     </div>
-                    <p className="text-sm font-semibold whitespace-pre-wrap">{m.message}</p>
-                    <p className={`text-xs mt-1 ${isAdmin ? "text-brand-purple-900/70" : "text-brand-purple-300"}`}>
+                    <p className="text-sm font-semibold whitespace-pre-wrap text-white">{m.message}</p>
+                    <p className="text-xs mt-1 text-brand-purple-200">
                       {new Date(m.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <button
                       onClick={() => deleteMessage(m.id)}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete message"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >✕</button>
                   </div>
                 </div>
@@ -635,33 +614,40 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
             })}
             <div ref={chatEndRef} />
           </div>
-
           <form onSubmit={sendAdminMessage} className="p-3 border-t border-brand-gold-400/30 flex gap-2">
-            <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Type a message as Pastor..." disabled={isSendingChat}
-              className="flex-1 p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold text-sm disabled:opacity-50" />
-            <button type="submit" disabled={isSendingChat || !chatInput.trim()} className="px-5 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0">
+            <input
+              type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type a message as Pastor..." disabled={isSendingChat}
+              className="flex-1 p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold text-sm disabled:opacity-50"
+            />
+            <button type="submit" disabled={isSendingChat || !chatInput.trim()}
+              className="px-5 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50 flex-shrink-0">
               {isSendingChat ? "..." : "Send →"}
             </button>
           </form>
         </div>
       )}
 
+      {/* ── Add Member Modal — KEEP bg-white — slides up mobile ── */}
       {showAddMember && (
         <>
           <div onClick={() => setShowAddMember(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md pointer-events-auto max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-md pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-xl font-bold text-brand-purple-900">➕ Add Member</h2>
-                  <button onClick={() => setShowAddMember(false)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+                  <h2 className="font-heading text-lg font-bold text-brand-purple-900">➕ Add Member</h2>
+                  <button onClick={() => setShowAddMember(false)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
               </div>
-              <div className="p-6">
-                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by name or ID..."
-                  className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 mb-4" />
+              <div className="p-5">
+                <input
+                  type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name or ID..."
+                  className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 mb-4"
+                />
                 <div className="max-h-64 overflow-y-auto space-y-2">
                   {filteredAvailableMembers.length === 0 ? (
                     <p className="text-center text-gray-500 py-4 text-sm">No members found</p>
@@ -673,10 +659,19 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-3 pt-4 border-t border-gray-100 mt-4">
-                  <button onClick={() => setShowAddMember(false)} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">Cancel</button>
-                  <button onClick={addMember} disabled={!selectedMemberId} className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 mt-4">
+                  <button
+                    onClick={addMember}
+                    disabled={!selectedMemberId}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50"
+                  >
                     ✅ Add Member
+                  </button>
+                  <button
+                    onClick={() => setShowAddMember(false)}
+                    className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold"
+                  >
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -685,20 +680,21 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
         </>
       )}
 
+      {/* ── Announcement Form Modal ── */}
       {showAnnForm && (
         <>
           <div onClick={() => setShowAnnForm(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg pointer-events-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-xl font-bold text-brand-purple-900">📢 Post Announcement</h2>
-                  <button onClick={() => setShowAnnForm(false)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+                  <h2 className="font-heading text-lg font-bold text-brand-purple-900">📢 Post Announcement</h2>
+                  <button onClick={() => setShowAnnForm(false)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
               </div>
-              <form onSubmit={postAnnouncement} className="p-6 space-y-4">
+              <form onSubmit={postAnnouncement} className="p-5 space-y-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Title <span className="text-red-500">*</span></label>
                   <input type="text" value={annTitle} onChange={(e) => setAnnTitle(e.target.value)} required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
@@ -711,11 +707,11 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
                   <input type="checkbox" checked={annImportant} onChange={(e) => setAnnImportant(e.target.checked)} className="w-4 h-4" />
                   <span className="text-sm font-bold text-gray-700">🔴 Mark as Important</span>
                 </label>
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="button" onClick={() => setShowAnnForm(false)} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">Cancel</button>
-                  <button type="submit" disabled={isSubmitting} className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
-                    {isSubmitting ? "Posting..." : "📢 Post & Notify"}
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
+                  <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
+                    {isSubmitting ? "Posting..." : "📢 Post & Notify Members"}
                   </button>
+                  <button type="button" onClick={() => setShowAnnForm(false)} className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold">Cancel</button>
                 </div>
               </form>
             </div>
@@ -723,33 +719,34 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
         </>
       )}
 
+      {/* ── Meeting Form Modal ── */}
       {showMeetingForm && (
         <>
           <div onClick={() => setShowMeetingForm(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg my-8 pointer-events-auto max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-xl font-bold text-brand-purple-900">📅 {editingMeetingId ? "Edit" : "Schedule"} Meeting</h2>
-                  <button onClick={() => setShowMeetingForm(false)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+                  <h2 className="font-heading text-lg font-bold text-brand-purple-900">
+                    📅 {editingMeetingId ? "Edit" : "Schedule"} Meeting
+                  </h2>
+                  <button onClick={() => setShowMeetingForm(false)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
               </div>
-              <form onSubmit={saveMeeting} className="p-6 space-y-4">
+              <form onSubmit={saveMeeting} className="p-5 space-y-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Meeting Title <span className="text-red-500">*</span></label>
                   <input type="text" value={meetingForm.title} onChange={(e) => setMeetingForm({ ...meetingForm, title: e.target.value })} required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Date</label>
-                    <input type="date" value={meetingForm.meeting_date} onChange={(e) => setMeetingForm({ ...meetingForm, meeting_date: e.target.value })} required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Time</label>
-                    <input type="text" value={meetingForm.meeting_time} onChange={(e) => setMeetingForm({ ...meetingForm, meeting_time: e.target.value })} placeholder="e.g. 4:00 PM" className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-                  </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Date</label>
+                  <input type="date" value={meetingForm.meeting_date} onChange={(e) => setMeetingForm({ ...meetingForm, meeting_date: e.target.value })} required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Time</label>
+                  <input type="text" value={meetingForm.meeting_time} onChange={(e) => setMeetingForm({ ...meetingForm, meeting_time: e.target.value })} placeholder="e.g. 4:00 PM" className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
@@ -763,11 +760,11 @@ export default function ChurchAdminGroupDetailClient({ groupId }: { groupId: str
                   <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
                   <textarea value={meetingForm.description} onChange={(e) => setMeetingForm({ ...meetingForm, description: e.target.value })} rows={3} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none" />
                 </div>
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="button" onClick={() => setShowMeetingForm(false)} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">Cancel</button>
-                  <button type="submit" disabled={isSubmitting} className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
-                    {isSubmitting ? "Saving..." : editingMeetingId ? "✅ Update" : "📅 Schedule & Notify"}
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
+                  <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
+                    {isSubmitting ? "Saving..." : editingMeetingId ? "✅ Update Meeting" : "📅 Schedule & Notify Members"}
                   </button>
+                  <button type="button" onClick={() => setShowMeetingForm(false)} className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold">Cancel</button>
                 </div>
               </form>
             </div>

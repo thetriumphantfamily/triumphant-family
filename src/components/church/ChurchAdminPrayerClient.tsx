@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN PRAYER REQUESTS — View and manage member prayer requests
+// CHURCH ADMIN PRAYER REQUESTS – View and manage member prayer requests
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 interface Prayer {
   id: string;
@@ -36,7 +37,9 @@ function timeAgo(d: string): string {
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  return new Date(d).toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric",
+  });
 }
 
 export default function ChurchAdminPrayerClient() {
@@ -72,40 +75,42 @@ export default function ChurchAdminPrayerClient() {
   const answeredPrayers = prayers.filter((p) => p.is_answered);
 
   const TABS = [
-    { id: "active", label: "🙏 Active", count: activePrayers.length, alert: activePrayers.length > 0 },
-    { id: "answered", label: "🎉 Answered", count: answeredPrayers.length, alert: false },
-    { id: "all", label: "📋 All", count: prayers.length, alert: false },
+    { id: "active", label: "🙏 Active", count: activePrayers.length },
+    { id: "answered", label: "🎉 Answered", count: answeredPrayers.length },
+    { id: "all", label: "📋 All", count: prayers.length },
   ];
 
-  const currentList = activeTab === "active" ? activePrayers : activeTab === "answered" ? answeredPrayers : prayers;
+  const currentList = activeTab === "active" ? activePrayers
+    : activeTab === "answered" ? answeredPrayers
+    : prayers;
 
-  if (loading) return <div className="min-h-[400px] flex items-center justify-center"><p className="text-gray-500">Loading...</p></div>;
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading prayer requests..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Brand Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
-              Prayer Requests
-            </span>
+            <span className="text-white font-black text-xs uppercase tracking-widest">Prayer Requests</span>
           </div>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2 leading-tight">
             Member Prayer Requests
           </h1>
-          <p className="text-brand-purple-100 text-sm md:text-base">
-            View and track prayer requests from your members
+          <p className="text-brand-purple-100 text-sm">
+            View and track prayer requests from your members.
           </p>
-          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30">
+          <div className="flex gap-4 flex-wrap pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
               <p className="text-white font-black text-2xl">{prayers.length}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Total</p>
             </div>
             <div className="text-center">
-              <p className={`font-black text-2xl ${activePrayers.length > 0 ? "text-amber-300" : "text-white"}`}>{activePrayers.length}</p>
+              <p className="text-white font-black text-2xl">{activePrayers.length}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Active</p>
             </div>
             <div className="text-center">
@@ -116,7 +121,7 @@ export default function ChurchAdminPrayerClient() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <div className="grid grid-cols-3 gap-2">
         {TABS.map((tab) => (
           <button
@@ -125,75 +130,98 @@ export default function ChurchAdminPrayerClient() {
             className={`relative rounded-2xl overflow-hidden p-3 transition-all text-left ${
               activeTab === tab.id
                 ? "bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-xl"
-                : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40 hover:border-brand-gold-400/70"
+                : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40"
             }`}
           >
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
             <p className="font-black text-white text-xs">{tab.label}</p>
-            <p className={`font-black text-lg ${tab.alert ? "text-amber-300" : "text-white"}`}>{tab.count}</p>
+            <p className="font-black text-lg text-white">{tab.count}</p>
           </button>
         ))}
       </div>
 
-      {/* Prayer List */}
+      {/* ── Prayer List ── */}
       {currentList.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="text-4xl mb-4">🙏</div>
-          <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">
+          <h3 className="font-heading text-xl font-bold text-white mb-2">
             No {activeTab === "all" ? "" : activeTab} prayer requests
           </h3>
-          <p className="text-gray-500">
-            {activeTab === "active" ? "Members haven't submitted any prayer requests yet" : "No prayers to show"}
+          <p className="text-brand-purple-200 text-sm">
+            {activeTab === "active"
+              ? "Members haven't submitted any prayer requests yet"
+              : "No prayers to show"}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {currentList.map((p) => (
-            <div key={p.id} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${p.is_answered ? "border-green-400/40" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+            <div
+              key={p.id}
+              className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                p.is_answered ? "border-green-400/40" : "border-brand-gold-400/40"
+              } p-5 shadow-xl`}
+            >
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+              {/* Status + Category */}
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 {p.is_answered ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">
                     ✅ Answered
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-purple-950/60 text-white/80 border border-brand-gold-400/40">
                     🙏 Praying
                   </span>
                 )}
                 {p.category && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white border border-brand-gold-400/30">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white/80 border border-brand-gold-400/30">
                     {p.category}
                   </span>
                 )}
-                <span className="text-brand-purple-300 text-xs font-semibold">{timeAgo(p.created_at)}</span>
+                <span className="text-brand-purple-300 text-xs font-semibold">
+                  {timeAgo(p.created_at)}
+                </span>
               </div>
 
+              {/* Member Name */}
               {p.member && (
-                <p className="text-brand-gold-300 font-black text-sm mb-2">👤 {p.member.full_name}</p>
+                <p className="text-white/60 font-black text-xs uppercase tracking-widest mb-2">
+                  👤 {p.member.full_name}
+                </p>
               )}
 
-              <p className="text-white font-semibold text-base leading-relaxed mb-3">{p.prayer_point}</p>
+              {/* Prayer Text */}
+              <p className="text-white font-semibold text-sm leading-relaxed mb-3">
+                {p.prayer_point}
+              </p>
 
+              {/* Testimony */}
               {p.is_answered && p.answer_testimony && (
                 <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-green-400/40 mb-3">
-                  <p className="text-green-300 text-xs font-black uppercase tracking-widest mb-2">🎉 Testimony from Member</p>
-                  <p className="text-white font-semibold text-sm leading-relaxed">{p.answer_testimony}</p>
+                  <p className="text-white/60 text-xs font-black uppercase tracking-widest mb-2">
+                    🎉 Testimony from Member
+                  </p>
+                  <p className="text-white font-semibold text-sm leading-relaxed">
+                    {p.answer_testimony}
+                  </p>
                   {p.answered_at && (
-                    <p className="text-green-300 text-xs mt-2 font-semibold">
+                    <p className="text-white/50 text-xs mt-2 font-semibold">
                       ✅ Answered on {formatDate(p.answered_at)}
                     </p>
                   )}
                 </div>
               )}
 
-              <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30">
+              {/* Delete — full width mobile */}
+              <div className="pt-3 border-t border-brand-gold-400/30">
                 <button
                   onClick={() => deletePrayer(p.id)}
-                  className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold hover:bg-red-500/30 transition-colors"
+                  className="w-full py-3 rounded-xl bg-red-500/20 text-red-300 text-sm font-bold border border-red-400/40 active:scale-95 transition-all"
                 >
-                  🗑️ Delete
+                  🗑️ Delete Prayer Request
                 </button>
               </div>
             </div>

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN DEVOTIONALS CLIENT — AI-Powered + notify all members
+// CHURCH ADMIN DEVOTIONALS CLIENT – AI-Powered + notify all members
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -7,6 +7,7 @@ import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyAllMembers } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface Devotional {
   id: string;
@@ -103,17 +104,14 @@ export default function ChurchAdminDevotionalsClient() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
   const [devotionals, setDevotionals] = useState<Devotional[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [aiSingleTopic, setAiSingleTopic] = useState("");
   const [aiSingleScripture, setAiSingleScripture] = useState("");
   const [aiSingleDate, setAiSingleDate] = useState(getLocalToday());
   const [aiSingleLoading, setAiSingleLoading] = useState(false);
   const [aiSingleResult, setAiSingleResult] = useState<GeneratedDevotional | null>(null);
-
   const [bulkTheme, setBulkTheme] = useState("");
   const [bulkCount, setBulkCount] = useState(7);
   const [bulkStartDate, setBulkStartDate] = useState(getLocalToday());
@@ -137,7 +135,6 @@ export default function ChurchAdminDevotionalsClient() {
     } catch (err) { console.error(err); setLoading(false); }
   };
 
-  // Helper: Notify members if devotional publishes for today
   const notifyIfToday = async (title: string, scripture: string, publishDate: string, isPublished: boolean) => {
     if (isPublished && publishDate === getLocalToday()) {
       await notifyAllMembers({
@@ -210,10 +207,7 @@ export default function ChurchAdminDevotionalsClient() {
         confession: aiSingleResult.confession || null,
         publish_date: aiSingleResult.publish_date, is_published: true,
       });
-
-      // 🔔 Notify members if publishing for today
       await notifyIfToday(aiSingleResult.title, aiSingleResult.scripture, aiSingleResult.publish_date, true);
-
       toast.success("📖 Devotional published!");
       setAiSingleResult(null);
       setAiSingleTopic("");
@@ -275,8 +269,6 @@ export default function ChurchAdminDevotionalsClient() {
         publish_date: d.publish_date, is_published: true,
       }));
       await supabase.from("tfam_devotionals").insert(payload);
-
-      // 🔔 Notify members if any devotional is for today
       const todayDev = approved.find((d) => d.publish_date === getLocalToday());
       if (todayDev) {
         await notifyAllMembers({
@@ -286,7 +278,6 @@ export default function ChurchAdminDevotionalsClient() {
           link: "/member/devotional",
         });
       }
-
       toast.success(`🎉 ${approved.length} devotionals scheduled!`);
       setBulkResults([]);
       setBulkTheme("");
@@ -302,8 +293,6 @@ export default function ChurchAdminDevotionalsClient() {
       const supabase = createClient();
       await supabase.from("tfam_devotionals").update({ is_published: !current }).eq("id", id);
       setDevotionals((prev) => prev.map((d) => d.id === id ? { ...d, is_published: !current } : d));
-
-      // If publishing (not unpublishing) and it's today, notify
       const dev = devotionals.find((d) => d.id === id);
       if (dev && !current && dev.publish_date === getLocalToday()) {
         await notifyAllMembers({
@@ -313,7 +302,6 @@ export default function ChurchAdminDevotionalsClient() {
           link: "/member/devotional",
         });
       }
-
       toast.success(current ? "Unpublished" : "✅ Published!");
     } catch { toast.error("Failed"); }
   };
@@ -342,29 +330,31 @@ export default function ChurchAdminDevotionalsClient() {
   const todayDevotional = devotionals.find((d) => d.publish_date === todayStr && d.is_published);
 
   const TABS = [
-    { id: "all", label: "📋 All Devotionals", count: devotionals.length },
-    { id: "write", label: "✍️ Write Manually", count: null },
+    { id: "all", label: "📋 All", count: devotionals.length },
+    { id: "write", label: "✏️ Write", count: null },
     { id: "ai-single", label: "🤖 AI Single", count: null },
-    { id: "ai-bulk", label: "🚀 AI Bulk Generator", count: null },
+    { id: "ai-bulk", label: "🚀 AI Bulk", count: null },
   ];
 
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading devotionals..." />;
+
   return (
-    <div className="space-y-6">
-      {/* Brand Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
-              Daily Devotionals
-            </span>
+            <span className="text-white font-black text-xs uppercase tracking-widest">Daily Devotionals</span>
           </div>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2 leading-tight">
             Devotional Management
           </h1>
-          <p className="text-brand-purple-100 text-sm md:text-base mb-4">
-            Write manually or use AI to generate and schedule devotionals for your members
+          <p className="text-brand-purple-100 text-sm mb-4">
+            Write manually or use AI to generate and schedule devotionals.
           </p>
           <div className="flex flex-wrap gap-4 pt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
@@ -380,86 +370,126 @@ export default function ChurchAdminDevotionalsClient() {
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Scheduled</p>
             </div>
             <div className="text-center">
-              <p className={`font-black text-2xl ${todayDevotional ? "text-green-400" : "text-red-400"}`}>{todayDevotional ? "✅" : "❌"}</p>
+              <p className="text-white font-black text-2xl">{todayDevotional ? "✅" : "❌"}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Today</p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── No Devotional Today Alert ── */}
       {!todayDevotional && (
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-700 via-amber-600 to-amber-700 border-2 border-amber-400/60 p-5 shadow-xl">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-red-400/60 p-5 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-400 via-red-500 to-red-400" />
           <div className="flex items-center gap-4 flex-wrap">
             <div className="text-3xl animate-pulse">⚠️</div>
-            <div className="flex-1">
-              <p className="font-black text-white text-lg">No devotional for today!</p>
-              <p className="text-white/80 text-sm font-semibold">Members need their daily word. Use AI to generate one now!</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-base">No devotional for today!</p>
+              <p className="text-brand-purple-200 text-sm">Members need their daily word.</p>
             </div>
-            <button onClick={() => setActiveTab("ai-single")}
-              className="px-4 py-2 rounded-full bg-white text-amber-700 font-black text-sm hover:bg-white/90 transition-colors flex-shrink-0">
+            <button
+              onClick={() => setActiveTab("ai-single")}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-xs flex-shrink-0 shadow-gold active:scale-95 transition-all"
+            >
               🤖 Generate Now
             </button>
           </div>
         </div>
       )}
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <div className="flex flex-wrap gap-2">
         {TABS.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as ActiveTab)}
-            className={`px-4 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === tab.id
-              ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
-              : "bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200"}`}>
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as ActiveTab)}
+            className={`px-4 py-2 rounded-full text-xs md:text-sm font-black transition-all ${
+              activeTab === tab.id
+                ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
+                : "bg-brand-purple-950/60 text-white border border-brand-gold-400/40"
+            }`}
+          >
             {tab.label}
-            {tab.count !== null && (
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? "bg-brand-purple-900/20" : "bg-gray-100"}`}>
-                {tab.count}
-              </span>
-            )}
+            {tab.count !== null && ` (${tab.count})`}
           </button>
         ))}
       </div>
 
-      {/* All Devotionals Tab */}
+      {/* ── ALL DEVOTIONALS TAB ── */}
       {activeTab === "all" && (
         <div className="space-y-3">
-          {loading ? (
-            <p className="text-center text-gray-500 py-10">Loading...</p>
-          ) : devotionals.length === 0 ? (
-            <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
+          {devotionals.length === 0 ? (
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+              <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
               <div className="text-4xl mb-4">📖</div>
-              <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">No devotionals yet</h3>
-              <p className="text-gray-500 mb-4">Use AI Bulk Generator to create 30 days in minutes!</p>
-              <button onClick={() => setActiveTab("ai-bulk")}
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:scale-105 transition-all">
+              <h3 className="font-heading text-xl font-bold text-white mb-2">No devotionals yet</h3>
+              <p className="text-brand-purple-200 mb-4">Use AI Bulk Generator to create 30 days in minutes!</p>
+              <button
+                onClick={() => setActiveTab("ai-bulk")}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+              >
                 🚀 Generate Bulk Devotionals
               </button>
             </div>
           ) : (
             devotionals.map((d) => (
-              <div key={d.id} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${d.publish_date === todayStr ? "border-brand-gold-400" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+              <div
+                key={d.id}
+                className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                  d.publish_date === todayStr ? "border-brand-gold-400" : "border-brand-gold-400/40"
+                } p-5 shadow-xl`}
+              >
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      {d.publish_date === todayStr && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-brand-gold-400 text-brand-purple-900">TODAY</span>}
-                      {d.publish_date > todayStr && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-400/40">SCHEDULED</span>}
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black border ${d.is_published ? "bg-green-500/20 text-green-300 border-green-400/40" : "bg-gray-500/20 text-gray-300 border-gray-400/40"}`}>
-                        {d.is_published ? "Published" : "Draft"}
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    {d.publish_date === todayStr && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900">
+                        TODAY
                       </span>
-                    </div>
-                    <p className="font-black text-white text-lg">{d.title}</p>
-                    <p className="text-brand-gold-300 font-bold text-sm">{d.scripture}</p>
-                    <p className="text-brand-purple-200 font-semibold text-xs mt-1">📅 {formatDate(d.publish_date)}</p>
-                    <p className="text-brand-purple-300 text-sm mt-2 line-clamp-2">{d.body}</p>
+                    )}
+                    {d.publish_date > todayStr && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-400/40">
+                        SCHEDULED
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black border ${
+                      d.is_published
+                        ? "bg-green-500/20 text-green-300 border-green-400/40"
+                        : "bg-brand-purple-950/60 text-white/80 border-brand-gold-400/40"
+                    }`}>
+                      {d.is_published ? "Published" : "Draft"}
+                    </span>
                   </div>
+                  <p className="font-black text-white text-base">{d.title}</p>
+                  <p className="text-brand-purple-200 font-bold text-sm">{d.scripture}</p>
+                  <p className="text-brand-purple-200 text-xs mt-1">📅 {formatDate(d.publish_date)}</p>
+                  <p className="text-white font-semibold text-sm mt-2 line-clamp-2">{d.body}</p>
                 </div>
-                <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 mt-3 flex-wrap">
-                  <button onClick={() => openEdit(d)} className="px-3 py-1.5 rounded-full bg-brand-gold-400/20 text-brand-gold-300 text-xs font-bold hover:bg-brand-gold-400/30 transition-colors">✏️ Edit</button>
-                  <button onClick={() => togglePublish(d.id, d.is_published)} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${d.is_published ? "bg-gray-500/20 text-gray-300" : "bg-green-500/20 text-green-300"}`}>
-                    {d.is_published ? "📤 Unpublish" : "✅ Publish"}
+                <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30">
+                  <button
+                    onClick={() => openEdit(d)}
+                    className="w-full py-2.5 rounded-xl bg-white text-brand-purple-900 text-xs font-black active:scale-95 transition-all"
+                  >
+                    ✏️ Edit Devotional
                   </button>
-                  <button onClick={() => deleteDevotional(d.id)} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-bold">🗑️ Delete</button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => togglePublish(d.id, d.is_published)}
+                      className={`py-2 rounded-xl text-xs font-bold border ${
+                        d.is_published
+                          ? "bg-brand-purple-950/60 text-white border-brand-gold-400/30"
+                          : "bg-green-600 text-white border-green-500"
+                      }`}
+                    >
+                      {d.is_published ? "📤 Unpublish" : "✅ Publish"}
+                    </button>
+                    <button
+                      onClick={() => deleteDevotional(d.id)}
+                      className="py-2 rounded-xl bg-red-600 text-white text-xs font-black active:scale-95 transition-all"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -467,158 +497,155 @@ export default function ChurchAdminDevotionalsClient() {
         </div>
       )}
 
-      {/* Write Manually Tab */}
+      {/* ── WRITE MANUALLY TAB ── */}
       {activeTab === "write" && (
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          <h2 className="font-heading text-xl font-black text-white mb-6">
-            ✍️ {editingId ? "Edit Devotional" : "Write Devotional"}
+          <h2 className="font-heading text-base font-black text-white mb-4">
+            ✏️ {editingId ? "Edit Devotional" : "Write Devotional"}
           </h2>
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-black text-white mb-2">Title <span className="text-red-400">*</span></label>
+              <label className="block text-xs font-black text-white/80 mb-2">Title <span className="text-red-400">*</span></label>
               <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g. Walking in Victory" required
                 className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold" />
             </div>
             <div>
-              <label className="block text-sm font-black text-white mb-2">Scripture <span className="text-red-400">*</span></label>
+              <label className="block text-xs font-black text-white/80 mb-2">Scripture <span className="text-red-400">*</span></label>
               <input type="text" value={formData.scripture} onChange={(e) => setFormData({ ...formData, scripture: e.target.value })}
                 placeholder="e.g. Romans 8:37" required
                 className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold" />
             </div>
             <div>
-              <label className="block text-sm font-black text-white mb-2">Message <span className="text-red-400">*</span></label>
+              <label className="block text-xs font-black text-white/80 mb-2">Message <span className="text-red-400">*</span></label>
               <textarea value={formData.body} onChange={(e) => setFormData({ ...formData, body: e.target.value })}
                 rows={6} placeholder="Write the devotional message..." required
                 className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold" />
             </div>
             <div>
-              <label className="block text-sm font-black text-white mb-2">Prayer Point</label>
+              <label className="block text-xs font-black text-white/80 mb-2">Prayer Point</label>
               <textarea value={formData.prayer_point} onChange={(e) => setFormData({ ...formData, prayer_point: e.target.value })}
                 rows={3} placeholder="Lord, I thank you for..."
                 className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold" />
             </div>
             <div>
-              <label className="block text-sm font-black text-white mb-2">Confession / Declaration</label>
+              <label className="block text-xs font-black text-white/80 mb-2">Confession / Declaration</label>
               <textarea value={formData.confession} onChange={(e) => setFormData({ ...formData, confession: e.target.value })}
                 rows={2} placeholder="I declare that..."
                 className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-black text-white mb-2">Publish Date</label>
-                <input type="date" value={formData.publish_date} onChange={(e) => setFormData({ ...formData, publish_date: e.target.value })}
-                  className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold" />
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <div className={`relative w-12 h-6 rounded-full transition-colors ${formData.is_published ? "bg-green-500" : "bg-gray-500"}`}
-                    onClick={() => setFormData({ ...formData, is_published: !formData.is_published })}>
-                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${formData.is_published ? "translate-x-7" : "translate-x-1"}`} />
-                  </div>
-                  <span className="text-sm font-black text-white">{formData.is_published ? "Publish Now" : "Save as Draft"}</span>
-                </label>
-              </div>
+            <div>
+              <label className="block text-xs font-black text-white/80 mb-2">Publish Date</label>
+              <input type="date" value={formData.publish_date} onChange={(e) => setFormData({ ...formData, publish_date: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold" />
             </div>
-            <div className="flex gap-3 pt-4">
-              <button type="button" onClick={() => { setFormData(EMPTY_FORM); setEditingId(null); }}
-                className="px-6 py-3 rounded-full bg-brand-purple-950/60 text-white font-bold border border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors">
-                Cancel
-              </button>
+            <div>
+              <label
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => setFormData({ ...formData, is_published: !formData.is_published })}
+              >
+                <div className={`relative w-12 h-6 rounded-full transition-colors ${formData.is_published ? "bg-green-500" : "bg-brand-purple-950/80"}`}>
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${formData.is_published ? "translate-x-7" : "translate-x-1"}`} />
+                </div>
+                <span className="text-sm font-black text-white">
+                  {formData.is_published ? "Publish Now" : "Save as Draft"}
+                </span>
+              </label>
+            </div>
+            <div className="flex flex-col gap-2 pt-4">
               <button type="submit" disabled={isSubmitting}
-                className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
                 {isSubmitting ? "Saving..." : editingId ? "✅ Update Devotional" : "📖 Save Devotional"}
+              </button>
+              <button type="button" onClick={() => { setFormData(EMPTY_FORM); setEditingId(null); }}
+                className="w-full py-4 rounded-xl bg-brand-purple-950/60 text-white font-bold border border-brand-gold-400/40">
+                Cancel
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* AI Single Tab */}
+      {/* ── AI SINGLE TAB ── */}
       {activeTab === "ai-single" && (
         <div className="space-y-4">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-2xl">🤖</div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">🤖</div>
               <div>
-                <h2 className="font-heading text-xl font-black text-white">AI Single Devotional</h2>
-                <p className="text-brand-purple-200 font-semibold text-sm">Generate one powerful devotional with AI</p>
+                <h2 className="font-heading text-base font-black text-white">AI Single Devotional</h2>
+                <p className="text-brand-purple-200 text-xs">Generate one powerful devotional with AI</p>
               </div>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-black text-white mb-2">Topic / Theme <span className="text-red-400">*</span></label>
+                <label className="block text-xs font-black text-white/80 mb-2">Topic / Theme <span className="text-red-400">*</span></label>
                 <input type="text" value={aiSingleTopic} onChange={(e) => setAiSingleTopic(e.target.value)}
                   placeholder="e.g. Trusting God in difficult times"
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold" />
               </div>
               <div>
-                <label className="block text-sm font-black text-white mb-2">Scripture (Optional)</label>
+                <label className="block text-xs font-black text-white/80 mb-2">Scripture (Optional)</label>
                 <input type="text" value={aiSingleScripture} onChange={(e) => setAiSingleScripture(e.target.value)}
-                  placeholder="e.g. Proverbs 3:5-6 (leave blank for AI to choose)"
+                  placeholder="e.g. Proverbs 3:5-6"
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold" />
               </div>
               <div>
-                <label className="block text-sm font-black text-white mb-2">Publish Date</label>
+                <label className="block text-xs font-black text-white/80 mb-2">Publish Date</label>
                 <input type="date" value={aiSingleDate} onChange={(e) => setAiSingleDate(e.target.value)}
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold" />
               </div>
               <button onClick={handleAiSingle} disabled={aiSingleLoading}
-                className="w-full px-6 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100">
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
                 {aiSingleLoading ? "🤖 Generating..." : "🤖 Generate Devotional"}
               </button>
             </div>
           </div>
 
           {aiSingleResult && (
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-green-400/60 p-6 shadow-xl">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-green-400/60 p-5 shadow-xl">
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-green-400 via-green-500 to-green-400" />
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">✅</span>
-                <h3 className="font-heading text-lg font-black text-white">Generated — Review & Edit</h3>
-              </div>
+              <h3 className="font-heading text-base font-black text-white mb-4">✅ Generated — Review & Edit</h3>
               <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Title</label>
-                  <input type="text" value={aiSingleResult.title}
-                    onChange={(e) => setAiSingleResult({ ...aiSingleResult, title: e.target.value })}
-                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-black" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Scripture</label>
-                  <input type="text" value={aiSingleResult.scripture}
-                    onChange={(e) => setAiSingleResult({ ...aiSingleResult, scripture: e.target.value })}
-                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-bold" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Message</label>
-                  <textarea value={aiSingleResult.body}
-                    onChange={(e) => setAiSingleResult({ ...aiSingleResult, body: e.target.value })}
-                    rows={6} className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none resize-none font-semibold" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Prayer Point</label>
-                  <textarea value={aiSingleResult.prayer_point}
-                    onChange={(e) => setAiSingleResult({ ...aiSingleResult, prayer_point: e.target.value })}
-                    rows={3} className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none resize-none font-semibold" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-white mb-1 uppercase tracking-widest">Confession</label>
-                  <textarea value={aiSingleResult.confession}
-                    onChange={(e) => setAiSingleResult({ ...aiSingleResult, confession: e.target.value })}
-                    rows={2} className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none resize-none font-semibold" />
-                </div>
+                {[
+                  { label: "Title", field: "title", rows: 0 },
+                  { label: "Scripture", field: "scripture", rows: 0 },
+                  { label: "Message", field: "body", rows: 6 },
+                  { label: "Prayer Point", field: "prayer_point", rows: 3 },
+                  { label: "Confession", field: "confession", rows: 2 },
+                ].map((f) => (
+                  <div key={f.field}>
+                    <label className="block text-xs font-black text-white/80 mb-1 uppercase tracking-widest">
+                      {f.label}
+                    </label>
+                    {f.rows === 0 ? (
+                      <input
+                        type="text"
+                        value={(aiSingleResult as unknown as Record<string, string>)[f.field]}
+                        onChange={(e) => setAiSingleResult({ ...aiSingleResult, [f.field]: e.target.value })}
+                        className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+                      />
+                    ) : (
+                      <textarea
+                        value={(aiSingleResult as unknown as Record<string, string>)[f.field]}
+                        onChange={(e) => setAiSingleResult({ ...aiSingleResult, [f.field]: e.target.value })}
+                        rows={f.rows}
+                        className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none resize-none font-semibold"
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
-              <div className="flex gap-3 mt-4">
-                <button onClick={() => setAiSingleResult(null)}
-                  className="px-6 py-3 rounded-full bg-brand-purple-950/60 text-white font-bold border border-brand-gold-400/40 hover:border-brand-gold-400 transition-colors">
-                  🔄 Regenerate
-                </button>
+              <div className="flex flex-col gap-2 mt-4">
                 <button onClick={saveAiSingle} disabled={isSubmitting}
-                  className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
                   {isSubmitting ? "Publishing..." : "📖 Publish Devotional"}
+                </button>
+                <button onClick={() => setAiSingleResult(null)}
+                  className="w-full py-4 rounded-xl bg-brand-purple-950/60 text-white font-bold border border-brand-gold-400/40">
+                  🔄 Regenerate
                 </button>
               </div>
             </div>
@@ -626,55 +653,56 @@ export default function ChurchAdminDevotionalsClient() {
         </div>
       )}
 
-      {/* AI Bulk Tab */}
+      {/* ── AI BULK TAB ── */}
       {activeTab === "ai-bulk" && (
         <div className="space-y-4">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-2xl">🚀</div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">🚀</div>
               <div>
-                <h2 className="font-heading text-xl font-black text-white">AI Bulk Generator</h2>
-                <p className="text-brand-purple-200 font-semibold text-sm">Generate 7, 14, or 30 devotionals at once and schedule them!</p>
+                <h2 className="font-heading text-base font-black text-white">AI Bulk Generator</h2>
+                <p className="text-brand-purple-200 text-xs">Generate 7, 14, or 30 devotionals at once!</p>
               </div>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-black text-white mb-2">Series Theme <span className="text-red-400">*</span></label>
+                <label className="block text-xs font-black text-white/80 mb-2">Series Theme <span className="text-red-400">*</span></label>
                 <input type="text" value={bulkTheme} onChange={(e) => setBulkTheme(e.target.value)}
                   placeholder="e.g. 30 Days of Supernatural Victory"
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold" />
               </div>
               <div>
-                <label className="block text-sm font-black text-white mb-2">How Many Devotionals?</label>
-                <div className="flex gap-3">
+                <label className="block text-xs font-black text-white/80 mb-2">How Many Devotionals?</label>
+                <div className="grid grid-cols-4 gap-2">
                   {[7, 14, 21, 30].map((n) => (
                     <button key={n} onClick={() => setBulkCount(n)}
-                      className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${bulkCount === n
-                        ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
-                        : "bg-brand-purple-950/60 text-white border-2 border-brand-gold-400/40 hover:border-brand-gold-400"}`}>
-                      {n} Days
+                      className={`py-3 rounded-xl font-black text-sm transition-all ${
+                        bulkCount === n
+                          ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
+                          : "bg-brand-purple-950/60 text-white border border-brand-gold-400/40"
+                      }`}>
+                      {n}d
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-black text-white mb-2">Starting Date</label>
+                <label className="block text-xs font-black text-white/80 mb-2">Starting Date</label>
                 <input type="date" value={bulkStartDate} onChange={(e) => setBulkStartDate(e.target.value)}
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold" />
               </div>
               <div>
-                <label className="block text-sm font-black text-white mb-2">Key Topics (Optional)</label>
+                <label className="block text-xs font-black text-white/80 mb-2">Key Topics (Optional)</label>
                 <input type="text" value={bulkTopics} onChange={(e) => setBulkTopics(e.target.value)}
-                  placeholder="e.g. Faith, Healing, Prosperity, Prayer, Family..."
+                  placeholder="e.g. Faith, Healing, Prosperity..."
                   className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold" />
               </div>
-
               {bulkLoading && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-white font-black">🤖 Generating devotionals...</span>
-                    <span className="text-brand-gold-400 font-black">{bulkProgress}%</span>
+                    <span className="text-white font-black">{bulkProgress}%</span>
                   </div>
                   <div className="w-full bg-brand-purple-950/60 rounded-full h-3">
                     <div className="h-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 transition-all duration-500"
@@ -682,9 +710,8 @@ export default function ChurchAdminDevotionalsClient() {
                   </div>
                 </div>
               )}
-
               <button onClick={handleBulkGenerate} disabled={bulkLoading}
-                className="w-full px-6 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 text-lg">
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
                 {bulkLoading ? `🤖 Generating ${bulkCount} Devotionals...` : `🚀 Generate ${bulkCount} Devotionals`}
               </button>
             </div>
@@ -693,46 +720,52 @@ export default function ChurchAdminDevotionalsClient() {
           {bulkResults.length > 0 && (
             <div className="space-y-4">
               <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-green-400/60 p-5 shadow-xl">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <p className="font-black text-white text-lg">🎉 {bulkResults.length} Devotionals Generated!</p>
-                    <p className="text-white font-semibold text-sm">
-                      {bulkResults.filter((d) => d.approved).length} approved, {bulkResults.filter((d) => !d.approved).length} pending review
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={approveAll}
-                      className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-black text-sm transition-colors">
-                      ✅ Approve All
-                    </button>
-                    <button onClick={saveApprovedBulk} disabled={isSavingBulk}
-                      className="px-4 py-2 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold hover:scale-105 transition-all disabled:opacity-50">
-                      {isSavingBulk ? "Scheduling..." : `📅 Schedule ${bulkResults.filter((d) => d.approved).length} Approved`}
-                    </button>
-                  </div>
+                <div className="flex flex-col gap-3">
+                  <p className="font-black text-white text-base">
+                    🎉 {bulkResults.length} Devotionals Generated!
+                  </p>
+                  <p className="text-brand-purple-200 text-sm">
+                    {bulkResults.filter((d) => d.approved).length} approved, {bulkResults.filter((d) => !d.approved).length} pending
+                  </p>
+                  <button onClick={approveAll}
+                    className="w-full py-3 rounded-xl bg-green-600 text-white font-black active:scale-95 transition-all">
+                    ✅ Approve All
+                  </button>
+                  <button onClick={saveApprovedBulk} disabled={isSavingBulk}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
+                    {isSavingBulk ? "Scheduling..." : `📅 Schedule ${bulkResults.filter((d) => d.approved).length} Approved`}
+                  </button>
                 </div>
               </div>
 
               {bulkResults.map((d, index) => (
                 <div key={index} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${d.approved ? "border-green-400/60" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
                   <div className={`absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r ${d.approved ? "from-green-400 via-green-500 to-green-400" : "from-brand-gold-300 via-brand-gold-400 to-brand-gold-500"}`} />
-                  <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-brand-purple-950/60 text-white border border-brand-gold-400/30">
                           Day {index + 1} — {formatDate(d.publish_date)}
                         </span>
-                        {d.approved && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">✅ Approved</span>}
+                        {d.approved && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">
+                            ✅ Approved
+                          </span>
+                        )}
                       </div>
-                      <p className="font-black text-white">{d.title || "Untitled"}</p>
-                      <p className="text-brand-gold-300 font-bold text-sm">{d.scripture}</p>
-                      <p className="text-brand-purple-300 text-sm mt-1 line-clamp-2">{d.body}</p>
+                      <p className="font-black text-white text-sm">{d.title || "Untitled"}</p>
+                      <p className="text-brand-purple-200 text-xs">{d.scripture}</p>
+                      <p className="text-white font-semibold text-xs mt-1 line-clamp-2">{d.body}</p>
                     </div>
-                    <button onClick={() => toggleBulkApproval(index)}
-                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-black transition-all ${d.approved
-                        ? "bg-green-500/20 text-green-300 border border-green-400/40 hover:bg-red-500/20 hover:text-red-300 hover:border-red-400/40"
-                        : "bg-brand-purple-950/60 text-white border border-brand-gold-400/40 hover:bg-green-500/20 hover:text-green-300 hover:border-green-400/40"}`}>
-                      {d.approved ? "✅ Approved" : "⬜ Approve"}
+                    <button
+                      onClick={() => toggleBulkApproval(index)}
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                        d.approved
+                          ? "bg-green-500/20 text-green-300 border border-green-400/40"
+                          : "bg-brand-purple-950/60 text-white border border-brand-gold-400/40"
+                      }`}
+                    >
+                      {d.approved ? "✅" : "Approve"}
                     </button>
                   </div>
                 </div>

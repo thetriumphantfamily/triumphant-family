@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 interface NotificationItem {
   id: string;
@@ -21,20 +22,14 @@ function timeAgo(d: string): string {
   const then = new Date(d);
   const diffMs = now.getTime() - then.getTime();
   const diffMins = Math.floor(diffMs / 60000);
-
   if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins} min ago`;
-
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-
   return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+    month: "short", day: "numeric", year: "numeric",
   });
 }
 
@@ -42,9 +37,7 @@ export default function AdminNotificationsClient() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadNotifications();
-  }, []);
+  useEffect(() => { loadNotifications(); }, []);
 
   const loadNotifications = async () => {
     try {
@@ -54,30 +47,23 @@ export default function AdminNotificationsClient() {
         .select("*")
         .eq("recipient_type", "admin")
         .order("created_at", { ascending: false });
-
       setNotifications(data || []);
       setLoading(false);
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); setLoading(false); }
   };
 
   const markAsRead = async (id: string, link?: string | null) => {
     try {
       const supabase = createClient();
-      await supabase.from("tfam_notifications").update({ is_read: true }).eq("id", id);
-
+      await supabase
+        .from("tfam_notifications")
+        .update({ is_read: true })
+        .eq("id", id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
-
-      if (link) {
-        window.location.href = link;
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      if (link) window.location.href = link;
+    } catch (err) { console.error(err); }
   };
 
   const markAllAsRead = async () => {
@@ -88,71 +74,55 @@ export default function AdminNotificationsClient() {
         .update({ is_read: true })
         .eq("recipient_type", "admin")
         .eq("is_read", false);
-
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">🔔</div>
-          <p className="text-gray-500">Loading notifications...</p>
-        </div>
-      </div>
-    );
-  }
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading notifications..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
+            <span className="text-white font-black text-xs uppercase tracking-widest">
               Admin Notifications
             </span>
           </div>
-
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2 leading-tight">
             Admin Alerts
           </h1>
-
           <div className="flex gap-4 pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
               <p className="text-white font-black text-2xl">{notifications.length}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">
-                Total
-              </p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Total</p>
             </div>
             <div className="text-center">
               <p className="text-white font-black text-2xl">{unreadCount}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">
-                Unread
-              </p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Unread</p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── Mark All Read — full width mobile ── */}
       {unreadCount > 0 && (
-        <div className="flex justify-end">
-          <button
-            onClick={markAllAsRead}
-            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all"
-          >
-            ✅ Mark All as Read
-          </button>
-        </div>
+        <button
+          onClick={markAllAsRead}
+          className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+        >
+          ✅ Mark All as Read
+        </button>
       )}
 
+      {/* ── Empty State ── */}
       {notifications.length === 0 ? (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -170,38 +140,40 @@ export default function AdminNotificationsClient() {
             <button
               key={item.id}
               onClick={() => markAsRead(item.id, item.link)}
-              className={`w-full text-left relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 p-5 shadow-xl transition-all hover:-translate-y-0.5 ${
+              className={`w-full text-left relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 p-5 shadow-xl transition-all active:scale-95 ${
                 item.is_read
-                  ? "border-brand-gold-400/25 opacity-85"
+                  ? "border-brand-gold-400/25 opacity-80"
                   : "border-brand-gold-400/60"
               }`}
             >
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+              {/* Top Row */}
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   {!item.is_read && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-brand-gold-400 text-brand-purple-900">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-white text-brand-purple-900">
                       NEW
                     </span>
                   )}
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-brand-purple-950/60 text-brand-purple-200 border border-brand-gold-400/20 capitalize">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-brand-purple-950/60 text-white border border-brand-gold-400/40 capitalize">
                     {item.type.replace(/_/g, " ")}
                   </span>
                 </div>
-
-                <span className="text-brand-purple-300 text-xs font-semibold whitespace-nowrap">
+                <span className="text-brand-purple-200 text-xs font-semibold whitespace-nowrap">
                   {timeAgo(item.created_at)}
                 </span>
               </div>
 
+              {/* Title + Message */}
               <p className="font-black text-white text-base mb-1">{item.title}</p>
-              <p className="text-white/80 font-semibold text-sm leading-relaxed">
+              <p className="text-white font-semibold text-sm leading-relaxed">
                 {item.message}
               </p>
 
+              {/* Tap to open */}
               {item.link && (
-                <p className="text-brand-purple-300 text-xs font-bold mt-3">
+                <p className="text-brand-purple-200 text-xs font-bold mt-3">
                   Tap to open →
                 </p>
               )}
