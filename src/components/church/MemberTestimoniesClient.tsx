@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER TESTIMONIES — 2 tabs: Church Testimonies + My Submissions
+// MEMBER TESTIMONIES – 2 tabs: Church Testimonies + My Submissions
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -7,6 +7,7 @@ import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyAdmin } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface Testimony {
   id: string;
@@ -22,7 +23,11 @@ interface Testimony {
 
 type ActiveTab = "all" | "mine";
 
-const CATEGORIES = ["Healing", "Financial Breakthrough", "Deliverance", "Family Restoration", "Career Success", "Salvation", "Marriage", "Other"];
+const CATEGORIES = [
+  "Healing", "Financial Breakthrough", "Deliverance",
+  "Family Restoration", "Career Success", "Salvation",
+  "Marriage", "Other",
+];
 
 function timeAgo(d: string): string {
   const now = new Date();
@@ -53,7 +58,6 @@ export default function MemberTestimoniesClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberId, setMemberId] = useState("");
   const [memberName, setMemberName] = useState("");
-
   const [formData, setFormData] = useState({
     title: "",
     testimony_text: "",
@@ -92,7 +96,6 @@ export default function MemberTestimoniesClient() {
     try {
       const supabase = createClient();
 
-      // All approved testimonies (for all members to see)
       const { data: approved } = await supabase
         .from("tfam_member_testimonies")
         .select("*, member:tfam_members(full_name, photo_url)")
@@ -101,14 +104,12 @@ export default function MemberTestimoniesClient() {
 
       setAllTestimonies((approved as Testimony[]) || []);
 
-      // My own submissions
       if (foundId) {
         const { data: mine } = await supabase
           .from("tfam_member_testimonies")
           .select("*")
           .eq("member_id", foundId)
           .order("created_at", { ascending: false });
-
         setMyTestimonies(mine || []);
       }
     } catch (err) { console.error(err); }
@@ -138,7 +139,6 @@ export default function MemberTestimoniesClient() {
 
       if (error) { toast.error(error.message); setIsSubmitting(false); return; }
 
-      // Notify admin
       await notifyAdmin({
         title: "📖 New Testimony Submitted",
         message: `${memberName || "A member"} shared a testimony (${formData.category}): "${formData.title}"`,
@@ -171,95 +171,99 @@ export default function MemberTestimoniesClient() {
 
   const firstName = memberName.split(" ")[0] || "";
   const pendingCount = myTestimonies.filter((t) => t.approval_type === "pending").length;
-  const approvedCount = myTestimonies.filter((t) => ["approved", "public"].includes(t.approval_type)).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">📖</div>
-          <p className="text-gray-500">Loading testimonies...</p>
-        </div>
-      </div>
-    );
-  }
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading testimonies..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Brand Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">Testimonies</span>
+            <span className="text-white font-black text-xs md:text-sm uppercase tracking-widest">
+              Testimonies
+            </span>
           </div>
-          <p className="text-white/80 font-semibold text-lg mb-1">{getGreeting()}{firstName ? `, ${firstName}` : ""}!</p>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">Testimonies</h1>
-          <p className="text-brand-purple-100 text-sm md:text-base">Share what God has done and read testimonies from the family</p>
-          <div className="flex gap-6 pt-4 mt-4 border-t border-brand-gold-400/30 flex-wrap">
+          <p className="text-white/80 font-semibold text-base mb-1">
+            {getGreeting()}{firstName ? `, ${firstName}` : ""}!
+          </p>
+          <h1 className="font-heading text-xl md:text-3xl lg:text-4xl font-bold text-white mb-2 leading-tight">
+            Testimonies
+          </h1>
+          <p className="text-brand-purple-100 text-sm">
+            Share what God has done and read testimonies from the family.
+          </p>
+          <div className="flex gap-4 flex-wrap pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
               <p className="text-white font-black text-2xl">{allTestimonies.length}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase">Church</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Church</p>
             </div>
             <div className="text-center">
               <p className="text-white font-black text-2xl">{myTestimonies.length}</p>
-              <p className="text-brand-purple-200 text-xs font-semibold uppercase">My Submissions</p>
+              <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Mine</p>
             </div>
             {pendingCount > 0 && (
               <div className="text-center">
-                <p className="text-amber-300 font-black text-2xl">{pendingCount}</p>
-                <p className="text-brand-purple-200 text-xs font-semibold uppercase">Pending</p>
+                <p className="text-white font-black text-2xl">{pendingCount}</p>
+                <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Pending</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => setActiveTab("all")}
+        <button
+          onClick={() => setActiveTab("all")}
           className={`relative rounded-2xl overflow-hidden p-4 transition-all text-left ${
             activeTab === "all"
               ? "bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-xl"
-              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40 hover:border-brand-gold-400/70"
-          }`}>
+              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40"
+          }`}
+        >
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">📖</div>
-            <div>
-              <p className="font-black text-white text-sm">Church Testimonies</p>
-              <p className="text-brand-purple-200 text-xs">{allTestimonies.length} approved</p>
+          <div className="flex flex-col gap-2">
+            <div className="w-10 h-10 rounded-xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">
+              📖
             </div>
+            <p className="font-black text-white text-sm">Church</p>
+            <p className="text-brand-purple-200 text-xs">{allTestimonies.length} approved</p>
           </div>
         </button>
 
-        <button onClick={() => setActiveTab("mine")}
+        <button
+          onClick={() => setActiveTab("mine")}
           className={`relative rounded-2xl overflow-hidden p-4 transition-all text-left ${
             activeTab === "mine"
               ? "bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 shadow-xl"
-              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40 hover:border-brand-gold-400/70"
-          }`}>
+              : "bg-gradient-to-br from-brand-violet-900/80 via-brand-purple-800/80 to-brand-purple-900/80 border-2 border-brand-gold-400/40"
+          }`}
+        >
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">✍️</div>
-            <div>
-              <p className="font-black text-white text-sm">My Testimonies</p>
-              <p className="text-brand-purple-200 text-xs">{myTestimonies.length} submitted</p>
+          <div className="flex flex-col gap-2">
+            <div className="w-10 h-10 rounded-xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl">
+              ✍️
             </div>
+            <p className="font-black text-white text-sm">My Testimonies</p>
+            <p className="text-brand-purple-200 text-xs">{myTestimonies.length} submitted</p>
           </div>
         </button>
       </div>
 
-      {/* Share button */}
-      <div className="flex justify-end">
-        <button onClick={() => { setActiveTab("mine"); setShowForm(true); }}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
-          ➕ Share Testimony
-        </button>
-      </div>
+      {/* ── Share Button — full width mobile ── */}
+      <button
+        onClick={() => { setActiveTab("mine"); setShowForm(true); }}
+        className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+      >
+        ➕ Share a Testimony
+      </button>
 
-      {/* TAB: ALL CHURCH TESTIMONIES */}
+      {/* ── TAB: ALL CHURCH TESTIMONIES ── */}
       {activeTab === "all" && (
         <div className="space-y-3">
           {allTestimonies.length === 0 ? (
@@ -269,43 +273,63 @@ export default function MemberTestimoniesClient() {
               <h2 className="font-heading text-xl font-bold text-white mb-2">No Testimonies Yet</h2>
               <p className="text-brand-purple-200 text-sm">Be the first to share what God has done!</p>
             </div>
-          ) : allTestimonies.map((t) => (
-            <div key={t.id} className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
-              <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          ) : (
+            allTestimonies.map((t) => (
+              <div
+                key={t.id}
+                className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl"
+              >
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-              <div className="flex items-center gap-3 mb-3">
-                {t.member?.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={t.member.photo_url} alt={t.member.full_name} className="w-10 h-10 rounded-full object-cover border-2 border-brand-gold-400 flex-shrink-0" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-black flex-shrink-0">
-                    {t.member?.full_name?.charAt(0) || "?"}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="text-white font-black text-sm">{t.member?.full_name || "Church Member"}</p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {t.category && <span className="text-brand-purple-200 text-xs">{t.category}</span>}
-                    <span className="text-brand-purple-300 text-xs">{timeAgo(t.created_at)}</span>
+                {/* Member Info */}
+                <div className="flex items-center gap-3 mb-3">
+                  {t.member?.photo_url ? (
+                    <img
+                      src={t.member.photo_url}
+                      alt={t.member.full_name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-brand-gold-400/40 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-brand-purple-950/80 border-2 border-brand-gold-400/40 flex items-center justify-center text-white font-black flex-shrink-0">
+                      {t.member?.full_name?.charAt(0) || "?"}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-black text-sm truncate">
+                      {t.member?.full_name || "Church Member"}
+                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {t.category && (
+                        <span className="text-white/60 text-xs">{t.category}</span>
+                      )}
+                      <span className="text-brand-purple-300 text-xs">
+                        {timeAgo(t.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <p className="font-black text-white text-lg mb-2">{t.title}</p>
-              <p className="text-white/80 font-semibold text-sm leading-relaxed whitespace-pre-wrap">{t.testimony_text}</p>
+                <p className="font-black text-white text-base mb-2">{t.title}</p>
+                <p className="text-white/80 font-semibold text-sm leading-relaxed whitespace-pre-wrap">
+                  {t.testimony_text}
+                </p>
 
-              <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 mt-3">
-                <button onClick={() => shareToWhatsApp(t)}
-                  className="px-3 py-1.5 rounded-full bg-green-500 hover:bg-green-600 text-white text-xs font-bold transition-all">
-                  📱 Share on WhatsApp
-                </button>
+                {/* Share — full width mobile */}
+                <div className="pt-3 border-t border-brand-gold-400/30 mt-3">
+                  <button
+                    onClick={() => shareToWhatsApp(t)}
+                    className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-black active:scale-95 transition-all"
+                  >
+                    📱 Share on WhatsApp
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
-      {/* TAB: MY TESTIMONIES */}
+      {/* ── TAB: MY TESTIMONIES ── */}
       {activeTab === "mine" && (
         <div className="space-y-3">
           {myTestimonies.length === 0 ? (
@@ -314,88 +338,162 @@ export default function MemberTestimoniesClient() {
               <div className="text-5xl mb-4">✍️</div>
               <h2 className="font-heading text-xl font-bold text-white mb-2">No Submissions Yet</h2>
               <p className="text-brand-purple-200 text-sm mb-4">Share what God has done for you!</p>
-              <button onClick={() => setShowForm(true)} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
+              <button
+                onClick={() => setShowForm(true)}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+              >
                 ➕ Share Your First Testimony
               </button>
             </div>
-          ) : myTestimonies.map((t) => (
-            <div key={t.id} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
-              t.approval_type === "public" ? "border-green-400" :
-              ["approved"].includes(t.approval_type) ? "border-green-400/40" :
-              t.approval_type === "rejected" ? "border-red-400/40" :
-              "border-amber-400/40"
-            } p-5 shadow-xl`}>
-              <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          ) : (
+            myTestimonies.map((t) => (
+              <div
+                key={t.id}
+                className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                  t.approval_type === "public"
+                    ? "border-green-400"
+                    : t.approval_type === "approved"
+                    ? "border-green-400/40"
+                    : t.approval_type === "rejected"
+                    ? "border-red-400/40"
+                    : "border-brand-gold-400/40"
+                } p-5 shadow-xl`}
+              >
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-              <div className="flex items-center gap-2 flex-wrap mb-3">
+                {/* Status Badges */}
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  {t.approval_type === "pending" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-purple-950/60 text-white/80 border border-brand-gold-400/40">
+                      ⏳ Pending Approval
+                    </span>
+                  )}
+                  {t.approval_type === "approved" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">
+                      ✅ Approved (Members)
+                    </span>
+                  )}
+                  {t.approval_type === "public" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500 text-white">
+                      🌍 Published on Website!
+                    </span>
+                  )}
+                  {t.approval_type === "rejected" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-500/20 text-red-300 border border-red-400/40">
+                      ❌ Needs Revision
+                    </span>
+                  )}
+                  {t.category && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white/80 border border-brand-gold-400/30">
+                      {t.category}
+                    </span>
+                  )}
+                  <span className="text-brand-purple-300 text-xs font-semibold">
+                    {timeAgo(t.created_at)}
+                  </span>
+                </div>
+
+                <p className="font-black text-white text-base mb-2">{t.title}</p>
+                <p className="text-white/80 font-semibold text-sm leading-relaxed whitespace-pre-wrap">
+                  {t.testimony_text}
+                </p>
+
+                {/* Delete — full width mobile */}
                 {t.approval_type === "pending" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">⏳ Pending Approval</span>
-                )}
-                {t.approval_type === "approved" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">✅ Approved (Members)</span>
-                )}
-                {t.approval_type === "public" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500 text-white">🌍 Published on Website!</span>
-                )}
-                {t.approval_type === "rejected" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-500/20 text-red-300 border border-red-400/40">❌ Needs Revision</span>
-                )}
-                {t.category && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white border border-brand-gold-400/30">{t.category}</span>
-                )}
-                <span className="text-brand-purple-300 text-xs font-semibold">{timeAgo(t.created_at)}</span>
-              </div>
-
-              <p className="font-black text-white text-lg mb-2">{t.title}</p>
-              <p className="text-white/80 font-semibold text-sm leading-relaxed whitespace-pre-wrap">{t.testimony_text}</p>
-
-              <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 mt-3">
-                {t.approval_type === "pending" && (
-                  <button onClick={() => deleteTestimony(t.id)} className="px-3 py-1.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/30">
-                    🗑️ Delete
-                  </button>
+                  <div className="pt-3 border-t border-brand-gold-400/30 mt-3">
+                    <button
+                      onClick={() => deleteTestimony(t.id)}
+                      className="w-full py-3 rounded-xl bg-brand-purple-950/60 text-white/70 text-sm font-bold border border-brand-gold-400/30 active:scale-95 transition-all"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
-      {/* Submit Form Modal */}
+      {/* ── Submit Form Modal — KEEP bg-white — slides up on mobile ── */}
       {showForm && (
         <>
-          <div onClick={() => setShowForm(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div
+            onClick={() => setShowForm(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          />
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-xl font-bold text-brand-purple-900">📖 Share Testimony</h2>
-                  <button onClick={() => setShowForm(false)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+                  <h2 className="font-heading text-lg font-bold text-brand-purple-900">
+                    📖 Share Testimony
+                  </h2>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                  >
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Title <span className="text-red-500">*</span></label>
-                  <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="e.g. God Healed Me" required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g. God Healed Me"
+                    required
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900">
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Your Testimony <span className="text-red-500">*</span></label>
-                  <textarea value={formData.testimony_text} onChange={(e) => setFormData({ ...formData, testimony_text: e.target.value })} rows={6} placeholder="Share what God has done for you in detail..." required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Your Testimony <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.testimony_text}
+                    onChange={(e) => setFormData({ ...formData, testimony_text: e.target.value })}
+                    rows={6}
+                    placeholder="Share what God has done for you in detail..."
+                    required
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none"
+                  />
                 </div>
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">Cancel</button>
-                  <button type="submit" disabled={isSubmitting} className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50"
+                  >
                     {isSubmitting ? "Submitting..." : "📖 Submit for Approval"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold"
+                  >
+                    Cancel
                   </button>
                 </div>
               </form>

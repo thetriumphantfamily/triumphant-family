@@ -1,12 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER PROFILE CLIENT — Beautiful themed profile with photo upload
+// MEMBER PROFILE CLIENT – Beautiful themed profile with photo upload
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState, useRef, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 interface Member {
   id: string;
@@ -39,7 +39,7 @@ const STATES = [
   "Ekiti", "Enugu", "FCT - Abuja", "Gombe", "Imo", "Jigawa",
   "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara",
   "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun",
-  "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
+  "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
 ];
 
 export default function MemberProfileClient() {
@@ -227,36 +227,46 @@ export default function MemberProfileClient() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-gray-500">Loading profile...</p>
-      </div>
-    );
-  }
-
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading profile..." />;
   if (!member) return null;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* ━━━ HERO WITH PHOTO ━━━ */}
-      <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 lg:p-8 shadow-2xl overflow-hidden border-2 border-brand-gold-400/40">
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+    <div className="space-y-4 pb-6">
 
+      {/* ── Hero With Photo ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5">
-          <div className="relative">
+
+          {/* Photo */}
+          <div className="relative flex-shrink-0">
             {member.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={member.photo_url} alt={member.full_name} className="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-cover border-4 border-brand-gold-400 shadow-gold" />
+              <img
+                src={member.photo_url}
+                alt={member.full_name}
+                className="w-28 h-28 rounded-2xl object-cover border-4 border-brand-gold-400/40 shadow-xl"
+              />
             ) : (
-              <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-bold text-4xl border-4 border-brand-gold-400 shadow-gold">
+              <div className="w-28 h-28 rounded-2xl bg-brand-purple-950/80 border-4 border-brand-gold-400/40 flex items-center justify-center text-white font-bold text-4xl shadow-xl">
                 {member.full_name.charAt(0)}
               </div>
             )}
 
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" id="member-photo-change" disabled={uploadingPhoto} />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+              id="member-photo-change"
+              disabled={uploadingPhoto}
+            />
 
-            <label htmlFor="member-photo-change" className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-brand-gold-400 hover:bg-brand-gold-500 flex items-center justify-center cursor-pointer shadow-lg transition-all hover:scale-110">
+            <label
+              htmlFor="member-photo-change"
+              className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 flex items-center justify-center cursor-pointer shadow-gold transition-all active:scale-95"
+            >
               {uploadingPhoto ? (
                 <svg className="w-5 h-5 text-brand-purple-900 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -271,209 +281,284 @@ export default function MemberProfileClient() {
             </label>
           </div>
 
-          <div className="flex-1 text-center sm:text-left">
-            <h1 className="font-heading text-2xl md:text-3xl font-bold text-white mb-2">{member.full_name}</h1>
-            <p className="text-brand-gold-400 font-semibold mb-3">{member.email}</p>
+          {/* Info */}
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-1">
+              {member.full_name}
+            </h1>
+            <p className="text-white/70 font-semibold text-sm mb-3 break-all">
+              {member.email}
+            </p>
             <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-gold-400/20 border border-brand-gold-400/40 text-brand-gold-300 font-semibold text-xs">🎴 {member.member_id}</span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 text-green-300 font-semibold text-xs capitalize">✅ {member.status}</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 text-white/80 font-semibold text-xs">
+                🎴 {member.member_id}
+              </span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 text-green-300 font-semibold text-xs capitalize">
+                ✅ {member.status}
+              </span>
               {member.department && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-purple-950/60 border border-brand-purple-500/40 text-brand-purple-100 font-semibold text-xs">⛪ {member.department}</span>
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/30 text-white/80 font-semibold text-xs">
+                  ⛪ {member.department}
+                </span>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ━━━ EDIT FORM — BEAUTIFUL THEMED SECTIONS ━━━ */}
-      <form onSubmit={handleSave} className="space-y-6">
+      {/* ── Edit Form ── */}
+      <form onSubmit={handleSave} className="space-y-4">
 
-        {/* PERSONAL INFO */}
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-brand-purple-50 border-b-2 border-brand-purple-100 p-5">
+        {/* PERSONAL INFO — keep white for form readability */}
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="p-4 border-b border-brand-gold-400/30">
             <div className="flex items-center gap-3">
               <span className="text-2xl">👤</span>
               <div>
-                <h2 className="font-heading text-lg font-bold text-brand-purple-900">Personal Information</h2>
-                <p className="text-gray-600 text-xs">Your basic details</p>
+                <h2 className="font-heading text-base font-bold text-white">Personal Information</h2>
+                <p className="text-brand-purple-200 text-xs">Your basic details</p>
               </div>
             </div>
           </div>
-          <div className="p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Full Name <span className="text-red-500">*</span></label>
-                <input type="text" value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" required />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Phone</label>
-                <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Gender</label>
-                <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white">
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Date of Birth</label>
-                <input type="date" value={formData.date_of_birth} onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Marital Status</label>
-                <select value={formData.marital_status} onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white">
-                  <option value="">Select status</option>
-                  <option value="single">Single</option>
-                  <option value="married">Married</option>
-                  <option value="widowed">Widowed</option>
-                  <option value="divorced">Divorced</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Baptism Status</label>
-                <select value={formData.baptism_status} onChange={(e) => setFormData({ ...formData, baptism_status: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white">
-                  <option value="not_baptized">Not yet baptized</option>
-                  <option value="baptized">Baptized (Water)</option>
-                  <option value="baptized_holy_spirit">Baptized (Water + Holy Spirit)</option>
-                </select>
-              </div>
+          <div className="p-4 space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">
+                Full Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Phone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Date of Birth</label>
+              <input
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Marital Status</label>
+              <select
+                value={formData.marital_status}
+                onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+              >
+                <option value="">Select status</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="widowed">Widowed</option>
+                <option value="divorced">Divorced</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Baptism Status</label>
+              <select
+                value={formData.baptism_status}
+                onChange={(e) => setFormData({ ...formData, baptism_status: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+              >
+                <option value="not_baptized">Not yet baptized</option>
+                <option value="baptized">Baptized (Water)</option>
+                <option value="baptized_holy_spirit">Baptized (Water + Holy Spirit)</option>
+              </select>
             </div>
           </div>
         </div>
 
         {/* LOCATION */}
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-blue-50 border-b-2 border-blue-100 p-5">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="p-4 border-b border-brand-gold-400/30">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📍</span>
               <div>
-                <h2 className="font-heading text-lg font-bold text-brand-purple-900">Location</h2>
-                <p className="text-gray-600 text-xs">Where you live</p>
+                <h2 className="font-heading text-base font-bold text-white">Location</h2>
+                <p className="text-brand-purple-200 text-xs">Where you live</p>
               </div>
             </div>
           </div>
-          <div className="p-5 space-y-4">
+          <div className="p-4 space-y-3">
             <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Address</label>
-              <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
+              <label className="block text-xs font-bold text-white/80 mb-1">Address</label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+              />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">City</label>
-                <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">State</label>
-                <select value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white">
-                  <option value="">Select state</option>
-                  {STATES.map((s) => (<option key={s} value={s}>{s}</option>))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">City</label>
+              <input
+                type="text"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">State</label>
+              <select
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white focus:border-brand-gold-400 focus:outline-none font-semibold"
+              >
+                <option value="">Select state</option>
+                {STATES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
         {/* CHURCH INFO */}
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-brand-gold-50 border-b-2 border-brand-gold-100 p-5">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="p-4 border-b border-brand-gold-400/30">
             <div className="flex items-center gap-3">
               <span className="text-2xl">⛪</span>
               <div>
-                <h2 className="font-heading text-lg font-bold text-brand-purple-900">Church Information</h2>
-                <p className="text-gray-600 text-xs">Your ministry involvement</p>
+                <h2 className="font-heading text-base font-bold text-white">Church Information</h2>
+                <p className="text-brand-purple-200 text-xs">Your ministry involvement</p>
               </div>
             </div>
           </div>
-          <div className="p-5">
-            <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Department</label>
-              <input type="text" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} placeholder="e.g. Choir, Ushering" className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-            </div>
+          <div className="p-4">
+            <label className="block text-xs font-bold text-white/80 mb-1">Department</label>
+            <input
+              type="text"
+              value={formData.department}
+              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              placeholder="e.g. Choir, Ushering"
+              className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+            />
           </div>
         </div>
 
         {/* EMERGENCY CONTACT */}
-        <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-          <div className="bg-red-50 border-b-2 border-red-100 p-5">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="p-4 border-b border-brand-gold-400/30">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🆘</span>
               <div>
-                <h2 className="font-heading text-lg font-bold text-brand-purple-900">Emergency Contact</h2>
-                <p className="text-gray-600 text-xs">Who to reach in case of emergency</p>
+                <h2 className="font-heading text-base font-bold text-white">Emergency Contact</h2>
+                <p className="text-brand-purple-200 text-xs">Who to reach in case of emergency</p>
               </div>
             </div>
           </div>
-          <div className="p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Contact Name</label>
-                <input type="text" value={formData.emergency_contact_name} onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-brand-purple-900 mb-2">Contact Phone</label>
-                <input type="tel" value={formData.emergency_contact_phone} onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
-              </div>
+          <div className="p-4 space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Contact Name</label>
+              <input
+                type="text"
+                value={formData.emergency_contact_name}
+                onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-white/80 mb-1">Contact Phone</label>
+              <input
+                type="tel"
+                value={formData.emergency_contact_phone}
+                onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none font-semibold"
+              />
             </div>
           </div>
         </div>
 
-        {/* SAVE BUTTON */}
-        <div className="flex justify-center">
-          <button type="submit" disabled={isSaving} className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-            {isSaving ? (
-              <>
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Saving...
-              </>
-            ) : (
-              <>💾 Save Changes</>
-            )}
-          </button>
-        </div>
+        {/* ── Save Button — full width mobile ── */}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-base shadow-gold active:scale-95 transition-all disabled:opacity-50"
+        >
+          {isSaving ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Saving...
+            </span>
+          ) : (
+            "💾 Save Changes"
+          )}
+        </button>
       </form>
 
-      {/* ━━━ ACCOUNT INFO — THEMED ━━━ */}
-      <div className="bg-white rounded-3xl border-2 border-gray-100 shadow-md overflow-hidden">
-        <div className="bg-green-50 border-b-2 border-green-100 p-5">
+      {/* ── Account Info ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-xl">
+        <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+        <div className="p-4 border-b border-brand-gold-400/30">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🔒</span>
             <div>
-              <h2 className="font-heading text-lg font-bold text-brand-purple-900">Account Information</h2>
-              <p className="text-gray-600 text-xs">These details cannot be changed by you</p>
+              <h2 className="font-heading text-base font-bold text-white">Account Information</h2>
+              <p className="text-brand-purple-200 text-xs">These details cannot be changed by you</p>
             </div>
           </div>
         </div>
-        <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-100">
-              <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold mb-1">Member ID</p>
-              <p className="font-bold text-brand-purple-900 text-lg">{member.member_id}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-100">
-              <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold mb-1">Email</p>
-              <p className="font-bold text-brand-purple-900 break-all">{member.email}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-100">
-              <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold mb-1">Status</p>
-              <p className="font-bold text-green-600 capitalize text-lg">✅ {member.status}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-100">
-              <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold mb-1">Date Joined</p>
-              <p className="font-bold text-brand-purple-900">
-                {member.date_joined ? new Date(member.date_joined).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
-              </p>
-            </div>
+        <div className="p-4 space-y-3">
+          <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+            <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-1">Member ID</p>
+            <p className="font-black text-white text-lg">{member.member_id}</p>
           </div>
-          <p className="text-xs text-gray-500 mt-4 text-center">
-            To change your email or Member ID, please contact the church administrator.
+          <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+            <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-1">Email</p>
+            <p className="font-black text-white break-all">{member.email}</p>
+          </div>
+          <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+            <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-1">Status</p>
+            <p className="font-black text-green-300 capitalize text-lg">✅ {member.status}</p>
+          </div>
+          <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-brand-gold-400/30">
+            <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-1">Date Joined</p>
+            <p className="font-black text-white">
+              {member.date_joined
+                ? new Date(member.date_joined).toLocaleDateString("en-US", {
+                    year: "numeric", month: "long", day: "numeric",
+                  })
+                : "—"}
+            </p>
+          </div>
+          <p className="text-white/50 text-xs text-center pt-2">
+            To change your email or Member ID, contact the church administrator.
           </p>
         </div>
       </div>
+
     </div>
   );
 }

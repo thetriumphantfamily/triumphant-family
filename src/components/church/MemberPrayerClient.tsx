@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER PRAYER REQUESTS — Submit + track + notify admin
+// MEMBER PRAYER REQUESTS – Submit + track + notify admin
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -7,6 +7,7 @@ import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyAdmin } from "@/lib/notifications";
+import LoadingScreen from "./LoadingScreen";
 
 interface Prayer {
   id: string;
@@ -20,15 +21,8 @@ interface Prayer {
 }
 
 const CATEGORIES = [
-  "Healing",
-  "Family",
-  "Finance",
-  "Marriage",
-  "Career",
-  "Salvation",
-  "Deliverance",
-  "Guidance",
-  "Other",
+  "Healing", "Family", "Finance", "Marriage",
+  "Career", "Salvation", "Deliverance", "Guidance", "Other",
 ];
 
 function timeAgo(d: string): string {
@@ -60,7 +54,6 @@ export default function MemberPrayerClient() {
   const [memberName, setMemberName] = useState("");
   const [showAnswerForm, setShowAnswerForm] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState("");
-
   const [formData, setFormData] = useState({
     prayer_point: "",
     category: "Healing",
@@ -129,7 +122,6 @@ export default function MemberPrayerClient() {
 
       if (error) { toast.error(error.message); setIsSubmitting(false); return; }
 
-      // 🔔 NOTIFY ADMIN
       await notifyAdmin({
         title: "🙏 New Prayer Request",
         message: `${memberName || "A member"} submitted a prayer request (${formData.category}): "${formData.prayer_point.substring(0, 100)}${formData.prayer_point.length > 100 ? "..." : ""}"`,
@@ -157,7 +149,6 @@ export default function MemberPrayerClient() {
         answered_at: new Date().toISOString(),
       }).eq("id", id);
 
-      // 🔔 NOTIFY ADMIN
       await notifyAdmin({
         title: "🎉 Answered Prayer Testimony",
         message: `${memberName || "A member"} testified an answered prayer: "${answerText.substring(0, 100)}${answerText.length > 100 ? "..." : ""}"`,
@@ -186,39 +177,32 @@ export default function MemberPrayerClient() {
   const activeCount = prayers.filter((p) => !p.is_answered).length;
   const answeredCount = prayers.filter((p) => p.is_answered).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">🙏</div>
-          <p className="text-gray-500">Loading prayer requests...</p>
-        </div>
-      </div>
-    );
-  }
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading prayer requests..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Brand Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
+            <span className="text-white font-black text-xs md:text-sm uppercase tracking-widest">
               Prayer Requests
             </span>
           </div>
-          <p className="text-white/80 font-semibold text-lg mb-1">
+          <p className="text-white/80 font-semibold text-base mb-1">
             {getGreeting()}{firstName ? `, ${firstName}` : ""}!
           </p>
-          <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
+          <h1 className="font-heading text-xl md:text-3xl lg:text-4xl font-bold text-white mb-2 leading-tight">
             Your Prayer Requests
           </h1>
-          <p className="text-brand-purple-100 text-sm md:text-base">
-            Submit prayer requests and testify when God answers
+          <p className="text-brand-purple-100 text-sm">
+            Submit prayer requests and testify when God answers.
           </p>
-          <div className="flex gap-4 pt-4 mt-4 border-t border-brand-gold-400/30">
+          <div className="flex gap-4 flex-wrap pt-4 mt-4 border-t border-brand-gold-400/30">
             <div className="text-center">
               <p className="text-white font-black text-2xl">{prayers.length}</p>
               <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">Total</p>
@@ -235,64 +219,94 @@ export default function MemberPrayerClient() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <button onClick={() => setShowForm(true)} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all">
-          ➕ Submit Prayer Request
-        </button>
-      </div>
+      {/* ── Submit Button — full width mobile ── */}
+      <button
+        onClick={() => setShowForm(true)}
+        className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
+      >
+        ➕ Submit Prayer Request
+      </button>
 
+      {/* ── Empty State ── */}
       {prayers.length === 0 ? (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
           <div className="text-5xl mb-4">🙏</div>
-          <h2 className="font-heading text-xl font-bold text-white mb-2">No Prayer Requests Yet</h2>
-          <p className="text-brand-purple-200 text-sm">Submit your first prayer request. God is listening!</p>
+          <h2 className="font-heading text-xl font-bold text-white mb-2">
+            No Prayer Requests Yet
+          </h2>
+          <p className="text-brand-purple-200 text-sm">
+            Submit your first prayer request. God is listening!
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
           {prayers.map((p) => (
-            <div key={p.id} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${p.is_answered ? "border-green-400/40" : "border-brand-gold-400/40"} p-5 shadow-xl`}>
+            <div
+              key={p.id}
+              className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                p.is_answered ? "border-green-400/40" : "border-brand-gold-400/40"
+              } p-5 shadow-xl`}
+            >
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+              {/* Status Row */}
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 {p.is_answered ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-green-500/20 text-green-300 border border-green-400/40">
                     ✅ Answered
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-purple-950/60 text-white/80 border border-brand-gold-400/40">
                     🙏 Praying
                   </span>
                 )}
                 {p.category && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white border border-brand-gold-400/30">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-purple-950/60 text-white/80 border border-brand-gold-400/30">
                     {p.category}
                   </span>
                 )}
-                <span className="text-brand-purple-300 text-xs font-semibold">{timeAgo(p.created_at)}</span>
+                <span className="text-brand-purple-300 text-xs font-semibold">
+                  {timeAgo(p.created_at)}
+                </span>
               </div>
 
-              <p className="text-white font-semibold text-base leading-relaxed mb-3">{p.prayer_point}</p>
+              {/* Prayer Text */}
+              <p className="text-white font-semibold text-sm leading-relaxed mb-3">
+                {p.prayer_point}
+              </p>
 
+              {/* Testimony */}
               {p.is_answered && p.answer_testimony && (
                 <div className="bg-brand-purple-950/60 rounded-xl p-4 border border-green-400/40 mb-3">
-                  <p className="text-green-300 text-xs font-black uppercase tracking-widest mb-2">🎉 Your Testimony</p>
-                  <p className="text-white font-semibold text-sm leading-relaxed">{p.answer_testimony}</p>
+                  <p className="text-white/60 text-xs font-black uppercase tracking-widest mb-2">
+                    🎉 Your Testimony
+                  </p>
+                  <p className="text-white font-semibold text-sm leading-relaxed">
+                    {p.answer_testimony}
+                  </p>
                 </div>
               )}
 
-              <div className="flex gap-2 pt-3 border-t border-brand-gold-400/30 flex-wrap">
+              {/* Actions — full width on mobile */}
+              <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30">
                 {!p.is_answered && (
-                  <button onClick={() => { setShowAnswerForm(p.id); setAnswerText(""); }} className="px-3 py-1.5 rounded-full bg-green-500 hover:bg-green-600 text-white text-xs font-black transition-all">
+                  <button
+                    onClick={() => { setShowAnswerForm(p.id); setAnswerText(""); }}
+                    className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-black active:scale-95 transition-all"
+                  >
                     🎉 Mark as Answered
                   </button>
                 )}
-                <button onClick={() => deletePrayer(p.id)} className="px-3 py-1.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-bold border border-brand-gold-400/30">
+                <button
+                  onClick={() => deletePrayer(p.id)}
+                  className="w-full py-3 rounded-xl bg-brand-purple-950/60 text-white/70 text-sm font-bold border border-brand-gold-400/30 active:scale-95 transition-all"
+                >
                   🗑️ Delete
                 </button>
               </div>
 
-              {/* Answer Form */}
+              {/* Inline Answer Form */}
               {showAnswerForm === p.id && (
                 <div className="mt-4 pt-4 border-t-2 border-green-400/40">
                   <textarea
@@ -300,14 +314,20 @@ export default function MemberPrayerClient() {
                     onChange={(e) => setAnswerText(e.target.value)}
                     rows={3}
                     placeholder="Share how God answered your prayer..."
-                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold text-sm"
+                    className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none font-semibold text-sm mb-3"
                   />
-                  <div className="flex gap-2 mt-3">
-                    <button onClick={() => { setShowAnswerForm(null); setAnswerText(""); }} className="px-4 py-2 rounded-full bg-brand-purple-950/60 text-white text-sm font-bold border border-brand-gold-400/40">
-                      Cancel
-                    </button>
-                    <button onClick={() => markAnswered(p.id)} className="flex-1 px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white text-sm font-black transition-all">
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => markAnswered(p.id)}
+                      className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-black active:scale-95 transition-all"
+                    >
                       ✅ Submit Testimony
+                    </button>
+                    <button
+                      onClick={() => { setShowAnswerForm(null); setAnswerText(""); }}
+                      className="w-full py-3 rounded-xl bg-brand-purple-950/60 text-white text-sm font-bold border border-brand-gold-400/40"
+                    >
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -317,37 +337,72 @@ export default function MemberPrayerClient() {
         </div>
       )}
 
-      {/* Form Modal */}
+      {/* ── Form Modal — KEEP bg-white — slides up on mobile ── */}
       {showForm && (
         <>
-          <div onClick={() => setShowForm(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div
+            onClick={() => setShowForm(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          />
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading text-xl font-bold text-brand-purple-900">🙏 Submit Prayer Request</h2>
-                  <button onClick={() => setShowForm(false)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+                  <h2 className="font-heading text-lg font-bold text-brand-purple-900">
+                    🙏 Submit Prayer Request
+                  </h2>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                  >
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900">
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Prayer Point <span className="text-red-500">*</span></label>
-                  <textarea value={formData.prayer_point} onChange={(e) => setFormData({ ...formData, prayer_point: e.target.value })} rows={5} placeholder="Share what you need prayer for..." required className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Prayer Point <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.prayer_point}
+                    onChange={(e) => setFormData({ ...formData, prayer_point: e.target.value })}
+                    rows={5}
+                    placeholder="Share what you need prayer for..."
+                    required
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none"
+                  />
                 </div>
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">Cancel</button>
-                  <button type="submit" disabled={isSubmitting} className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50"
+                  >
                     {isSubmitting ? "Submitting..." : "🙏 Submit Prayer"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold"
+                  >
+                    Cancel
                   </button>
                 </div>
               </form>

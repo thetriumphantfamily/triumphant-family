@@ -1,12 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN DASHBOARD CLIENT — Overview and stats
+// CHURCH ADMIN DASHBOARD CLIENT – Overview and stats
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 interface Stats {
   totalMembers: number;
@@ -28,11 +28,17 @@ function getGreeting(): string {
 }
 
 function getTodayDate(): string {
-  return new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  });
 }
 
 export default function ChurchAdminDashboardClient() {
-  const [stats, setStats] = useState<Stats>({ totalMembers: 0, approvedMembers: 0, pendingMembers: 0, totalVisitors: 0, totalDonations: 0, totalServices: 0, totalDepartments: 0, totalDevotionals: 0, pendingQuestions: 0 });
+  const [stats, setStats] = useState<Stats>({
+    totalMembers: 0, approvedMembers: 0, pendingMembers: 0,
+    totalVisitors: 0, totalDonations: 0, totalServices: 0,
+    totalDepartments: 0, totalDevotionals: 0, pendingQuestions: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadStats(); }, []);
@@ -40,7 +46,10 @@ export default function ChurchAdminDashboardClient() {
   const loadStats = async () => {
     try {
       const supabase = createClient();
-      const [members, approved, pending, visitors, donations, services, departments, devotionals, questions] = await Promise.all([
+      const [
+        members, approved, pending, visitors,
+        donations, services, departments, devotionals, questions,
+      ] = await Promise.all([
         supabase.from("tfam_members").select("id", { count: "exact", head: true }),
         supabase.from("tfam_members").select("id", { count: "exact", head: true }).eq("status", "approved"),
         supabase.from("tfam_members").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -64,7 +73,10 @@ export default function ChurchAdminDashboardClient() {
         pendingQuestions: questions.count || 0,
       });
       setLoading(false);
-    } catch (err) { console.error(err); setLoading(false); }
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
   };
 
   const STAT_CARDS = [
@@ -76,45 +88,60 @@ export default function ChurchAdminDashboardClient() {
     { name: "Services", value: stats.totalServices, href: "/admin/church/attendance", icon: "⛪" },
   ];
 
-  if (loading) return <div className="min-h-[400px] flex items-center justify-center"><p className="text-gray-500">Loading dashboard...</p></div>;
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading dashboard..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Hero Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 lg:p-10 shadow-2xl">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Hero Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 lg:p-10 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
             <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-brand-gold-300 font-semibold text-xs uppercase tracking-widest">Church Management</span>
-          </div>
-          <p className="text-brand-gold-400 font-semibold text-lg mb-1">{getGreeting()}, Prophet!</p>
-          <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
-            Church{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-              Command Center
+            <span className="text-white font-black text-xs uppercase tracking-widest">
+              Church Management
             </span>
+          </div>
+          <p className="text-white/80 font-semibold text-base mb-1">
+            {getGreeting()}, Prophet!
+          </p>
+          <h1 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
+            Church Command Center
           </h1>
-          <p className="text-brand-purple-100 text-sm md:text-base mb-4">📅 {getTodayDate()}</p>
-          <p className="text-brand-purple-100 text-sm max-w-2xl">
+          <p className="text-brand-purple-100 text-sm md:text-base mb-2">
+            📅 {getTodayDate()}
+          </p>
+          <p className="text-brand-purple-100 text-sm">
             Manage members, track attendance, record giving, post devotionals, and care for your flock.
           </p>
-          <div className="mt-6 pt-6 border-t border-brand-gold-400/30">
-            <p className="text-brand-gold-400 italic text-sm">&ldquo;Feed my sheep.&rdquo;</p>
-            <p className="text-brand-purple-200 text-xs mt-1 font-semibold">— John 21:17</p>
+          <div className="mt-4 pt-4 border-t border-brand-gold-400/30">
+            <p className="text-white/70 italic text-sm">&ldquo;Feed my sheep.&rdquo;</p>
+            <p className="text-brand-purple-300 text-xs mt-1 font-semibold">— John 21:17</p>
           </div>
         </div>
       </div>
 
-      {/* Pending Alert */}
+      {/* ── Pending Alert ── */}
       {stats.pendingMembers > 0 && (
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-red-700 border-2 border-red-400/60 p-6 shadow-xl">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-red-400/60 p-5 shadow-xl">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-400 via-red-500 to-red-400" />
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0 animate-pulse text-2xl">🚨</div>
-            <div className="flex-1">
-              <h3 className="font-heading font-bold text-white text-xl mb-2">New Member Registrations</h3>
-              <p className="text-white/90 text-sm mb-3">{stats.pendingMembers} member(s) awaiting approval</p>
-              <Link href="/admin/church/members" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-red-700 font-bold text-sm hover:bg-white/90 transition-colors">
+            <div className="w-12 h-12 rounded-2xl bg-brand-purple-950/80 border border-red-400/40 flex items-center justify-center flex-shrink-0 text-2xl">
+              🚨
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-heading font-bold text-white text-base mb-1">
+                New Member Registrations
+              </h3>
+              <p className="text-white/80 text-sm mb-3">
+                {stats.pendingMembers} member(s) awaiting approval
+              </p>
+              <Link
+                href="/admin/church/members"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm shadow-gold active:scale-95 transition-all"
+              >
                 Review Now →
               </Link>
             </div>
@@ -122,33 +149,42 @@ export default function ChurchAdminDashboardClient() {
         </div>
       )}
 
-      {/* Stats Grid */}
+      {/* ── Stats Grid ── */}
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">📊</div>
-          <h2 className="font-heading font-bold text-brand-purple-900 text-xl">Church Overview</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <h2 className="text-white font-heading font-bold text-lg mb-3">
+          📊 Church Overview
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {STAT_CARDS.map((card) => (
-            <Link key={card.name} href={card.href}
-              className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <Link
+              key={card.name}
+              href={card.href}
+              className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 p-4 md:p-6 shadow-xl transition-all active:scale-95"
+            >
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
               <div className="relative z-10">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-2xl">{card.icon}</div>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center text-xl md:text-2xl">
+                    {card.icon}
+                  </div>
                   {card.badge && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500 shadow-lg animate-pulse">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500 animate-pulse">
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
                       <span className="text-white text-xs font-bold">NEW</span>
                     </div>
                   )}
                 </div>
-                <p className="text-brand-purple-200 text-sm uppercase tracking-widest font-semibold mb-2">{card.name}</p>
-                <p className="text-5xl font-heading font-bold text-white mb-4">{card.value}</p>
-                <div className="pt-4 border-t border-brand-gold-400/30 flex items-center gap-2 text-brand-gold-400 text-sm font-bold group-hover:gap-3 transition-all">
+                <p className="text-brand-purple-200 text-xs uppercase tracking-widest font-semibold mb-1">
+                  {card.name}
+                </p>
+                <p className="text-3xl md:text-5xl font-heading font-bold text-white mb-3">
+                  {card.value}
+                </p>
+                <div className="pt-3 border-t border-brand-gold-400/30 flex items-center gap-2 text-white/60 text-xs font-bold">
                   <span>View Details</span>
-                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                  <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
                 </div>
               </div>
             </Link>
@@ -156,30 +192,33 @@ export default function ChurchAdminDashboardClient() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-xl">
+      {/* ── Quick Actions ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-lg">⚡</div>
-            <h3 className="font-heading font-bold text-white text-xl">Quick Actions</h3>
-          </div>
+          <h3 className="font-heading font-bold text-white text-base mb-4">
+            ⚡ Quick Actions
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { href: "/admin/church/members", icon: "👥", label: "Members" },
               { href: "/admin/church/giving", icon: "💰", label: "Record Giving" },
               { href: "/admin/church/devotionals", icon: "📖", label: "Post Devotional" },
-              { href: "/admin/church/attendance", icon: "✅", label: "Mark Attendance" },
+              { href: "/admin/church/attendance", icon: "✅", label: "Attendance" },
             ].map((action) => (
-              <Link key={action.href} href={action.href}
-                className="p-4 rounded-xl bg-brand-purple-950/60 border-2 border-brand-gold-400/30 hover:border-brand-gold-400 text-center transition-all group">
-                <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{action.icon}</div>
-                <p className="text-sm font-bold text-white">{action.label}</p>
+              <Link
+                key={action.href}
+                href={action.href}
+                className="p-4 rounded-xl bg-brand-purple-950/60 border-2 border-brand-gold-400/30 hover:border-brand-gold-400 text-center transition-all active:scale-95"
+              >
+                <div className="text-2xl md:text-3xl mb-2">{action.icon}</div>
+                <p className="text-xs md:text-sm font-bold text-white">{action.label}</p>
               </Link>
             ))}
           </div>
         </div>
       </div>
+
     </div>
   );
 }
