@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA CHAT CLIENT – Real-time discussion room with Supabase Realtime
+// TDA CHAT CLIENT – Shared Discussion Room (WhatsApp Style)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
@@ -10,7 +10,7 @@ import LoadingScreen from "@/components/church/LoadingScreen";
 
 interface Message {
   id: string;
-  sender_id: string;
+  sender_id: string | null;
   sender_name: string;
   sender_photo: string | null;
   message: string;
@@ -22,8 +22,6 @@ interface Message {
 interface StudentSession {
   id: string;
   full_name: string;
-  student_id: string;
-  photo_url: string | null;
 }
 
 function formatTime(dateString: string): string {
@@ -32,19 +30,8 @@ function formatTime(dateString: string): string {
   });
 }
 
-function formatDateSeparator(dateString: string): string {
-  const date = new Date(dateString);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  if (date.toDateString() === today.toDateString()) return "Today";
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-}
-
 export default function TDAChatClient() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [session, setSession] = useState<StudentSession | null>(null);
   const [newMessage, setNewMessage] = useState("");
@@ -52,273 +39,104 @@ export default function TDAChatClient() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadSession();
+    const sessionData = localStorage.getItem("tda_student_session");
+    if (sessionData) setSession(JSON.parse(sessionData));
+    
     loadMessages();
-    setupRealtimeSubscription();
-    return () => {
-      const supabase = createClient();
-      supabase.removeAllChannels();
-    };
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("tda-shared-chat")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "tda_chat_messages" }, 
+        (payload) => {
+          const m = payload.new as Message;
+          if (!m.is_deleted) {
+            setMessages(prev => {
+              if (prev.some(msg => msg.id === m.id)) return prev;
+              return [...prev, m];
+            });
+          }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const loadSession = () => {
-    const sessionData = localStorage.getItem("tda_student_session");
-    if (sessionData) {
-      try { setSession(JSON.parse(sessionData)); } catch { /* ignore */ }
-    }
-  };
-
   const loadMessages = async () => {
-    try {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("tda_chat_messages").select("*")
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: true }).limit(200);
-      setMessages(data || []);
-      setLoading(false);
-    } catch (err) { console.error(err); setLoading(false); }
-  };
-
-  const setupRealtimeSubscription = () => {
     const supabase = createClient();
-    supabase.channel("tda-chat-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "tda_chat_messages" }, (payload) => {
-        const newMsg = payload.new as Message;
-        if (!newMsg.is_deleted) setMessages((prev) => [...prev, newMsg]);
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "tda_chat_messages" }, (payload) => {
-        const updatedMsg = payload.new as Message;
-        if (updatedMsg.is_deleted) {
-          setMessages((prev) => prev.filter((m) => m.id !== updatedMsg.id));
-        } else {
-          setMessages((prev) => prev.map((m) => m.id === updatedMsg.id ? updatedMsg : m));
-        }
-      })
-      .subscribe();
+    const { data } = await supabase
+      .from("tda_chat_messages")
+      .select("*")
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
+    setLoading(false);
   };
 
   const handleSend = async () => {
     if (!newMessage.trim() || !session || isSending) return;
-    if (newMessage.length > 1000) { toast.error("Message too long (max 1000 characters)"); return; }
     setIsSending(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.from("tda_chat_messages").insert({
-        sender_id: session.id,
-        sender_name: session.full_name,
-        sender_photo: session.photo_url,
-        message: newMessage.trim(),
-        is_admin: false,
-      });
-      if (error) { toast.error("Failed to send message"); setIsSending(false); return; }
-      setNewMessage("");
-      inputRef.current?.focus();
-    } catch { toast.error("Failed to send"); }
-    finally { setIsSending(false); }
+    const supabase = createClient();
+    const { error } = await supabase.from("tda_chat_messages").insert({
+      sender_id: session.id,
+      sender_name: session.full_name,
+      message: newMessage.trim(),
+      is_admin: false
+    });
+    if (error) toast.error("Failed to send");
+    else setNewMessage("");
+    setIsSending(false);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
-
-  const handleDelete = async (messageId: string) => {
-    if (!confirm("Delete this message?")) return;
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.from("tda_chat_messages").update({ is_deleted: true }).eq("id", messageId);
-      if (error) { toast.error("Failed to delete"); return; }
-      toast.success("Message deleted");
-    } catch { toast.error("Failed to delete"); }
-  };
-
-  // Group by date
-  const groupedMessages: { date: string; messages: Message[] }[] = [];
-  let currentDate = "";
-  messages.forEach((msg) => {
-    const msgDate = new Date(msg.created_at).toDateString();
-    if (msgDate !== currentDate) {
-      currentDate = msgDate;
-      groupedMessages.push({ date: msg.created_at, messages: [msg] });
-    } else {
-      groupedMessages[groupedMessages.length - 1].messages.push(msg);
-    }
-  });
-
-  // ✅ LOADING SCREEN
-  if (loading) return <LoadingScreen message="Loading discussion..." />;
+  if (loading) return <LoadingScreen message="Opening discussion..." />;
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
-
-      {/* ── Header ── */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-4 md:p-6 shadow-2xl mb-3">
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-        <div className="relative z-10">
-          <h1 className="font-heading text-lg md:text-2xl font-bold text-white mb-1">
-            💬 Discussion Room
-          </h1>
-          <p className="text-brand-purple-200 text-xs">
-            Chat with fellow students and instructors in real-time. 🟢 Live
-          </p>
-        </div>
-      </div>
-
-      {/* ── Chat Rules ── */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 p-3 mb-3">
-        <p className="text-brand-purple-200 text-xs">
-          <strong className="text-white">💡 Guidelines:</strong> Be respectful. Keep discussions edifying. Enter to send, Shift+Enter for new line.
-        </p>
-      </div>
-
-      {/* ── Chat Container ── */}
-      <div className="flex-1 relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-2xl flex flex-col">
-        <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {groupedMessages.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-center py-16">
-              <div>
-                <div className="text-5xl mb-4">💬</div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">
-                  Start the conversation!
-                </h3>
-                <p className="text-brand-purple-200 text-sm max-w-sm mx-auto">
-                  Be the first to send a message. Share your thoughts, questions, and encouragements.
-                </p>
+    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-120px)]">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-brand-purple-950/20 rounded-t-3xl border-2 border-brand-gold-400/20 border-b-0">
+        {messages.map((m) => {
+          const isMe = m.sender_id === session?.id;
+          return (
+            <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[80%] p-3 rounded-2xl shadow-lg border ${
+                m.is_admin 
+                  ? "bg-white text-brand-purple-900 border-green-400" 
+                  : isMe 
+                  ? "bg-brand-purple-800 text-white border-brand-gold-400/40" 
+                  : "bg-brand-purple-900/60 text-white border-white/10"
+              }`}>
+                <div className="flex justify-between items-center gap-4 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider opacity-70">
+                    {m.is_admin ? "👑 INSTRUCTOR" : isMe ? "YOU" : m.sender_name}
+                  </span>
+                  <span className="text-[9px] opacity-50">{formatTime(m.created_at)}</span>
+                </div>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.message}</p>
               </div>
             </div>
-          ) : (
-            groupedMessages.map((group, groupIndex) => (
-              <div key={groupIndex}>
-                {/* Date Separator */}
-                <div className="flex items-center justify-center my-4">
-                  <div className="flex-1 h-px bg-brand-gold-400/20" />
-                  <span className="px-3 py-1 rounded-full bg-brand-purple-950/60 text-brand-purple-200 text-xs font-semibold border border-brand-gold-400/30">
-                    {formatDateSeparator(group.date)}
-                  </span>
-                  <div className="flex-1 h-px bg-brand-gold-400/20" />
-                </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
 
-                {group.messages.map((message) => {
-                  const isOwn = message.sender_id === session?.id;
-                  const isAdmin = message.is_admin;
-
-                  return (
-                    <div key={message.id} className={`flex gap-3 mb-3 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-
-                      {/* Avatar */}
-                      {message.sender_photo ? (
-                        <img
-                          src={message.sender_photo}
-                          alt={message.sender_name}
-                          className="w-9 h-9 rounded-full object-cover border-2 border-brand-gold-400/40 flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-brand-purple-950/80 border-2 border-brand-gold-400/40 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-                          {message.sender_name.charAt(0)}
-                        </div>
-                      )}
-
-                      {/* Bubble */}
-                      <div className={`flex flex-col max-w-[75%] ${isOwn ? "items-end" : "items-start"}`}>
-                        {/* Sender info */}
-                        <div className="flex items-center gap-2 mb-1 px-1">
-                          <span className="text-xs font-black text-white/80">
-                            {isOwn ? "You" : message.sender_name}
-                          </span>
-                          {isAdmin && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white text-brand-purple-900 text-[9px] font-black uppercase">
-                              Admin
-                            </span>
-                          )}
-                          <span className="text-[10px] text-brand-purple-300">
-                            {formatTime(message.created_at)}
-                          </span>
-                        </div>
-
-                        {/* Message text */}
-                        <div className="relative group">
-                          <div className={`px-4 py-2.5 rounded-2xl ${
-                            isAdmin
-                              ? "bg-brand-purple-950/80 text-white border-2 border-green-400/60"
-                              : isOwn
-                              ? "bg-brand-purple-950/80 text-white border border-brand-gold-400/40"
-                              : "bg-brand-purple-950/60 text-white border border-brand-gold-400/30"
-                          }`}>
-                            {isAdmin && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-white text-brand-purple-900 text-[9px] font-black uppercase mb-1 mr-2">
-                                👑 Admin
-                              </span>
-                            )}
-                            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed text-white">
-                              {message.message}
-                            </p>
-                          </div>
-
-                          {/* Delete button */}
-                          {isOwn && (
-                            <button
-                              onClick={() => handleDelete(message.id)}
-                              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* ── Input Area ── */}
-        <div className="border-t border-brand-gold-400/30 p-3 bg-brand-purple-950/40">
-          <div className="flex gap-2 items-end">
-            <textarea
-              ref={inputRef}
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message... (Enter to send)"
-              rows={1}
-              maxLength={1000}
-              className="flex-1 px-4 py-3 rounded-2xl border-2 border-brand-gold-400/40 bg-brand-purple-950/60 text-white placeholder-brand-purple-400 focus:border-brand-gold-400 focus:outline-none resize-none max-h-32 font-semibold text-sm"
-              style={{ minHeight: "48px" }}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!newMessage.trim() || isSending}
-              className="w-12 h-12 flex-shrink-0 rounded-2xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
-            >
-              {isSending ? (
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                </svg>
-              )}
-            </button>
-          </div>
-          {newMessage.length > 800 && (
-            <p className={`text-xs mt-2 text-right ${newMessage.length > 950 ? "text-red-400 font-black" : "text-brand-purple-200"}`}>
-              {newMessage.length} / 1000
-            </p>
-          )}
+      {/* Input Area */}
+      <div className="p-4 bg-brand-purple-900 border-2 border-brand-gold-400/20 rounded-b-3xl">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Type your message..."
+            className="flex-1 bg-brand-purple-950/60 border border-brand-gold-400/40 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-gold-400"
+          />
+          <button onClick={handleSend} disabled={isSending} className="bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black px-6 rounded-xl active:scale-95 transition-all">
+            SEND
+          </button>
         </div>
       </div>
     </div>

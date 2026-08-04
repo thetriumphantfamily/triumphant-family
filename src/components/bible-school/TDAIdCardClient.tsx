@@ -1,11 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA ID CARD CLIENT – Beautiful downloadable student ID card
+// TDA ID CARD CLIENT – Clean readable downloadable student ID card
+// html-to-image export engine + refined compact fields
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import toast from "react-hot-toast";
+import { toBlob, toPng } from "html-to-image";
 import { createClient } from "@/lib/supabase/client";
 import LoadingScreen from "@/components/church/LoadingScreen";
 
@@ -29,82 +30,163 @@ const LEVEL_NAMES: Record<string, string> = {
   "400": "Spiritual Leadership & Ministry",
 };
 
+async function waitForImages(container: HTMLElement) {
+  const images = Array.from(container.querySelectorAll("img"));
+
+  await Promise.all(
+    images.map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+
+      return new Promise<void>((resolve) => {
+        const done = () => resolve();
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    })
+  );
+}
+
 export default function TDAIdCardClient() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
-  useEffect(() => { loadStudent(); }, []);
+  useEffect(() => {
+    loadStudent();
+  }, []);
 
   const loadStudent = async () => {
     try {
       const session = localStorage.getItem("tda_student_session");
       if (!session) return;
+
       const sessionData = JSON.parse(session);
       const supabase = createClient();
+
       const { data } = await supabase
-        .from("tda_students").select("*").eq("id", sessionData.id).single();
-      if (data) setStudent(data);
+        .from("tda_students")
+        .select("*")
+        .eq("id", sessionData.id)
+        .single();
+
+      if (data) {
+        setStudent(data);
+      }
+
       setLoading(false);
-    } catch (err) { console.error(err); setLoading(false); }
+    } catch (err) {
+      console.error("Load error:", err);
+      setLoading(false);
+    }
+  };
+
+  const exportCardAsPng = async (): Promise<string> => {
+    if (!cardRef.current) throw new Error("Card not ready");
+
+    if ("fonts" in document) {
+      await (document as Document & { fonts: FontFaceSet }).fonts.ready;
+    }
+
+    await waitForImages(cardRef.current);
+
+    return await toPng(cardRef.current, {
+      cacheBust: true,
+      pixelRatio: 3,
+      backgroundColor: "#4a176a",
+      skipFonts: false,
+    });
+  };
+
+  const exportCardAsBlob = async (): Promise<Blob> => {
+    if (!cardRef.current) throw new Error("Card not ready");
+
+    if ("fonts" in document) {
+      await (document as Document & { fonts: FontFaceSet }).fonts.ready;
+    }
+
+    await waitForImages(cardRef.current);
+
+    const blob = await toBlob(cardRef.current, {
+      cacheBust: true,
+      pixelRatio: 3,
+      backgroundColor: "#4a176a",
+      skipFonts: false,
+    });
+
+    if (!blob) throw new Error("Blob generation failed");
+    return blob;
   };
 
   const handleDownload = async () => {
-    if (!cardRef.current || !student) return;
+    if (!student) return;
+
     setIsDownloading(true);
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 3, backgroundColor: null, useCORS: true, logging: false,
-      });
+      const dataUrl = await exportCardAsPng();
       const link = document.createElement("a");
       link.download = `TDA-ID-${student.student_id}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = dataUrl;
       link.click();
       toast.success("✅ ID Card downloaded!");
-    } catch (err) { console.error(err); toast.error("Failed to download. Please try again."); }
-    finally { setIsDownloading(false); }
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Failed to download. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handlePrint = () => {
     setIsPrinting(true);
-    setTimeout(() => { window.print(); setIsPrinting(false); }, 500);
+    setTimeout(() => {
+      window.print();
+      setIsPrinting(false);
+    }, 300);
   };
 
   const handleShare = async () => {
-    if (!cardRef.current || !student) return;
+    if (!student) return;
+
+    setIsSharing(true);
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(cardRef.current, { scale: 3, backgroundColor: null, useCORS: true });
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        const file = new File([blob], `TDA-ID-${student.student_id}.png`, { type: "image/png" });
-        if (navigator.share && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ title: "TDA Student ID Card", text: `${student.full_name} - ${student.student_id}`, files: [file] });
-            toast.success("Shared!");
-          } catch { /* cancelled */ }
-        } else {
-          toast.error("Sharing not supported on this device");
-        }
-      }, "image/png");
-    } catch (err) { console.error(err); toast.error("Failed to share"); }
+      const blob = await exportCardAsBlob();
+      const file = new File([blob], `TDA-ID-${student.student_id}.png`, {
+        type: "image/png",
+      });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: "TDA Student ID Card",
+          text: `${student.full_name} - ${student.student_id}`,
+          files: [file],
+        });
+        toast.success("Shared!");
+      } else {
+        toast.error("Sharing not supported on this device");
+      }
+    } catch (err) {
+      console.error("Share error:", err);
+      toast.error("Failed to share");
+    } finally {
+      setIsSharing(false);
+    }
   };
 
-  // ✅ LOADING SCREEN
   if (loading) return <LoadingScreen message="Loading your ID card..." />;
   if (!student) return null;
 
   const validYear = new Date().getFullYear() + 1;
   const issueDate = new Date(student.created_at).toLocaleDateString("en-US", {
-    year: "numeric", month: "short", day: "numeric",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-6">
-
       {/* ── Page Header ── */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-2xl text-center">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -120,127 +202,164 @@ export default function TDAIdCardClient() {
       <div className="flex justify-center">
         <div
           ref={cardRef}
-          className="relative w-full max-w-md bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl overflow-hidden shadow-2xl"
+          className="relative w-full max-w-[360px] rounded-[28px] overflow-hidden shadow-2xl border-2 border-brand-gold-400/40 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900"
           style={{ aspectRatio: "1 / 1.586" }}
         >
-          {/* Gold top bar */}
+          {/* Top/Bottom Gold Bars */}
           <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-          {/* Gold bottom bar */}
           <div className="absolute bottom-0 inset-x-0 h-2 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-          <div className="relative z-10 p-6 flex flex-col h-full">
-
+          <div className="relative z-10 h-full px-4 pt-4 pb-3 flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Image
+            <div className="flex items-center gap-2.5 mb-2">
+              <img
                 src="/images/logo/logo.png"
                 alt="TFAM Logo"
-                width={64}
-                height={64}
-                unoptimized
-                className="w-16 h-16 object-contain"
+                width={48}
+                height={48}
+                className="w-12 h-12 object-contain flex-shrink-0"
               />
-              <div className="text-center">
-                <p className="font-heading font-bold text-white text-sm leading-tight">
+              <div className="min-w-0">
+                <p className="font-heading font-bold text-white text-[13px] leading-tight">
                   The Triumphant Family
                 </p>
-                <p className="text-brand-gold-400 text-[10px] font-semibold uppercase tracking-widest">
+                <p className="text-brand-purple-200 text-[9px] font-semibold uppercase tracking-widest leading-tight">
                   Apostolic Ministry
                 </p>
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="h-0.5 bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent mb-3" />
+            <div className="h-px bg-gradient-to-r from-transparent via-brand-gold-400 to-transparent mb-2" />
 
-            {/* School Name */}
-            <div className="text-center mb-4">
-              <p className="font-heading font-bold text-brand-gold-400 text-base uppercase tracking-widest">
+            {/* School name */}
+            <div className="text-center mb-2">
+              <p className="font-heading font-bold text-white text-[12px] uppercase tracking-[0.18em] leading-tight">
                 Triumphant Disciples Academy
               </p>
-              <p className="text-white text-xs mt-1">Official Student ID</p>
+              <p className="text-brand-purple-200 text-[9px] mt-0.5 font-semibold uppercase tracking-widest leading-tight">
+                Official Student ID
+              </p>
             </div>
 
             {/* Photo */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-2">
               {student.photo_url ? (
                 <img
                   src={student.photo_url}
                   alt={student.full_name}
-                  className="w-28 h-28 rounded-full object-cover border-4 border-brand-gold-400 shadow-lg"
+                  className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-xl"
                   crossOrigin="anonymous"
                 />
               ) : (
-                <div className="w-28 h-28 rounded-full bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-bold text-4xl border-4 border-brand-gold-400 shadow-lg">
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-brand-purple-900 font-black text-3xl border-4 border-white shadow-xl">
                   {student.full_name.charAt(0)}
                 </div>
               )}
             </div>
 
             {/* Name */}
-            <div className="text-center mb-3">
-              <p className="font-heading font-bold text-white text-lg leading-tight">
+            <div className="text-center mb-2">
+              <p className="font-heading font-bold text-white text-[16px] leading-tight px-2">
                 {student.full_name}
               </p>
             </div>
 
-            {/* Student ID Pill */}
-            <div className="flex justify-center mb-4">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 shadow-gold">
-                <span className="text-brand-purple-900 font-bold text-sm">{student.student_id}</span>
+            {/* Student ID pill */}
+            <div className="flex justify-center mb-2">
+              <div className="h-9 min-w-[176px] px-4 rounded-full bg-white border-2 border-brand-gold-400 shadow-lg flex items-center justify-center">
+                <span className="text-brand-purple-900 font-black text-[12px] leading-none">
+                  {student.student_id}
+                </span>
               </div>
             </div>
 
-            {/* Info Grid */}
-            <div className="grid grid-cols-2 gap-2 mb-3 flex-1">
-              <div className="bg-brand-purple-950/60 rounded-xl p-2 border border-brand-gold-400/30">
-                <p className="text-brand-gold-400 text-[9px] uppercase tracking-widest font-semibold">Level</p>
-                <p className="text-white text-xs font-bold truncate">Level {student.level}</p>
+            {/* Info Blocks — reduced size */}
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="rounded-xl bg-white px-2.5 pt-1.5 pb-2 shadow-sm min-h-[54px] flex flex-col justify-start overflow-hidden">
+                <p className="text-[7px] uppercase tracking-widest font-black text-brand-purple-900/70 mb-1 leading-none">
+                  Level
+                </p>
+                <p className="text-brand-purple-900 text-[10px] font-black leading-[1.2] break-words">
+                  Level {student.level}
+                </p>
               </div>
-              <div className="bg-brand-purple-950/60 rounded-xl p-2 border border-brand-gold-400/30">
-                <p className="text-brand-gold-400 text-[9px] uppercase tracking-widest font-semibold">Batch</p>
-                <p className="text-white text-xs font-bold truncate">{student.batch}</p>
+
+              <div className="rounded-xl bg-white px-2.5 pt-1.5 pb-2 shadow-sm min-h-[54px] flex flex-col justify-start overflow-hidden">
+                <p className="text-[7px] uppercase tracking-widest font-black text-brand-purple-900/70 mb-1 leading-none">
+                  Batch
+                </p>
+                <p className="text-brand-purple-900 text-[10px] font-black leading-[1.2] break-words">
+                  {student.batch}
+                </p>
               </div>
-              <div className="bg-brand-purple-950/60 rounded-xl p-2 border border-brand-gold-400/30 col-span-2">
-                <p className="text-brand-gold-400 text-[9px] uppercase tracking-widest font-semibold">School</p>
-                <p className="text-white text-xs font-bold truncate">School of {LEVEL_NAMES[student.level]}</p>
+
+              <div className="rounded-xl bg-white px-2.5 pt-1.5 pb-2 shadow-sm col-span-2 min-h-[58px] flex flex-col justify-start overflow-hidden">
+                <p className="text-[7px] uppercase tracking-widest font-black text-brand-purple-900/70 mb-1 leading-none">
+                  School
+                </p>
+                <p className="text-brand-purple-900 text-[9px] font-black leading-[1.25] break-words">
+                  School of {LEVEL_NAMES[student.level]}
+                </p>
               </div>
+
               {student.department && (
-                <div className="bg-brand-purple-950/60 rounded-xl p-2 border border-brand-gold-400/30 col-span-2">
-                  <p className="text-brand-gold-400 text-[9px] uppercase tracking-widest font-semibold">Department</p>
-                  <p className="text-white text-xs font-bold truncate">{student.department}</p>
+                <div className="rounded-xl bg-white px-2.5 pt-1.5 pb-2 shadow-sm col-span-2 min-h-[58px] flex flex-col justify-start overflow-hidden">
+                  <p className="text-[7px] uppercase tracking-widest font-black text-brand-purple-900/70 mb-1 leading-none">
+                    Department
+                  </p>
+                  <p className="text-brand-purple-900 text-[9px] font-black leading-[1.25] break-words">
+                    {student.department}
+                  </p>
                 </div>
               )}
             </div>
 
             {/* Scripture */}
-            <div className="text-center mb-2 px-2">
-              <p className="text-brand-gold-400 text-xs italic font-medium leading-tight">
+            <div className="text-center px-2 mb-1">
+              <p className="text-white text-[10px] italic leading-snug">
                 &ldquo;Rightly dividing the word of truth&rdquo;
               </p>
-              <p className="text-white/70 text-[9px] mt-0.5">— 2 Timothy 2:15</p>
+              <p className="text-brand-purple-200 text-[8px] mt-0.5 font-semibold leading-none">
+                — 2 Timothy 2:15
+              </p>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between text-[9px] text-white/80 pt-2 border-t border-brand-gold-400/30">
-              <div>
-                <p className="text-brand-gold-400 font-semibold">Issued</p>
-                <p>{issueDate}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-brand-gold-400 font-semibold">Authorized Signatory</p>
-                <p className="text-white font-bold text-[10px] mt-0.5">Prophet Olayiwole</p>
-              </div>
-              <div className="text-right">
-                <p className="text-brand-gold-400 font-semibold">Valid Until</p>
-                <p>{validYear}</p>
+            <div className="border-t border-brand-gold-400/30 pt-2 mt-1">
+              <div className="grid grid-cols-3 gap-2 items-end">
+                <div className="text-left">
+                  <p className="text-brand-purple-200 text-[8px] font-black uppercase tracking-widest leading-none mb-0.5">
+                    Issued
+                  </p>
+                  <p className="text-white text-[9px] font-semibold leading-tight">
+                    {issueDate}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-brand-purple-200 text-[8px] font-black uppercase tracking-widest leading-none mb-0.5">
+                    Authorized
+                  </p>
+                  <p className="text-white text-[9px] font-black leading-tight">
+                    Prophet Olayiwole
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-brand-purple-200 text-[8px] font-black uppercase tracking-widest leading-none mb-0.5">
+                    Valid Till
+                  </p>
+                  <p className="text-white text-[9px] font-semibold leading-tight">
+                    {validYear}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Action Buttons — full width mobile ── */}
+      {/* ── Action Buttons ── */}
       <div className="flex flex-col gap-3">
         <button
           onClick={handleDownload}
@@ -268,9 +387,10 @@ export default function TDAIdCardClient() {
           </button>
           <button
             onClick={handleShare}
-            className="py-4 rounded-xl bg-brand-purple-950/60 text-white font-black border border-brand-gold-400/40 active:scale-95 transition-all"
+            disabled={isSharing}
+            className="py-4 rounded-xl bg-brand-purple-950/60 text-white font-black border border-brand-gold-400/40 active:scale-95 transition-all disabled:opacity-50"
           >
-            📤 Share
+            {isSharing ? "Sharing..." : "📤 Share"}
           </button>
         </div>
       </div>
@@ -286,8 +406,8 @@ export default function TDAIdCardClient() {
             <p className="font-black text-white mb-2">About Your ID Card</p>
             <ul className="text-brand-purple-200 text-sm space-y-1 list-disc pl-4">
               <li>Your official identification as a TDA student</li>
-              <li>Present when attending classes and events</li>
-              <li>Download and save to your phone gallery</li>
+              <li>Present it when attending classes and events</li>
+              <li>Download and save it to your phone gallery</li>
               <li>Print a physical copy if needed</li>
               <li>Valid throughout your academic year</li>
             </ul>
