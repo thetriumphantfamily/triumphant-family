@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// JOIN CHURCH PAGE — Membership registration (with logo + back button)
+// JOIN CHURCH PAGE – Membership registration (breadcrumb style)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import type { Metadata } from "next";
@@ -19,18 +19,37 @@ export default function JoinChurchPage() {
       <section className="relative pt-8 pb-14 lg:pt-10 lg:pb-20 overflow-hidden">
         <div className="relative z-10 container-custom">
 
-          {/* Back to Website */}
-          <div className="mb-6">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 hover:bg-brand-purple-950/80 transition-all"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-              Back to Website
+          {/* Breadcrumb */}
+          <nav className="flex items-center justify-center gap-2 text-sm text-brand-purple-200 mb-6">
+            <Link href="/" className="hover:text-white transition-colors">
+              Home
             </Link>
-          </div>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            <Link
+              href="/membership"
+              className="hover:text-white transition-colors"
+            >
+              Membership
+            </Link>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="text-white font-semibold">Register</span>
+          </nav>
 
           {/* LOGO */}
           <div className="flex justify-center mb-8">
@@ -48,7 +67,7 @@ export default function JoinChurchPage() {
                 <p className="font-heading font-bold text-white text-lg md:text-xl">
                   The Triumphant Family
                 </p>
-                <p className="text-brand-gold-400 text-xs md:text-sm font-semibold uppercase tracking-widest">
+                <p className="text-brand-purple-200 text-xs md:text-sm font-semibold uppercase tracking-widest">
                   The Gleam of Salvation Apostolic Ministry
                 </p>
               </div>
@@ -67,10 +86,7 @@ export default function JoinChurchPage() {
             </div>
 
             <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3">
-              Become a{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-                Member
-              </span>
+              Become a Member
             </h1>
 
             <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed">
@@ -92,7 +108,7 @@ export default function JoinChurchPage() {
               Already a member?{" "}
               <Link
                 href="/member/login"
-                className="text-brand-gold-400 font-bold hover:underline"
+                className="text-white font-black hover:underline"
               >
                 Login here
               </Link>
