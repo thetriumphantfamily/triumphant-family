@@ -1,5 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONTACT FORM — Clean purple + gold theme
+// Now triggers admin notification on submit
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -20,6 +21,16 @@ const SUBJECTS = [
   { value: "testimony",   label: "Share a Testimony" },
   { value: "other",       label: "Other" },
 ];
+
+const SUBJECT_LABELS: Record<string, string> = {
+  general:     "General Inquiry",
+  prayer:      "Prayer Request",
+  partnership: "Partnership / Giving",
+  counselling: "Counselling",
+  ministry:    "Ministry Invitation",
+  testimony:   "Share a Testimony",
+  other:       "Other",
+};
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -59,6 +70,8 @@ export default function ContactForm() {
     setIsSubmitting(true);
     try {
       const supabase = createClient();
+
+      // ━━━ 1. Save the contact message ━━━
       const { error } = await supabase.from("contact_messages").insert([{
         full_name: formData.fullName,
         email:     formData.email,
@@ -71,6 +84,16 @@ export default function ContactForm() {
         toast.error(`Error: ${error.message}`);
         return;
       }
+
+      // ━━━ 2. Notify admin ━━━
+      const subjectLabel = SUBJECT_LABELS[formData.subject] || formData.subject;
+      await supabase.from("site_notifications").insert({
+        title: `✉️ New Contact Message`,
+        message: `${formData.fullName} sent a message about "${subjectLabel}": "${formData.message.slice(0, 80)}${formData.message.length > 80 ? "..." : ""}"`,
+        type: "contact",
+        link: "/admin/messages",
+        is_read: false,
+      });
 
       toast.success("Message sent! We'll reply within 24 hours.", {
         style: { background: "#6B1F8A", color: "#fff", border: "1px solid #FFC72C" },
@@ -177,7 +200,7 @@ export default function ContactForm() {
                 error={errors.message}
               />
 
-              {/* Submit button — GOLD GRADIENT */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={isSubmitting}

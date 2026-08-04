@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ADMIN DASHBOARD — Clean beautiful themed hero + stats + quick actions
-// NO BLOBS, NO SPLASHES — Pure gradient + gold accents only
+// ADMIN DASHBOARD — Clean themed dashboard matching all other admin pages
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { createClient } from "@/lib/supabase/server";
@@ -46,7 +45,6 @@ async function getStats() {
   };
 }
 
-// ━━━ Get time-based greeting ━━━
 function getGreeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return "Good Morning";
@@ -54,7 +52,6 @@ function getGreeting(): string {
   return "Good Evening";
 }
 
-// ━━━ Get today's date nicely ━━━
 function getTodayDate(): string {
   return new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -65,15 +62,9 @@ function getTodayDate(): string {
 }
 
 export default async function AdminDashboard() {
-  // ━━━ AUTH PROTECTION ━━━
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/admin/login");
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/admin/login");
 
   const stats = await getStats();
   const greeting = getGreeting();
@@ -146,205 +137,116 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
       <Sidebar />
       <div className="lg:ml-64 min-h-screen">
-        <div className="p-6 lg:p-8 pt-20 lg:pt-8">
+        <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8">
 
-          {/* ━━━ HERO HEADER — Clean, No Blobs ━━━ */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 lg:p-10 shadow-2xl mb-8">
-            {/* Gold top bar */}
+          {/* ━━━ HEADER CARD ━━━ */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl mb-6">
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-
             <div className="relative z-10">
-              <div className="flex items-start justify-between flex-wrap gap-4">
-                <div className="flex-1 min-w-0">
-                  {/* Badge */}
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
-                    <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
-                    <span className="text-brand-gold-300 font-semibold text-xs uppercase tracking-widest">
-                      Ministry Command Center
-                    </span>
-                  </div>
 
-                  {/* Greeting */}
-                  <p className="text-brand-gold-400 font-semibold text-lg mb-1">
-                    {greeting}, Prophet!
-                  </p>
-
-                  {/* Main Heading */}
-                  <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
-                    Welcome to Your{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-                      Command Center
-                    </span>
-                  </h1>
-
-                  {/* Date */}
-                  <p className="text-brand-purple-100 text-sm md:text-base mb-4">
-                    📅 {todayDate}
-                  </p>
-
-                  <p className="text-brand-purple-100 text-sm md:text-base max-w-2xl leading-relaxed">
-                    Manage every aspect of The Triumphant Family Ministry from
-                    one beautiful dashboard. Your Kingdom work continues here.
-                  </p>
-                </div>
-
-                {/* Right Side Icon */}
-                <div className="hidden md:flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex-shrink-0">
-                  <svg
-                    className="w-12 h-12 text-brand-purple-900"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
-                  </svg>
-                </div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+                <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
+                <span className="text-white font-semibold text-xs uppercase tracking-widest">
+                  Ministry Command Center
+                </span>
               </div>
 
-              {/* Scripture at bottom */}
+              <p className="text-white font-semibold text-lg mb-1">
+                {greeting}, Prophet!
+              </p>
+
+              <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3 leading-tight">
+                Welcome to Your Command Center
+              </h1>
+
+              <p className="text-brand-purple-200 font-semibold text-sm md:text-base mb-4">
+                📅 {todayDate}
+              </p>
+
+              <p className="text-brand-purple-200 font-semibold text-sm md:text-base max-w-2xl leading-relaxed">
+                Manage every aspect of The Triumphant Family Ministry from one beautiful dashboard. Your Kingdom work continues here.
+              </p>
+
               <div className="mt-6 pt-6 border-t border-brand-gold-400/30">
-                <p className="text-brand-gold-400 italic text-sm md:text-base">
+                <p className="text-brand-purple-200 italic text-sm md:text-base">
                   &ldquo;And I will give you shepherds according to mine heart,
                   which shall feed you with knowledge and understanding.&rdquo;
                 </p>
-                <p className="text-brand-purple-200 text-xs mt-1 font-semibold">
+                <p className="text-brand-purple-300 text-xs mt-1 font-semibold">
                   — Jeremiah 3:15
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ━━━ PENDING ACTIONS ALERT — Clean ━━━ */}
-          {(stats.pendingTestimonies > 0 ||
-            stats.pendingPrayers > 0 ||
-            stats.unreadMessages > 0) && (
-            <div className="mb-8 relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-red-700 border-2 border-red-400/60 p-6 shadow-xl">
-              <div className="relative z-10 flex items-start gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0 animate-pulse">
-                  <svg
-                    className="w-7 h-7 text-brand-purple-900"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-heading font-bold text-white text-xl mb-3">
-                    🚨 Attention Required
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {stats.pendingTestimonies > 0 && (
-                      <Link
-                        href="/admin/testimonies"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-bold transition-colors"
-                      >
-                        {stats.pendingTestimonies} testimony(ies) →
-                      </Link>
-                    )}
-                    {stats.pendingPrayers > 0 && (
-                      <Link
-                        href="/admin/prayers"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-bold transition-colors"
-                      >
-                        {stats.pendingPrayers} prayer(s) →
-                      </Link>
-                    )}
-                    {stats.unreadMessages > 0 && (
-                      <Link
-                        href="/admin/messages"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-bold transition-colors"
-                      >
-                        {stats.unreadMessages} unread message(s) →
-                      </Link>
-                    )}
-                  </div>
+          {/* ━━━ PENDING ACTIONS ━━━ */}
+          {(stats.pendingTestimonies > 0 || stats.pendingPrayers > 0 || stats.unreadMessages > 0) && (
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-red-400/40 p-6 shadow-xl mb-6">
+              <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+              <div className="relative z-10">
+                <h3 className="font-heading font-black text-white text-lg mb-3">
+                  🚨 Attention Required
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {stats.pendingTestimonies > 0 && (
+                    <Link href="/admin/testimonies" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 hover:bg-brand-purple-950 border border-brand-gold-400/40 text-white text-sm font-black transition-colors">
+                      {stats.pendingTestimonies} testimony(ies) →
+                    </Link>
+                  )}
+                  {stats.pendingPrayers > 0 && (
+                    <Link href="/admin/prayers" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 hover:bg-brand-purple-950 border border-brand-gold-400/40 text-white text-sm font-black transition-colors">
+                      {stats.pendingPrayers} prayer(s) →
+                    </Link>
+                  )}
+                  {stats.unreadMessages > 0 && (
+                    <Link href="/admin/messages" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 hover:bg-brand-purple-950 border border-brand-gold-400/40 text-white text-sm font-black transition-colors">
+                      {stats.unreadMessages} unread message(s) →
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* ━━━ STATS SECTION HEADER ━━━ */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-brand-purple-900"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-                  />
-                </svg>
-              </div>
-              <h2 className="font-heading font-bold text-brand-purple-900 text-xl">
-                Ministry Overview
-              </h2>
-            </div>
-          </div>
+          {/* ━━━ SECTION HEADING ━━━ */}
+          <h2 className="text-white font-heading font-bold text-xl mb-4">
+            📊 Ministry Overview
+          </h2>
 
-          {/* ━━━ STATS GRID — Uniform purple + gold ━━━ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* ━━━ STATS GRID ━━━ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {STAT_CARDS.map((card) => (
               <Link
                 key={card.name}
                 href={card.href}
                 className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
-                {/* Gold top bar */}
                 <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-
                 <div className="relative z-10">
                   <div className="flex items-start justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center text-brand-purple-900">
-                      <span className="w-7 h-7">{card.icon}</span>
+                    <div className="w-12 h-12 rounded-2xl bg-brand-purple-950/60 border border-brand-gold-400/40 flex items-center justify-center text-white">
+                      <span className="w-6 h-6">{card.icon}</span>
                     </div>
-
                     {card.badge && card.badge > 0 ? (
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500 shadow-lg animate-pulse">
                         <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                        <span className="text-white text-xs font-bold">
-                          {card.badge} NEW
-                        </span>
+                        <span className="text-white text-xs font-black">{card.badge} NEW</span>
                       </div>
                     ) : null}
                   </div>
-
-                  <p className="text-brand-purple-200 text-sm uppercase tracking-widest font-semibold mb-2">
+                  <p className="text-brand-purple-200 text-xs uppercase tracking-widest font-semibold mb-2">
                     {card.name}
                   </p>
-
-                  <p className="text-5xl font-heading font-bold text-white mb-4">
+                  <p className="text-4xl font-heading font-black text-white mb-4">
                     {card.value}
                   </p>
-
-                  <div className="pt-4 border-t border-brand-gold-400/30 flex items-center gap-2 text-brand-gold-400 text-sm font-bold group-hover:gap-3 transition-all">
+                  <div className="pt-4 border-t border-brand-gold-400/30 flex items-center gap-2 text-brand-purple-200 text-sm font-semibold group-hover:text-white transition-colors">
                     <span>Manage {card.name}</span>
-                    <svg
-                      className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                      />
+                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>
                   </div>
                 </div>
@@ -352,32 +254,13 @@ export default async function AdminDashboard() {
             ))}
           </div>
 
-          {/* ━━━ QUICK ACTIONS — Clean ━━━ */}
+          {/* ━━━ QUICK ACTIONS ━━━ */}
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-xl">
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-
+            <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 text-brand-purple-900"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="font-heading font-bold text-white text-xl">
-                  Quick Actions
-                </h3>
-              </div>
-
+              <h3 className="font-heading font-black text-white text-xl mb-6">
+                ⚡ Quick Actions
+              </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
                   { href: "/admin/sermons", emoji: "🎬", label: "Add Sermon" },
@@ -393,15 +276,14 @@ export default async function AdminDashboard() {
                     <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
                       {action.emoji}
                     </div>
-                    <p className="text-sm font-bold text-white">{action.label}</p>
+                    <p className="text-sm font-black text-white">{action.label}</p>
                   </Link>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Script tagline */}
-          <p className="text-center mt-8 text-brand-purple-600 text-sm italic font-medium">
+          <p className="text-center mt-6 text-brand-purple-300 text-sm italic font-semibold">
             &ldquo;Serving God&rsquo;s people with excellence and grace.&rdquo;
           </p>
         </div>

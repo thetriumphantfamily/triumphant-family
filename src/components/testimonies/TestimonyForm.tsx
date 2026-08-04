@@ -1,5 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TESTIMONY FORM — Clean purple + gold theme
+// Now triggers admin notification on submit
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -24,15 +25,22 @@ const CATEGORIES = [
   { value: "other",        label: "📖 Other" },
 ];
 
+const CATEGORY_LABELS: Record<string, string> = {
+  healing: "Healing", breakthrough: "Breakthrough", salvation: "Salvation",
+  marriage: "Marriage", family: "Family", finance: "Finance",
+  career: "Career / Business", deliverance: "Deliverance",
+  thanksgiving: "Thanksgiving", other: "Other",
+};
+
 export default function TestimonyForm() {
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    location: "",
-    category: "",
+    fullName:      "",
+    email:         "",
+    location:      "",
+    category:      "",
     testimonyText: "",
-    photoUrl: "",
-    videoUrl: "",
+    photoUrl:      "",
+    videoUrl:      "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -64,20 +72,32 @@ export default function TestimonyForm() {
     setIsSubmitting(true);
     try {
       const supabase = createClient();
+
+      // ━━━ 1. Save testimony ━━━
       const { error } = await supabase.from("testimonies").insert([{
-        full_name: formData.fullName,
-        email: formData.email || null,
-        location: formData.location || null,
-        category: formData.category,
+        full_name:      formData.fullName,
+        email:          formData.email || null,
+        location:       formData.location || null,
+        category:       formData.category,
         testimony_text: formData.testimonyText,
-        photo_url: formData.photoUrl || null,
-        video_url: formData.videoUrl || null,
+        photo_url:      formData.photoUrl || null,
+        video_url:      formData.videoUrl || null,
       }]);
 
       if (error) {
         toast.error(`Error: ${error.message}`);
         return;
       }
+
+      // ━━━ 2. Notify admin ━━━
+      const categoryLabel = CATEGORY_LABELS[formData.category] || formData.category;
+      await supabase.from("site_notifications").insert({
+        title: `✨ New Testimony Submitted`,
+        message: `${formData.fullName} shared a testimony about "${categoryLabel}": "${formData.testimonyText.slice(0, 80)}${formData.testimonyText.length > 80 ? "..." : ""}"`,
+        type: "testimony",
+        link: "/admin/testimonies",
+        is_read: false,
+      });
 
       toast.success("Testimony submitted! Thank you for sharing.", {
         style: { background: "#6B1F8A", color: "#fff", border: "1px solid #FFC72C" },
@@ -218,7 +238,7 @@ export default function TestimonyForm() {
                 </p>
               </div>
 
-              {/* Submit button — GOLD GRADIENT */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -233,9 +253,7 @@ export default function TestimonyForm() {
                     Submitting...
                   </>
                 ) : (
-                  <>
-                    🎉 Share My Testimony
-                  </>
+                  <>🎉 Share My Testimony</>
                 )}
               </button>
 

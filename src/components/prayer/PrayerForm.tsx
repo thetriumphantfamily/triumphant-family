@@ -1,6 +1,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // PRAYER FORM — Clean theme with gold submit button
+// Now triggers admin notification on submit
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 "use client";
 
 import { useState, FormEvent } from "react";
@@ -40,6 +42,13 @@ const COUNTRIES = [
   { value: "UAE",            label: "🇦🇪 UAE" },
   { value: "Other",          label: "🌍 Other Country" },
 ];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  healing: "Healing", breakthrough: "Breakthrough", salvation: "Salvation",
+  marriage: "Marriage", family: "Family", finance: "Finance",
+  career: "Career / Business", deliverance: "Deliverance",
+  thanksgiving: "Thanksgiving", other: "Other",
+};
 
 export default function PrayerForm() {
   const [formData, setFormData] = useState({
@@ -86,6 +95,8 @@ export default function PrayerForm() {
     setIsSubmitting(true);
     try {
       const supabase = createClient();
+
+      // ━━━ 1. Save prayer request ━━━
       const { error } = await supabase.from("prayer_requests").insert([{
         full_name:    formData.isAnonymous ? "Anonymous" : formData.fullName,
         email:        formData.email || null,
@@ -102,12 +113,19 @@ export default function PrayerForm() {
         return;
       }
 
+      // ━━━ 2. Notify admin ━━━
+      const name = formData.isAnonymous ? "Anonymous" : formData.fullName;
+      const categoryLabel = CATEGORY_LABELS[formData.category] || formData.category;
+      await supabase.from("site_notifications").insert({
+        title: `🙏 New Prayer Request`,
+        message: `${name} submitted a prayer request for "${categoryLabel}": "${formData.prayerPoint.slice(0, 80)}${formData.prayerPoint.length > 80 ? "..." : ""}"`,
+        type: "prayer",
+        link: "/admin/prayers",
+        is_read: false,
+      });
+
       toast.success("Prayer request submitted! We are praying with you.", {
-        style: {
-          background: "#6B1F8A",
-          color:      "#fff",
-          border:     "1px solid #FFC72C",
-        },
+        style: { background: "#6B1F8A", color: "#fff", border: "1px solid #FFC72C" },
         iconTheme: { primary: "#FFC72C", secondary: "#6B1F8A" },
       });
 
@@ -159,9 +177,8 @@ export default function PrayerForm() {
             </div>
           </div>
 
-          {/* Form card — SAME GRADIENT + GOLD BORDER */}
+          {/* Form card */}
           <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 relative overflow-hidden">
-
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -265,7 +282,7 @@ export default function PrayerForm() {
                 </label>
               </div>
 
-              {/* Submit button — GOLD GRADIENT */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={isSubmitting}

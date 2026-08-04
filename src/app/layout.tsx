@@ -1,3 +1,7 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ROOT LAYOUT — With VisitTracker for analytics
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 import type { Metadata } from "next";
 import { Poppins, Great_Vibes } from "next/font/google";
 import { Toaster } from "react-hot-toast";
@@ -7,6 +11,7 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import SiteChromeWrapper from "@/components/layout/SiteChromeWrapper";
+import VisitTracker from "@/components/VisitTracker";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -96,7 +101,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Build the chrome elements as server components
   const chrome = (
     <>
       <AnnouncementBanner />
@@ -117,6 +121,10 @@ export default function RootLayout({
       className={`${poppins.variable} ${greatVibes.variable}`}
     >
       <body className="font-body antialiased min-h-screen flex flex-col">
+
+        {/* ━━━ VISIT TRACKER — Invisible, records every page visit ━━━ */}
+        <VisitTracker />
+
         <SiteChromeWrapper chrome={chrome}>
           <div className="flex-1">
             {children}
