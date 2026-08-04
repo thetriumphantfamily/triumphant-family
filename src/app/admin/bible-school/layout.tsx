@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA ADMIN LAYOUT — Shared layout for Bible School admin pages
+// TDA ADMIN LAYOUT – Shared layout for Bible School admin pages
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import TDAAdminAuthGuard from "@/components/bible-school/TDAAdminAuthGuard";
@@ -12,10 +12,12 @@ export default function TDAAdminLayout({
 }) {
   return (
     <TDAAdminAuthGuard>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
         <TDAAdminSidebar />
         <div className="lg:ml-64 min-h-screen">
-          <div className="p-4 lg:p-8 pt-20 lg:pt-8">{children}</div>
+          <div className="p-4 lg:p-8 pt-20 lg:pt-8">
+            {children}
+          </div>
         </div>
       </div>
     </TDAAdminAuthGuard>

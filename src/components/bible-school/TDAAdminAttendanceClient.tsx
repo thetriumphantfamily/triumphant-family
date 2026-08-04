@@ -1,12 +1,13 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA ADMIN ATTENDANCE CLIENT — Create sessions, mark attendance
+// TDA ADMIN ATTENDANCE CLIENT – Create sessions + notify students
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "@/components/church/LoadingScreen";
+import { notifyAllTDAStudents } from "@/lib/tda-notifications";
 
 interface Session {
   id: string;
@@ -37,18 +38,13 @@ interface Attendance {
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
 }
 
 function formatShortDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+    month: "short", day: "numeric", year: "numeric",
   });
 }
 
@@ -60,76 +56,42 @@ export default function TDAAdminAttendanceClient() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-
-  // Marking attendance
   const [markingSession, setMarkingSession] = useState<Session | null>(null);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, boolean>>({});
 
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    session_date: "",
-    session_time: "",
-    location: "",
-    level: "",
+    title: "", description: "", session_date: "",
+    session_time: "", location: "", level: "",
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
       const supabase = createClient();
-
       const [sessionsRes, studentsRes, attendanceRes] = await Promise.all([
-        supabase
-          .from("tda_sessions")
-          .select("*")
-          .order("session_date", { ascending: false }),
-        supabase
-          .from("tda_students")
-          .select("id, student_id, full_name, photo_url, level")
-          .eq("status", "approved")
-          .order("full_name", { ascending: true }),
+        supabase.from("tda_sessions").select("*").order("session_date", { ascending: false }),
+        supabase.from("tda_students").select("id, student_id, full_name, photo_url, level").eq("status", "approved").order("full_name", { ascending: true }),
         supabase.from("tda_attendance").select("*"),
       ]);
-
       setSessions(sessionsRes.data || []);
       setStudents(studentsRes.data || []);
       setAttendance(attendanceRes.data || []);
       setLoading(false);
-    } catch (err) {
-      console.error("Load error:", err);
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); setLoading(false); }
   };
 
   const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      session_date: "",
-      session_time: "",
-      location: "",
-      level: "",
-    });
+    setFormData({ title: "", description: "", session_date: "", session_time: "", location: "", level: "" });
     setShowCreateForm(false);
   };
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (!formData.title.trim() || !formData.session_date) {
-      toast.error("Please enter title and date");
-      return;
-    }
-
+    if (!formData.title.trim() || !formData.session_date) { toast.error("Please enter title and date"); return; }
     setIsSubmitting(true);
-
     try {
       const supabase = createClient();
-
       const { error } = await supabase.from("tda_sessions").insert({
         title: formData.title.trim(),
         description: formData.description.trim() || null,
@@ -138,320 +100,192 @@ export default function TDAAdminAttendanceClient() {
         location: formData.location.trim() || null,
         level: formData.level || null,
       });
+      if (error) { toast.error(`Failed: ${error.message}`); setIsSubmitting(false); return; }
 
-      if (error) {
-        toast.error(`Failed: ${error.message}`);
-        setIsSubmitting(false);
-        return;
-      }
+      // ✅ NOTIFY ALL STUDENTS
+      await notifyAllTDAStudents({
+        title: "📅 New Class Session Scheduled",
+        message: `${formData.title.trim()} on ${formatShortDate(formData.session_date)}${formData.session_time ? " at " + formData.session_time : ""}${formData.location ? " — " + formData.location : ""}. Mark your calendar!`,
+        type: "attendance",
+        link: "/bible-school/portal/attendance",
+      });
 
-      toast.success("✅ Session created!");
+      toast.success("✅ Session created and students notified!");
       resetForm();
       loadData();
-      setIsSubmitting(false);
-    } catch (err) {
-      console.error("Create error:", err);
-      toast.error("Failed to create");
-      setIsSubmitting(false);
-    }
+    } catch { toast.error("Failed to create"); }
+    finally { setIsSubmitting(false); }
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"?\n\nAll attendance records will also be deleted.`))
-      return;
-
+    if (!confirm(`Delete "${title}"?\n\nAll attendance records will also be deleted.`)) return;
     setBusyId(id);
     try {
       const supabase = createClient();
       const { error } = await supabase.from("tda_sessions").delete().eq("id", id);
-
-      if (error) {
-        toast.error("Failed to delete");
-        setBusyId(null);
-        return;
-      }
-
+      if (error) { toast.error("Failed to delete"); setBusyId(null); return; }
       setSessions((prev) => prev.filter((s) => s.id !== id));
       setAttendance((prev) => prev.filter((a) => a.session_id !== id));
       toast.success("🗑️ Deleted");
-    } catch (err) {
-      console.error("Delete error:", err);
-      toast.error("Delete failed");
-    } finally {
-      setBusyId(null);
-    }
+    } catch { toast.error("Delete failed"); }
+    finally { setBusyId(null); }
   };
 
   const openMarkAttendance = (session: Session) => {
     setMarkingSession(session);
-
-    // Pre-populate with existing attendance
     const sessionAttendance = attendance.filter((a) => a.session_id === session.id);
+    const eligibleStudents = session.level ? students.filter((s) => s.level === session.level) : students;
     const map: Record<string, boolean> = {};
-
-    // Filter students by session level
-    const eligibleStudents = session.level
-      ? students.filter((s) => s.level === session.level)
-      : students;
-
     eligibleStudents.forEach((student) => {
       const record = sessionAttendance.find((a) => a.student_id === student.id);
       map[student.id] = record?.status === "present";
     });
-
     setAttendanceMap(map);
   };
 
   const toggleAttendance = (studentId: string) => {
-    setAttendanceMap({
-      ...attendanceMap,
-      [studentId]: !attendanceMap[studentId],
-    });
+    setAttendanceMap({ ...attendanceMap, [studentId]: !attendanceMap[studentId] });
   };
 
   const markAllPresent = () => {
     const map: Record<string, boolean> = {};
-    Object.keys(attendanceMap).forEach((id) => {
-      map[id] = true;
-    });
+    Object.keys(attendanceMap).forEach((id) => { map[id] = true; });
     setAttendanceMap(map);
   };
 
   const clearAll = () => {
     const map: Record<string, boolean> = {};
-    Object.keys(attendanceMap).forEach((id) => {
-      map[id] = false;
-    });
+    Object.keys(attendanceMap).forEach((id) => { map[id] = false; });
     setAttendanceMap(map);
   };
 
   const saveAttendance = async () => {
     if (!markingSession) return;
-
     setIsSubmitting(true);
-
     try {
       const supabase = createClient();
-
-      // Delete existing attendance for this session
-      await supabase
-        .from("tda_attendance")
-        .delete()
-        .eq("session_id", markingSession.id);
-
-      // Insert new attendance records
+      await supabase.from("tda_attendance").delete().eq("session_id", markingSession.id);
       const records = Object.entries(attendanceMap).map(([studentId, isPresent]) => ({
-        session_id: markingSession.id,
-        student_id: studentId,
+        session_id: markingSession.id, student_id: studentId,
         status: isPresent ? "present" : "absent",
       }));
-
       const { error } = await supabase.from("tda_attendance").insert(records);
-
-      if (error) {
-        toast.error(`Failed: ${error.message}`);
-        setIsSubmitting(false);
-        return;
-      }
-
+      if (error) { toast.error(`Failed: ${error.message}`); setIsSubmitting(false); return; }
       toast.success("✅ Attendance saved!");
       setMarkingSession(null);
       loadData();
-      setIsSubmitting(false);
-    } catch (err) {
-      console.error("Save error:", err);
-      toast.error("Failed to save");
-      setIsSubmitting(false);
-    }
+    } catch { toast.error("Failed to save"); }
+    finally { setIsSubmitting(false); }
   };
 
   const getAttendanceCount = (sessionId: string, sessionLevel: string | null) => {
     const sessionAttendance = attendance.filter((a) => a.session_id === sessionId);
-    const eligibleStudents = sessionLevel
-      ? students.filter((s) => s.level === sessionLevel)
-      : students;
-
+    const eligibleStudents = sessionLevel ? students.filter((s) => s.level === sessionLevel) : students;
     const presentCount = sessionAttendance.filter((a) => a.status === "present").length;
     return { present: presentCount, total: eligibleStudents.length };
   };
 
   const eligibleStudentsForMarking = markingSession
-    ? markingSession.level
-      ? students.filter((s) => s.level === markingSession.level)
-      : students
+    ? markingSession.level ? students.filter((s) => s.level === markingSession.level) : students
     : [];
 
   const presentCount = Object.values(attendanceMap).filter(Boolean).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-gray-500">Loading attendance...</p>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen message="Loading attendance..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-brand-purple-900 mb-2">
+    <div className="space-y-4 pb-6">
+
+      {/* ── Page Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-black text-xs uppercase tracking-widest">Attendance</span>
+          </div>
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-1">
             ✅ Sessions & Attendance
           </h1>
-          <p className="text-gray-600 text-sm">
-            Create class sessions and mark student attendance
+          <p className="text-brand-purple-200 text-sm mb-4">
+            Create sessions and mark attendance. Students notified automatically.
           </p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Create Session
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-4 border-2 border-gray-100 shadow-md">
-          <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
-            Total Sessions
-          </p>
-          <p className="text-3xl font-bold text-brand-purple-900">
-            {sessions.length}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border-2 border-gray-100 shadow-md">
-          <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
-            Total Records
-          </p>
-          <p className="text-3xl font-bold text-brand-purple-900">
-            {attendance.length}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border-2 border-green-200 shadow-md">
-          <p className="text-xs text-green-600 uppercase font-semibold mb-1">
-            Total Present
-          </p>
-          <p className="text-3xl font-bold text-green-600">
-            {attendance.filter((a) => a.status === "present").length}
-          </p>
+          <button onClick={() => setShowCreateForm(true)}
+            className="w-full md:w-auto py-3 px-6 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all">
+            ➕ Create Session
+          </button>
         </div>
       </div>
 
-      {/* Sessions List */}
-      {sessions.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-purple-100 mb-4">
-            <svg
-              className="w-10 h-10 text-brand-purple-600"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"
-              />
-            </svg>
+      {/* ── Stats ── */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "Sessions", value: sessions.length, border: "border-brand-gold-400/40" },
+          { label: "Records", value: attendance.length, border: "border-brand-gold-400/40" },
+          { label: "Total Present", value: attendance.filter((a) => a.status === "present").length, border: "border-green-400/40" },
+        ].map((s) => (
+          <div key={s.label} className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${s.border} p-4 shadow-xl`}>
+            <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+            <p className="text-brand-purple-200 text-xs uppercase tracking-widest font-semibold mb-1">{s.label}</p>
+            <p className="text-white font-black text-3xl">{s.value}</p>
           </div>
-          <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">
-            No sessions yet
-          </h3>
-          <p className="text-gray-500">
-            Click &ldquo;Create Session&rdquo; to add your first session
-          </p>
+        ))}
+      </div>
+
+      {/* ── Sessions List ── */}
+      {sessions.length === 0 ? (
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="text-5xl mb-4">✅</div>
+          <h3 className="font-heading text-xl font-bold text-white mb-2">No sessions yet</h3>
+          <p className="text-brand-purple-200 text-sm">Click &ldquo;Create Session&rdquo; to add your first session</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {sessions.map((session) => {
             const { present, total } = getAttendanceCount(session.id, session.level);
             const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
             const isBusy = busyId === session.id;
 
             return (
-              <div
-                key={session.id}
-                className="bg-white rounded-2xl p-5 border-2 border-gray-100 shadow-md hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      {session.level ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-                          Level {session.level}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold">
-                          All Levels
-                        </span>
-                      )}
-                    </div>
+              <div key={session.id} className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 shadow-xl">
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-                    <h3 className="font-heading font-bold text-brand-purple-900 text-lg mb-1">
-                      {session.title}
-                    </h3>
-
-                    {session.description && (
-                      <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                        {session.description}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                      <span>📅 {formatDate(session.session_date)}</span>
-                      {session.session_time && <span>🕐 {session.session_time}</span>}
-                      {session.location && <span>📍 {session.location}</span>}
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {session.level ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-xs font-black border border-blue-400/40">Level {session.level}</span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-purple-950/60 text-white text-xs font-black border border-brand-gold-400/40">All Levels</span>
+                  )}
                 </div>
 
-                {/* Attendance Summary */}
-                <div className="p-3 bg-gray-50 rounded-xl mb-3">
+                <h3 className="font-heading font-black text-white text-base mb-1">{session.title}</h3>
+                {session.description && <p className="text-brand-purple-200 text-sm line-clamp-2 mb-2">{session.description}</p>}
+
+                <div className="flex flex-wrap items-center gap-3 text-xs text-brand-purple-200 mb-3">
+                  <span>📅 {formatDate(session.session_date)}</span>
+                  {session.session_time && <span>🕐 {session.session_time}</span>}
+                  {session.location && <span>📍 {session.location}</span>}
+                </div>
+
+                <div className="bg-brand-purple-950/60 rounded-xl p-3 border border-brand-gold-400/30 mb-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-gray-700">
-                      Attendance
-                    </span>
-                    <span className="text-lg font-bold text-brand-purple-900">
-                      {present} / {total} ({percentage}%)
-                    </span>
+                    <span className="text-xs font-black text-white uppercase tracking-widest">Attendance</span>
+                    <span className="text-white font-black text-sm">{present} / {total} ({percentage}%)</span>
                   </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 rounded-full transition-all"
-                      style={{ width: `${percentage}%` }}
-                    />
+                  <div className="w-full h-2 bg-brand-purple-950/80 rounded-full overflow-hidden border border-brand-gold-400/20">
+                    <div className="h-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 rounded-full transition-all" style={{ width: `${percentage}%` }} />
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-3 border-t border-gray-100">
-                  <button
-                    onClick={() => openMarkAttendance(session)}
-                    className="flex-1 px-4 py-2 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 text-sm font-bold transition-all"
-                  >
+                <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30">
+                  <button onClick={() => openMarkAttendance(session)}
+                    className="w-full py-2.5 rounded-xl bg-white text-brand-purple-900 text-xs font-black active:scale-95 transition-all">
                     ✏️ Mark Attendance
                   </button>
-                  <button
-                    onClick={() => handleDelete(session.id, session.title)}
-                    disabled={isBusy}
-                    className="px-4 py-2 rounded-full bg-red-100 hover:bg-red-200 text-red-700 text-sm font-bold transition-all disabled:opacity-50"
-                  >
-                    🗑️ Delete
+                  <button onClick={() => handleDelete(session.id, session.title)} disabled={isBusy}
+                    className="w-full py-2.5 rounded-xl bg-red-600 text-white text-xs font-black disabled:opacity-50 active:scale-95 transition-all">
+                    🗑️ Delete Session
                   </button>
                 </div>
               </div>
@@ -460,160 +294,68 @@ export default function TDAAdminAttendanceClient() {
         </div>
       )}
 
-      {/* ━━━ CREATE SESSION MODAL ━━━ */}
+      {/* ── CREATE SESSION MODAL ── */}
       {showCreateForm && (
         <>
-          <div
-            onClick={resetForm}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8 pointer-events-auto max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div onClick={resetForm} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-heading text-xl font-bold text-brand-purple-900">
-                      ✅ Create Session
-                    </h2>
-                    <p className="text-gray-500 text-sm mt-1">
-                      Schedule a new class session
-                    </p>
-                  </div>
-                  <button
-                    onClick={resetForm}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-5 h-5 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                  <h2 className="font-heading text-lg font-bold text-brand-purple-900">✅ Create Session</h2>
+                  <button onClick={resetForm} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               </div>
-
-              <form onSubmit={handleCreate} className="p-6 space-y-5">
+              <form onSubmit={handleCreate} className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Session Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder="e.g. Prayer & Fasting Class"
-                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
-                    required
-                  />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Session Title <span className="text-red-500">*</span></label>
+                  <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g. Prayer & Fasting Class" required
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="What will be taught in this session..."
-                    rows={3}
-                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none"
-                  />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                  <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="What will be taught..." rows={3}
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 resize-none" />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Session Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.session_date}
-                      onChange={(e) =>
-                        setFormData({ ...formData, session_date: e.target.value })
-                      }
-                      className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Session Time
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.session_time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, session_time: e.target.value })
-                      }
-                      className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Session Date <span className="text-red-500">*</span></label>
+                  <input type="date" value={formData.session_date} onChange={(e) => setFormData({ ...formData, session_date: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" required />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) =>
-                        setFormData({ ...formData, location: e.target.value })
-                      }
-                      placeholder="e.g. Main Sanctuary"
-                      className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      For Which Level
-                    </label>
-                    <select
-                      value={formData.level}
-                      onChange={(e) =>
-                        setFormData({ ...formData, level: e.target.value })
-                      }
-                      className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white"
-                    >
-                      <option value="">All Levels</option>
-                      <option value="100">Level 100 only</option>
-                      <option value="200">Level 200 only</option>
-                      <option value="300">Level 300 only</option>
-                      <option value="400">Level 400 only</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Session Time</label>
+                  <input type="time" value={formData.session_time} onChange={(e) => setFormData({ ...formData, session_time: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
                 </div>
-
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold"
-                  >
-                    Cancel
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                  <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="e.g. Main Sanctuary"
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">For Which Level</label>
+                  <select value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                    className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-gray-900 bg-white">
+                    <option value="">All Levels</option>
+                    <option value="100">Level 100 only</option>
+                    <option value="200">Level 200 only</option>
+                    <option value="300">Level 300 only</option>
+                    <option value="400">Level 400 only</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
+                  <button type="submit" disabled={isSubmitting}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
+                    {isSubmitting ? "Creating..." : "✅ Create & Notify Students"}
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all disabled:opacity-50"
-                  >
-                    {isSubmitting ? "Creating..." : "✅ Create Session"}
-                  </button>
+                  <button type="button" onClick={resetForm} className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold">Cancel</button>
                 </div>
               </form>
             </div>
@@ -621,128 +363,69 @@ export default function TDAAdminAttendanceClient() {
         </>
       )}
 
-      {/* ━━━ MARK ATTENDANCE MODAL ━━━ */}
+      {/* ── MARK ATTENDANCE MODAL ── */}
       {markingSession && (
         <>
-          <div
-            onClick={() => setMarkingSession(null)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8 pointer-events-auto max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
-                <div className="flex items-start justify-between gap-4">
+          <div onClick={() => setMarkingSession(null)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-lg pointer-events-auto max-h-[92vh] overflow-y-auto flex flex-col">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
+                <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-1">
-                      Mark Attendance
-                    </p>
-                    <h2 className="font-heading text-xl font-bold text-brand-purple-900">
-                      {markingSession.title}
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {formatShortDate(markingSession.session_date)}
-                      {markingSession.session_time && ` • ${markingSession.session_time}`}
+                    <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-1">Mark Attendance</p>
+                    <h2 className="font-heading text-lg font-bold text-brand-purple-900">{markingSession.title}</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {formatShortDate(markingSession.session_date)}{markingSession.session_time && ` • ${markingSession.session_time}`}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setMarkingSession(null)}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-5 h-5 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                  <button onClick={() => setMarkingSession(null)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
-
-                {/* Counter + Bulk Actions */}
-                <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
-                  <div className="p-3 bg-brand-purple-50 rounded-xl border-2 border-brand-purple-100 flex-1">
-                    <p className="text-sm font-bold text-brand-purple-900">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="px-4 py-2 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-sm font-black text-brand-purple-900">
                       {presentCount} of {eligibleStudentsForMarking.length} present
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={markAllPresent}
-                      className="px-4 py-2 rounded-full bg-green-100 hover:bg-green-200 text-green-700 text-sm font-bold transition-all"
-                    >
+                    <button onClick={markAllPresent} className="px-3 py-2 rounded-xl bg-green-600 text-white text-xs font-black active:scale-95 transition-all">
                       ✅ All Present
                     </button>
-                    <button
-                      onClick={clearAll}
-                      className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold transition-all"
-                    >
-                      ✗ Clear All
+                    <button onClick={clearAll} className="px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold active:scale-95 transition-all">
+                      ✕ Clear All
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="flex-1 overflow-y-auto p-5">
                 {eligibleStudentsForMarking.length === 0 ? (
-                  <div className="text-center py-10">
-                    <p className="text-gray-500">
-                      No approved students for this level
-                    </p>
-                  </div>
+                  <div className="text-center py-10"><p className="text-gray-500">No approved students for this level</p></div>
                 ) : (
                   <div className="space-y-2">
                     {eligibleStudentsForMarking.map((student) => {
                       const isPresent = attendanceMap[student.id] || false;
-
                       return (
-                        <div
-                          key={student.id}
-                          onClick={() => toggleAttendance(student.id)}
+                        <div key={student.id} onClick={() => toggleAttendance(student.id)}
                           className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                            isPresent
-                              ? "border-green-400 bg-green-50"
-                              : "border-gray-100 hover:border-gray-300"
-                          }`}
-                        >
+                            isPresent ? "border-green-400 bg-green-50" : "border-gray-100 hover:border-gray-300"
+                          }`}>
                           {student.photo_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={student.photo_url}
-                              alt={student.full_name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-brand-gold-400"
-                            />
+                            <img src={student.photo_url} alt={student.full_name} className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 flex-shrink-0" />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-brand-gold-400 flex items-center justify-center text-brand-purple-900 font-bold">
+                            <div className="w-10 h-10 rounded-full bg-brand-purple-100 flex items-center justify-center text-brand-purple-900 font-black flex-shrink-0">
                               {student.full_name.charAt(0)}
                             </div>
                           )}
-
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-brand-purple-900 truncate">
-                              {student.full_name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {student.student_id} • Level {student.level}
-                            </p>
+                            <p className="font-black text-brand-purple-900 truncate text-sm">{student.full_name}</p>
+                            <p className="text-xs text-gray-500">{student.student_id} • Level {student.level}</p>
                           </div>
-
-                          {/* Toggle Switch */}
-                          <div
-                            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors flex-shrink-0 ${
-                              isPresent ? "bg-green-500" : "bg-gray-300"
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${
-                                isPresent ? "translate-x-9" : "translate-x-1"
-                              }`}
-                            />
+                          <div className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors flex-shrink-0 ${isPresent ? "bg-green-500" : "bg-gray-300"}`}>
+                            <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md ${isPresent ? "translate-x-9" : "translate-x-1"}`} />
                           </div>
                         </div>
                       );
@@ -751,22 +434,13 @@ export default function TDAAdminAttendanceClient() {
                 )}
               </div>
 
-              {/* Actions */}
-              <div className="sticky bottom-0 bg-white border-t-2 border-gray-100 p-6 rounded-b-3xl">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setMarkingSession(null)}
-                    className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={saveAttendance}
-                    disabled={isSubmitting || eligibleStudentsForMarking.length === 0}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all disabled:opacity-50"
-                  >
+              <div className="sticky bottom-0 bg-white border-t-2 border-gray-100 p-5 rounded-b-3xl">
+                <div className="flex flex-col gap-3">
+                  <button onClick={saveAttendance} disabled={isSubmitting || eligibleStudentsForMarking.length === 0}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">
                     {isSubmitting ? "Saving..." : "💾 Save Attendance"}
                   </button>
+                  <button onClick={() => setMarkingSession(null)} className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold">Cancel</button>
                 </div>
               </div>
             </div>

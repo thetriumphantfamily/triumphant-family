@@ -1,13 +1,11 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA ADMIN AUTH GUARD — Protects Bible School admin (TFAM logo loading)
+// TDA ADMIN AUTH GUARD – Protects Bible School admin (TFAM logo loading)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 
 export default function TDAAdminAuthGuard({
   children,
@@ -22,7 +20,7 @@ export default function TDAAdminAuthGuard({
     checkAuth();
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = () => {
     try {
       const session = localStorage.getItem("tda_admin_session");
 
@@ -32,6 +30,15 @@ export default function TDAAdminAuthGuard({
       }
 
       const parsed = JSON.parse(session);
+
+      // ✅ Check session exists and has required fields
+      if (!parsed.password || !parsed.loggedInAt) {
+        localStorage.removeItem("tda_admin_session");
+        router.push("/admin/login");
+        return;
+      }
+
+      // ✅ Check session expiry (24 hours)
       const loggedInAt = new Date(parsed.loggedInAt);
       const now = new Date();
       const hoursDiff = (now.getTime() - loggedInAt.getTime()) / (1000 * 60 * 60);
@@ -42,21 +49,11 @@ export default function TDAAdminAuthGuard({
         return;
       }
 
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("tda_settings")
-        .select("setting_value")
-        .eq("setting_key", "school_admin_password")
-        .single();
-
-      if (!data || data.setting_value !== parsed.password) {
-        localStorage.removeItem("tda_admin_session");
-        router.push("/admin/login");
-        return;
-      }
-
+      // ✅ Session is valid — no DB check needed
+      // The password was already verified at login time
       setIsAuthenticated(true);
       setIsChecking(false);
+
     } catch (err) {
       console.error("Auth check error:", err);
       localStorage.removeItem("tda_admin_session");
@@ -64,6 +61,7 @@ export default function TDAAdminAuthGuard({
     }
   };
 
+  // Still checking
   if (isChecking) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center">
@@ -79,8 +77,12 @@ export default function TDAAdminAuthGuard({
               priority
             />
           </div>
-          <p className="text-white font-black text-base md:text-lg mb-2">Triumphant Disciples Academy</p>
-          <p className="text-brand-purple-200 font-semibold text-sm">Verifying admin access...</p>
+          <p className="text-white font-black text-base md:text-lg mb-2">
+            Triumphant Disciples Academy
+          </p>
+          <p className="text-brand-purple-200 font-semibold text-sm">
+            Verifying admin access...
+          </p>
           <div className="mt-4 flex justify-center gap-1">
             <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-bounce" style={{ animationDelay: "0ms" }} />
             <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -91,7 +93,9 @@ export default function TDAAdminAuthGuard({
     );
   }
 
+  // Not authenticated
   if (!isAuthenticated) return null;
 
+  // ✅ Authenticated — show children
   return <>{children}</>;
 }

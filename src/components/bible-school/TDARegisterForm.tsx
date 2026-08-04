@@ -7,6 +7,7 @@ import { useState, useRef, FormEvent } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyTDAAdmin } from "@/lib/tda-notifications";
 
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024;
 
@@ -65,8 +66,14 @@ export default function TDARegisterForm() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > MAX_PHOTO_SIZE) { toast.error("Photo too large! Max 2 MB"); return; }
-    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+    if (file.size > MAX_PHOTO_SIZE) {
+      toast.error("Photo too large! Max 2 MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -84,16 +91,46 @@ export default function TDARegisterForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formData.full_name.trim()) { toast.error("Please enter your full name"); return; }
-    if (!formData.email.trim()) { toast.error("Please enter your email"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) { toast.error("Please enter a valid email"); return; }
-    if (!formData.phone.trim()) { toast.error("Please enter your phone number"); return; }
-    if (!formData.gender) { toast.error("Please select your gender"); return; }
-    if (!formData.level) { toast.error("Please select your course level"); return; }
-    if (!selectedFile) { toast.error("Please upload your passport photograph"); return; }
-    if (formData.password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
-    if (formData.password !== formData.confirm_password) { toast.error("Passwords do not match"); return; }
-    if (!formData.agree_terms) { toast.error("Please agree to the terms to continue"); return; }
+    if (!formData.full_name.trim()) {
+      toast.error("Please enter your full name");
+      return;
+    }
+    if (!formData.email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+    if (!formData.phone.trim()) {
+      toast.error("Please enter your phone number");
+      return;
+    }
+    if (!formData.gender) {
+      toast.error("Please select your gender");
+      return;
+    }
+    if (!formData.level) {
+      toast.error("Please select your course level");
+      return;
+    }
+    if (!selectedFile) {
+      toast.error("Please upload your passport photograph");
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (formData.password !== formData.confirm_password) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (!formData.agree_terms) {
+      toast.error("Please agree to the terms to continue");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -130,14 +167,16 @@ export default function TDARegisterForm() {
         return;
       }
 
-      const { data: { publicUrl } } = supabase.storage
+      const {
+        data: { publicUrl },
+      } = supabase.storage
         .from("tda-files")
         .getPublicUrl(`students/${fileName}`);
 
       // Generate Student ID
       const studentId = await generateStudentId();
 
-      // ✅ Insert into database — password now included
+      // Insert into database
       const payload = {
         student_id: studentId,
         full_name: formData.full_name.trim(),
@@ -159,7 +198,7 @@ export default function TDARegisterForm() {
         next_of_kin_phone: formData.next_of_kin_phone.trim() || null,
         batch: "Class of 2026",
         status: "pending",
-        password: formData.password, // ✅ NOW SAVED
+        password: formData.password,
       };
 
       const { error: dbError } = await supabase
@@ -171,6 +210,14 @@ export default function TDARegisterForm() {
         setIsSubmitting(false);
         return;
       }
+
+      // ✅ Notify TDA Admin
+      await notifyTDAAdmin({
+        title: "👤 New TDA Student Registration",
+        message: `${formData.full_name.trim()} (${studentId}) registered for Level ${formData.level}. Review and approve.`,
+        type: "registration",
+        link: "/admin/bible-school/students",
+      });
 
       toast.success("🎉 Registration successful!", {
         style: {
@@ -185,7 +232,6 @@ export default function TDARegisterForm() {
         studentId,
         name: formData.full_name.trim(),
       });
-
     } catch (err) {
       console.error("Unexpected error:", err);
       toast.error("Something went wrong. Please try again.");
@@ -265,7 +311,7 @@ export default function TDARegisterForm() {
       >
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-        {/* ── SECTION 1: PHOTO UPLOAD ── */}
+        {/* SECTION 1: PHOTO UPLOAD */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">📸</span>
@@ -313,7 +359,7 @@ export default function TDARegisterForm() {
           </div>
         </div>
 
-        {/* ── SECTION 2: PERSONAL INFORMATION ── */}
+        {/* SECTION 2: PERSONAL INFORMATION */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">👤</span>
@@ -398,7 +444,7 @@ export default function TDARegisterForm() {
           </div>
         </div>
 
-        {/* ── SECTION 3: LOCATION ── */}
+        {/* SECTION 3: LOCATION */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">📍</span>
@@ -441,7 +487,7 @@ export default function TDARegisterForm() {
           </div>
         </div>
 
-        {/* ── SECTION 4: ACADEMIC INFO ── */}
+        {/* SECTION 4: ACADEMIC INFO */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">🎓</span>
@@ -479,7 +525,7 @@ export default function TDARegisterForm() {
           </div>
         </div>
 
-        {/* ── SECTION 5: NEXT OF KIN ── */}
+        {/* SECTION 5: NEXT OF KIN */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">👥</span>
@@ -509,7 +555,7 @@ export default function TDARegisterForm() {
           </div>
         </div>
 
-        {/* ── SECTION 6: ACCOUNT SETUP ── */}
+        {/* SECTION 6: ACCOUNT SETUP */}
         <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
           <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-2xl">🔐</span>
@@ -565,7 +611,7 @@ export default function TDARegisterForm() {
           </div>
         </div>
 
-        {/* ── TERMS AGREEMENT ── */}
+        {/* TERMS AGREEMENT */}
         <div className="mb-6">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
@@ -583,7 +629,7 @@ export default function TDARegisterForm() {
           </label>
         </div>
 
-        {/* ── SUBMIT BUTTON ── */}
+        {/* SUBMIT BUTTON */}
         <button
           type="submit"
           disabled={isSubmitting}

@@ -1,7 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// RESET PASSWORD PAGE — Set new password with eye icons
+// RESET PASSWORD PAGE – Set new password with eye icons
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useState, FormEvent } from "react";
@@ -40,37 +39,17 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords don't match");
-      return;
-    }
-
+    if (password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    if (password !== confirmPassword) { toast.error("Passwords don't match"); return; }
     setIsSubmitting(true);
-
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.updateUser({ password });
-
       if (error) throw error;
-
       toast.success("Password updated! Signing you in...", {
-        style: {
-          background: "#6B1F8A",
-          color: "#fff",
-          border: "1px solid #FFC72C",
-        },
+        style: { background: "#6B1F8A", color: "#fff", border: "1px solid #FFC72C" },
       });
-
-      setTimeout(() => {
-        router.push("/admin");
-        router.refresh();
-      }, 1000);
+      setTimeout(() => { router.push("/admin"); router.refresh(); }, 1000);
     } catch (err) {
       console.error(err);
       toast.error("Could not update password. Try again.");
@@ -80,34 +59,24 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center py-12 px-4 relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-brand-magenta-500/20 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-brand-gold-400/10 blur-3xl" />
-      </div>
+    <main className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md">
 
-      <div className="relative z-10 w-full max-w-md">
+        {/* ── Logo Header ── */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
+          <Link href="/" className="inline-block mb-3">
             <Image src="/images/logo/logo.png" alt="Logo" width={80} height={80} className="mx-auto" unoptimized />
           </Link>
-
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-brand-gold-400/40 bg-brand-gold-400/10 mt-4 mb-3">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-brand-gold-400/40 bg-brand-purple-950/60 mb-3">
             <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
-            <span className="text-brand-gold-300 font-semibold text-sm uppercase tracking-widest">
-              New Password
-            </span>
+            <span className="text-white font-black text-sm uppercase tracking-widest">New Password</span>
           </div>
-
           <h1 className="font-heading text-3xl md:text-4xl font-bold text-white">
-            Create{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
-              New Password
-            </span>
+            Create New Password
           </h1>
         </div>
 
+        {/* ── Card ── */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <div className="mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-3">
@@ -115,20 +84,13 @@ export default function ResetPasswordPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="font-heading text-2xl font-bold text-brand-purple-900 mb-2">
-              Set New Password
-            </h2>
-            <p className="text-gray-500 text-sm">
-              Choose a strong password with at least 8 characters.
-            </p>
+            <h2 className="font-heading text-2xl font-bold text-brand-purple-900 mb-2">Set New Password</h2>
+            <p className="text-gray-500 text-sm">Choose a strong password with at least 8 characters.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* New Password */}
             <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">
-                New Password
-              </label>
+              <label className="block text-sm font-bold text-brand-purple-900 mb-2">New Password</label>
               <div className="relative">
                 <LockIcon />
                 <input
@@ -136,25 +98,19 @@ export default function ResetPasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 8 characters"
-                  className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none transition-colors text-brand-purple-900"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-brand-purple-900"
                   required
                   minLength={8}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-purple-400 hover:text-brand-purple-700 transition-colors"
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-purple-400 hover:text-brand-purple-700">
                   {showPassword ? <EyeClosed /> : <EyeOpen />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-bold text-brand-purple-900 mb-2">
-                Confirm Password
-              </label>
+              <label className="block text-sm font-bold text-brand-purple-900 mb-2">Confirm Password</label>
               <div className="relative">
                 <LockIcon />
                 <input
@@ -162,42 +118,29 @@ export default function ResetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter your password"
-                  className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none transition-colors text-brand-purple-900"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-purple-500 focus:outline-none text-brand-purple-900"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-purple-400 hover:text-brand-purple-700 transition-colors"
-                >
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-purple-400 hover:text-brand-purple-700">
                   {showConfirm ? <EyeClosed /> : <EyeOpen />}
                 </button>
               </div>
               {password && confirmPassword && password !== confirmPassword && (
-                <p className="text-red-500 text-xs mt-2 font-semibold">
-                  Passwords don&apos;t match
-                </p>
+                <p className="text-red-500 text-xs mt-2 font-semibold">Passwords don&apos;t match</p>
               )}
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 hover:from-brand-gold-500 hover:to-brand-gold-600 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
-            >
+            <button type="submit" disabled={isSubmitting}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all disabled:opacity-50">
               {isSubmitting ? (
-                <>
-                  <span className="w-5 h-5 border-2 border-brand-purple-900/30 border-t-brand-purple-900 rounded-full animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update Password"
-              )}
+                <><span className="w-5 h-5 border-2 border-brand-purple-900/30 border-t-brand-purple-900 rounded-full animate-spin" />Updating...</>
+              ) : "Update Password"}
             </button>
           </form>
         </div>
 
-        <p className="text-center mt-6 font-script text-brand-gold-400 text-xl">
+        <p className="text-center mt-6 text-white/70 text-sm italic font-medium">
           Fresh start. Secured.
         </p>
       </div>

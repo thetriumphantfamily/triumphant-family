@@ -1,12 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA ASSIGNMENTS CLIENT — View assignments, submit, see grades
+// TDA ASSIGNMENTS CLIENT – View assignments, submit, see grades
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 "use client";
 
 import { useEffect, useState, useRef, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import LoadingScreen from "@/components/church/LoadingScreen";
 
 interface Assignment {
   id: string;
@@ -36,129 +36,77 @@ interface AssignmentWithSubmission extends Assignment {
   submission?: Submission;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-// Format date
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    year: "numeric", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
   });
 }
 
-// Check if past due
 function isPastDue(dueDate: string | null): boolean {
   if (!dueDate) return false;
   return new Date(dueDate) < new Date();
 }
 
-// Get status display
-function getStatusDisplay(assignment: AssignmentWithSubmission): {
+function getStatusBadge(assignment: AssignmentWithSubmission): {
   label: string;
-  color: string;
-  icon: string;
+  className: string;
 } {
   if (assignment.submission?.status === "graded") {
-    return {
-      label: "Graded",
-      color: "bg-green-100 text-green-700 border-green-300",
-      icon: "✅",
-    };
+    return { label: "✅ Graded", className: "bg-green-500/20 text-green-300 border-green-400/40" };
   }
   if (assignment.submission) {
-    return {
-      label: "Submitted",
-      color: "bg-blue-100 text-blue-700 border-blue-300",
-      icon: "📝",
-    };
+    return { label: "📤 Submitted", className: "bg-blue-500/20 text-blue-300 border-blue-400/40" };
   }
   if (isPastDue(assignment.due_date)) {
-    return {
-      label: "Overdue",
-      color: "bg-red-100 text-red-700 border-red-300",
-      icon: "⚠️",
-    };
+    return { label: "⚠️ Overdue", className: "bg-red-500/20 text-red-300 border-red-400/40" };
   }
-  return {
-    label: "Pending",
-    color: "bg-yellow-100 text-yellow-700 border-yellow-300",
-    icon: "⏳",
-  };
+  return { label: "⏳ Pending", className: "bg-brand-purple-950/60 text-white border-brand-gold-400/40" };
 }
 
 export default function TDAAssignmentsClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [assignments, setAssignments] = useState<AssignmentWithSubmission[]>(
-    []
-  );
+  const [assignments, setAssignments] = useState<AssignmentWithSubmission[]>([]);
   const [studentId, setStudentId] = useState<string>("");
   const [studentLevel, setStudentLevel] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [selectedAssignment, setSelectedAssignment] =
-    useState<AssignmentWithSubmission | null>(null);
+  const [selectedAssignment, setSelectedAssignment] = useState<AssignmentWithSubmission | null>(null);
   const [submissionText, setSubmissionText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [filter, setFilter] = useState<"all" | "pending" | "submitted" | "graded">(
-    "all"
-  );
+  const [filter, setFilter] = useState<"all" | "pending" | "submitted" | "graded">("all");
 
-  useEffect(() => {
-    loadAssignments();
-  }, []);
+  useEffect(() => { loadAssignments(); }, []);
 
   const loadAssignments = async () => {
     try {
       const session = localStorage.getItem("tda_student_session");
       if (!session) return;
-
       const sessionData = JSON.parse(session);
       setStudentId(sessionData.id);
       setStudentLevel(sessionData.level);
-
       const supabase = createClient();
-
-      // Fetch assignments for student's level OR all levels
       const { data: assignmentsData } = await supabase
-        .from("tda_assignments")
-        .select("*")
+        .from("tda_assignments").select("*")
         .or(`level.eq.${sessionData.level},level.is.null`)
         .order("due_date", { ascending: true });
-
-      // Fetch student's submissions
       const { data: submissionsData } = await supabase
-        .from("tda_submissions")
-        .select("*")
-        .eq("student_id", sessionData.id);
-
-      // Combine
-      const combined: AssignmentWithSubmission[] = (assignmentsData || []).map(
-        (a) => ({
-          ...a,
-          submission: submissionsData?.find((s) => s.assignment_id === a.id),
-        })
-      );
-
+        .from("tda_submissions").select("*").eq("student_id", sessionData.id);
+      const combined: AssignmentWithSubmission[] = (assignmentsData || []).map((a) => ({
+        ...a,
+        submission: submissionsData?.find((s) => s.assignment_id === a.id),
+      }));
       setAssignments(combined);
       setLoading(false);
-    } catch (err) {
-      console.error("Load error:", err);
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); setLoading(false); }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("File too large! Max 10 MB");
-      return;
-    }
-
+    if (file.size > MAX_FILE_SIZE) { toast.error("File too large! Max 10 MB"); return; }
     setSelectedFile(file);
   };
 
@@ -171,41 +119,21 @@ export default function TDAAssignmentsClient() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedAssignment) return;
-
     if (!submissionText.trim() && !selectedFile) {
-      toast.error("Please provide either a text answer or upload a file");
-      return;
+      toast.error("Please provide either a text answer or upload a file"); return;
     }
-
     setIsSubmitting(true);
-
     try {
       const supabase = createClient();
       let fileUrl = selectedAssignment.submission?.file_url || null;
       let fileName = selectedAssignment.submission?.file_name || null;
 
-      // Upload file if new one selected
       if (selectedFile) {
         const fileExt = selectedFile.name.split(".").pop();
         const uploadName = `submission-${studentId}-${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("tda-files")
-          .upload(`submissions/${uploadName}`, selectedFile);
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          toast.error(`Upload failed: ${uploadError.message}`);
-          setIsSubmitting(false);
-          return;
-        }
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage
-          .from("tda-files")
-          .getPublicUrl(`submissions/${uploadName}`);
-
+        const { error: uploadError } = await supabase.storage.from("tda-files").upload(`submissions/${uploadName}`, selectedFile);
+        if (uploadError) { toast.error(`Upload failed: ${uploadError.message}`); setIsSubmitting(false); return; }
+        const { data: { publicUrl } } = supabase.storage.from("tda-files").getPublicUrl(`submissions/${uploadName}`);
         fileUrl = publicUrl;
         fileName = selectedFile.name;
       }
@@ -222,41 +150,24 @@ export default function TDAAssignmentsClient() {
 
       let error;
       if (selectedAssignment.submission) {
-        // Update existing
-        const result = await supabase
-          .from("tda_submissions")
-          .update(payload)
-          .eq("id", selectedAssignment.submission.id);
+        const result = await supabase.from("tda_submissions").update(payload).eq("id", selectedAssignment.submission.id);
         error = result.error;
       } else {
-        // Create new
-        const result = await supabase
-          .from("tda_submissions")
-          .insert(payload);
+        const result = await supabase.from("tda_submissions").insert(payload);
         error = result.error;
       }
 
-      if (error) {
-        console.error("Submit error:", error);
-        toast.error(`Submission failed: ${error.message}`);
-        setIsSubmitting(false);
-        return;
-      }
+      if (error) { toast.error(`Submission failed: ${error.message}`); setIsSubmitting(false); return; }
 
       toast.success("✅ Assignment submitted!");
       setSelectedAssignment(null);
       setSubmissionText("");
       setSelectedFile(null);
       loadAssignments();
-    } catch (err) {
-      console.error("Submit error:", err);
-      toast.error("Submission failed");
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (err) { console.error(err); toast.error("Submission failed"); }
+    finally { setIsSubmitting(false); }
   };
 
-  // Filter assignments
   const filteredAssignments = assignments.filter((a) => {
     if (filter === "all") return true;
     if (filter === "pending") return !a.submission;
@@ -265,72 +176,52 @@ export default function TDAAssignmentsClient() {
     return true;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-gray-500">Loading assignments...</p>
-      </div>
-    );
-  }
+  // ✅ LOADING SCREEN
+  if (loading) return <LoadingScreen message="Loading assignments..." />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-brand-purple-900 mb-2">
-          📝 Assignments
-        </h1>
-        <p className="text-gray-600 text-sm">
-          Submit your assignments and view grades for Level {studentLevel}
-        </p>
-      </div>
+    <div className="space-y-4 pb-6">
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white rounded-2xl p-4 border-2 border-gray-100 shadow-md">
-          <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
-            Total
+      {/* ── Page Header ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-black text-xs uppercase tracking-widest">Assignments</span>
+          </div>
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-1">
+            📝 Assignments
+          </h1>
+          <p className="text-brand-purple-200 text-sm">
+            Submit your assignments and view grades for Level {studentLevel}.
           </p>
-          <p className="text-2xl font-bold text-brand-purple-900">
-            {assignments.length}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border-2 border-yellow-200 shadow-md">
-          <p className="text-xs text-yellow-600 uppercase font-semibold mb-1">
-            Pending
-          </p>
-          <p className="text-2xl font-bold text-yellow-600">
-            {assignments.filter((a) => !a.submission).length}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border-2 border-blue-200 shadow-md">
-          <p className="text-xs text-blue-600 uppercase font-semibold mb-1">
-            Submitted
-          </p>
-          <p className="text-2xl font-bold text-blue-600">
-            {assignments.filter((a) => a.submission?.status === "submitted").length}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border-2 border-green-200 shadow-md">
-          <p className="text-xs text-green-600 uppercase font-semibold mb-1">
-            Graded
-          </p>
-          <p className="text-2xl font-bold text-green-600">
-            {assignments.filter((a) => a.submission?.status === "graded").length}
-          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 mt-4 border-t border-brand-gold-400/30">
+            {[
+              { label: "Total", value: assignments.length, border: "border-brand-gold-400/40" },
+              { label: "Pending", value: assignments.filter((a) => !a.submission).length, border: "border-brand-gold-400/40" },
+              { label: "Submitted", value: assignments.filter((a) => a.submission?.status === "submitted").length, border: "border-blue-400/40" },
+              { label: "Graded", value: assignments.filter((a) => a.submission?.status === "graded").length, border: "border-green-400/40" },
+            ].map((s) => (
+              <div key={s.label} className={`relative rounded-2xl overflow-hidden bg-brand-purple-950/60 border ${s.border} p-3 text-center`}>
+                <p className="text-white font-black text-2xl">{s.value}</p>
+                <p className="text-brand-purple-200 text-xs font-semibold uppercase tracking-widest">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
+      {/* ── Filter Tabs ── */}
       <div className="flex flex-wrap gap-2">
         {(["all", "pending", "submitted", "graded"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-bold transition-all capitalize ${
+            className={`px-4 py-2 rounded-full text-xs md:text-sm font-black transition-all capitalize ${
               filter === f
-                ? "bg-brand-purple-600 text-white shadow-md"
-                : "bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200"
+                ? "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold"
+                : "bg-white text-brand-purple-900"
             }`}
           >
             {f}
@@ -338,118 +229,81 @@ export default function TDAAssignmentsClient() {
         ))}
       </div>
 
-      {/* Assignments List */}
+      {/* ── Assignments List ── */}
       {filteredAssignments.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-purple-100 mb-4">
-            <svg
-              className="w-10 h-10 text-brand-purple-600"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-              />
-            </svg>
-          </div>
-          <h3 className="font-heading text-xl font-bold text-brand-purple-900 mb-2">
-            {filter === "all"
-              ? "No assignments yet"
-              : `No ${filter} assignments`}
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="text-5xl mb-4">📝</div>
+          <h3 className="font-heading text-xl font-bold text-white mb-2">
+            {filter === "all" ? "No assignments yet" : `No ${filter} assignments`}
           </h3>
-          <p className="text-gray-500">
+          <p className="text-brand-purple-200 text-sm">
             {filter === "all"
               ? "Assignments will appear here once created by your instructor"
               : `You have no ${filter} assignments at the moment`}
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredAssignments.map((assignment) => {
-            const status = getStatusDisplay(assignment);
+            const status = getStatusBadge(assignment);
             const overdue = isPastDue(assignment.due_date) && !assignment.submission;
-
             return (
               <div
                 key={assignment.id}
-                className={`bg-white rounded-2xl p-5 border-2 shadow-md hover:shadow-lg transition-all ${
-                  overdue
-                    ? "border-red-200"
-                    : "border-gray-100 hover:border-brand-purple-300"
-                }`}
+                className={`relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 ${
+                  overdue ? "border-red-400/60" : "border-brand-gold-400/40"
+                } p-5 shadow-xl`}
               >
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold ${status.color}`}
-                      >
-                        {status.icon} {status.label}
-                      </span>
-                    </div>
-                    <h3 className="font-heading font-bold text-brand-purple-900 text-lg mb-1">
-                      {assignment.title}
-                    </h3>
-                    {assignment.instructions && (
-                      <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                        {assignment.instructions}
-                      </p>
-                    )}
-                  </div>
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+
+                {/* Status Badge */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black border ${status.className}`}>
+                    {status.label}
+                  </span>
                 </div>
 
-                {/* Meta */}
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3 pb-3 border-b border-gray-100">
+                <h3 className="font-heading font-black text-white text-base mb-1">
+                  {assignment.title}
+                </h3>
+
+                {assignment.instructions && (
+                  <p className="text-brand-purple-200 text-sm line-clamp-2 mb-2">
+                    {assignment.instructions}
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 text-xs text-brand-purple-200 mb-3">
                   {assignment.due_date && (
-                    <span
-                      className={
-                        overdue
-                          ? "text-red-600 font-bold"
-                          : "text-gray-500"
-                      }
-                    >
+                    <span className={overdue ? "text-red-300 font-black" : ""}>
                       📅 Due: {formatDate(assignment.due_date)}
                     </span>
                   )}
                   {assignment.submission && (
-                    <span>
-                      ✅ Submitted: {formatDate(assignment.submission.submitted_at)}
-                    </span>
+                    <span>✅ Submitted: {formatDate(assignment.submission.submitted_at)}</span>
                   )}
                 </div>
 
-                {/* Grade & Feedback (if graded) */}
+                {/* Grade Box */}
                 {assignment.submission?.status === "graded" && (
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-3">
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-green-400/40 p-4 mb-3">
+                    <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-green-400 via-green-500 to-green-400" />
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-bold text-green-700 uppercase tracking-widest">
-                        🎓 Grade
-                      </p>
+                      <p className="text-white/80 text-xs font-black uppercase tracking-widest">🎓 Grade</p>
                       <div className="flex items-center gap-2">
                         {assignment.submission.grade && (
-                          <span className="text-2xl font-bold text-green-700">
-                            {assignment.submission.grade}
-                          </span>
+                          <span className="text-2xl font-black text-white">{assignment.submission.grade}</span>
                         )}
                         {assignment.submission.score !== null && (
-                          <span className="text-lg font-bold text-green-700">
-                            ({assignment.submission.score}%)
-                          </span>
+                          <span className="text-lg font-black text-green-300">({assignment.submission.score}%)</span>
                         )}
                       </div>
                     </div>
                     {assignment.submission.feedback && (
                       <div>
-                        <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-1">
-                          📝 Feedback
-                        </p>
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {assignment.submission.feedback}
-                        </p>
+                        <p className="text-white/80 text-xs font-black uppercase tracking-widest mb-1">📝 Feedback</p>
+                        <p className="text-white font-semibold text-sm leading-relaxed">{assignment.submission.feedback}</p>
                       </div>
                     )}
                   </div>
@@ -459,17 +313,17 @@ export default function TDAAssignmentsClient() {
                 <button
                   onClick={() => openAssignment(assignment)}
                   disabled={assignment.submission?.status === "graded"}
-                  className={`w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
+                  className={`w-full py-3 rounded-xl font-black transition-all ${
                     assignment.submission?.status === "graded"
-                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold hover:shadow-gold-lg hover:scale-105"
+                      ? "bg-brand-purple-950/60 text-white/50 border border-brand-gold-400/20 cursor-not-allowed"
+                      : "bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 shadow-gold active:scale-95"
                   }`}
                 >
                   {assignment.submission?.status === "graded"
                     ? "✅ Graded"
                     : assignment.submission
                     ? "✏️ Update Submission"
-                    : "📝 Submit Assignment"}
+                    : "📤 Submit Assignment"}
                 </button>
               </div>
             );
@@ -477,20 +331,16 @@ export default function TDAAssignmentsClient() {
         </div>
       )}
 
-      {/* ━━━ SUBMISSION MODAL ━━━ */}
+      {/* ── Submission Modal — KEEP bg-white — slides up mobile ── */}
       {selectedAssignment && (
         <>
-          <div
-            onClick={() => setSelectedAssignment(null)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8 pointer-events-auto max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-6 z-10 rounded-t-3xl">
+          <div onClick={() => setSelectedAssignment(null)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+            <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-2xl pointer-events-auto max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-100 p-5 z-10 rounded-t-3xl">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h2 className="font-heading text-xl font-bold text-brand-purple-900">
+                    <h2 className="font-heading text-lg font-bold text-brand-purple-900">
                       📝 {selectedAssignment.title}
                     </h2>
                     {selectedAssignment.due_date && (
@@ -499,36 +349,20 @@ export default function TDAAssignmentsClient() {
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={() => setSelectedAssignment(null)}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-5 h-5 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                  <button onClick={() => setSelectedAssignment(null)} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               </div>
 
-              {/* Body */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              <form onSubmit={handleSubmit} className="p-5 space-y-4">
                 {/* Instructions */}
                 {selectedAssignment.instructions && (
-                  <div className="bg-brand-purple-50 rounded-2xl p-4 border-2 border-brand-purple-100">
-                    <p className="text-xs font-bold text-brand-purple-900 uppercase tracking-widest mb-2">
-                      📖 Instructions
-                    </p>
-                    <p className="text-brand-purple-900 leading-relaxed whitespace-pre-line">
+                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                    <p className="text-xs font-bold text-brand-purple-900 uppercase tracking-widest mb-2">📖 Instructions</p>
+                    <p className="text-gray-800 leading-relaxed whitespace-pre-line text-sm">
                       {selectedAssignment.instructions}
                     </p>
                   </div>
@@ -536,9 +370,7 @@ export default function TDAAssignmentsClient() {
 
                 {/* Text Answer */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    ✍️ Your Answer
-                  </label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">✏️ Your Answer</label>
                   <textarea
                     value={submissionText}
                     onChange={(e) => setSubmissionText(e.target.value)}
@@ -550,100 +382,47 @@ export default function TDAAssignmentsClient() {
 
                 {/* File Upload */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    📎 Attach File (Optional)
-                  </label>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="assignment-file"
-                  />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">📎 Attach File (Optional)</label>
+                  <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" id="assignment-file" />
                   <label
                     htmlFor="assignment-file"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-purple-100 hover:bg-brand-purple-200 text-brand-purple-700 font-bold cursor-pointer transition-all"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-purple-900 text-white font-black cursor-pointer transition-all active:scale-95"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
-                      />
-                    </svg>
-                    {selectedFile ? "Change File" : "Choose File"}
+                    📎 {selectedFile ? "Change File" : "Choose File"}
                   </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    📎 PDF, Word, Image • Max 10 MB
-                  </p>
+                  <p className="text-xs text-gray-500 mt-2">PDF, Word, Image • Max 10 MB</p>
 
                   {selectedFile && (
-                    <div className="mt-3 p-3 bg-green-50 border-2 border-green-200 rounded-xl">
-                      <p className="text-sm text-green-700 font-semibold">
-                        ✅ {selectedFile.name}
-                      </p>
+                    <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                      <p className="text-sm text-gray-800 font-semibold">✅ {selectedFile.name}</p>
                     </div>
                   )}
-
                   {selectedAssignment.submission?.file_name && !selectedFile && (
-                    <div className="mt-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl">
-                      <p className="text-sm text-blue-700 font-semibold">
-                        📎 Previously uploaded: {selectedAssignment.submission.file_name}
-                      </p>
+                    <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                      <p className="text-sm text-gray-800 font-semibold">📎 Previously: {selectedAssignment.submission.file_name}</p>
                     </div>
                   )}
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAssignment(null)}
-                    className="px-6 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold"
-                  >
-                    Cancel
-                  </button>
+                {/* Actions — full width stacked */}
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50"
                   >
                     {isSubmitting ? (
-                      <>
-                        <svg
-                          className="w-5 h-5 animate-spin"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
                         Submitting...
-                      </>
-                    ) : (
-                      <>
-                        {selectedAssignment.submission
-                          ? "💾 Update Submission"
-                          : "📤 Submit Assignment"}
-                      </>
-                    )}
+                      </span>
+                    ) : selectedAssignment.submission ? "💾 Update Submission" : "📤 Submit Assignment"}
+                  </button>
+                  <button type="button" onClick={() => setSelectedAssignment(null)} className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold">
+                    Cancel
                   </button>
                 </div>
               </form>
