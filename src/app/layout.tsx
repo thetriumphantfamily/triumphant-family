@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ROOT LAYOUT — With VisitTracker for analytics
+// ROOT LAYOUT — With VisitTracker + PWARegister
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import type { Metadata } from "next";
@@ -12,6 +12,7 @@ import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import SiteChromeWrapper from "@/components/layout/SiteChromeWrapper";
 import VisitTracker from "@/components/VisitTracker";
+import PWARegister from "@/components/PWARegister";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -122,8 +123,11 @@ export default function RootLayout({
     >
       <body className="font-body antialiased min-h-screen flex flex-col">
 
-        {/* ━━━ VISIT TRACKER — Invisible, records every page visit ━━━ */}
+        {/* ━━━ VISIT TRACKER — Records every page visit ━━━ */}
         <VisitTracker />
+
+        {/* ━━━ PWA REGISTER — Service worker + install banner ━━━ */}
+        <PWARegister />
 
         <SiteChromeWrapper chrome={chrome}>
           <div className="flex-1">
