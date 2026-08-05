@@ -24,7 +24,6 @@ export default function Footer() {
             <h3 className="font-heading font-bold text-brand-gold-400 text-lg mb-5">
               Connect With Us
             </h3>
-
             <div className="flex flex-col gap-3">
               {/* Facebook */}
               <a
@@ -109,17 +108,12 @@ export default function Footer() {
                 href="/bible-school"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 w-fit"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3z" />
                 </svg>
                 Visit Bible School
               </Link>
 
-              {/* Membership — now links to choice page */}
               <Link
                 href="/membership"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 transition-all duration-300 w-fit"
@@ -193,13 +187,24 @@ export default function Footer() {
             <p className="text-brand-purple-200 text-sm mb-5 leading-relaxed">
               Your seeds keep the gospel going forth and souls coming into the kingdom.
             </p>
-            <Link
-              href="/give"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-brand-purple-900 font-bold text-sm shadow-gold hover:scale-105 transition-all duration-300"
-            >
-              <Heart className="w-4 h-4 fill-current" />
-              Give Now
-            </Link>
+            <div className="flex flex-col gap-3">
+              <Link
+                href="/give"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-brand-purple-900 font-bold text-sm shadow-gold hover:scale-105 transition-all duration-300 w-fit"
+              >
+                <Heart className="w-4 h-4 fill-current" />
+                Give Now
+              </Link>
+
+              {/* Download TFAM App — Logo purple */}
+              <Link
+                href="/download"
+               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-violet-900 border-2 border-brand-gold-400/40 text-white font-bold text-sm hover:border-brand-gold-400 hover:scale-105 transition-all duration-300 w-fit group"
+              >
+                <span className="text-lg group-hover:animate-bounce">📱</span>
+                Download TFAM App
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -210,7 +215,7 @@ export default function Footer() {
           <p className="text-brand-purple-200 text-sm">
             © {currentYear}{" "}
             <span className="text-white font-semibold">{SITE.fullName}</span>.
-            All rights reserved.
+            All Rights Reserved.
           </p>
           <a
             href="https://wa.me/2348036208366?text=Hello%20Christmade%20GlobalTech!%20I%20saw%20your%20amazing%20work%20on%20The%20Triumphant%20Family%20website%20and%20I%27m%20truly%20impressed.%20I%27d%20love%20to%20discuss%20a%20project%20with%20you."

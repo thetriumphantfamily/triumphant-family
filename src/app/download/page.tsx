@@ -7,10 +7,22 @@ import Link from "next/link";
 export default function DownloadPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
-
       {/* Hero */}
       <div className="relative overflow-hidden pt-20 pb-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Breadcrumb */}
+          <div className="flex items-center justify-center gap-2 text-sm mb-6">
+            <Link
+              href="/"
+              className="text-brand-purple-200 hover:text-white font-semibold transition-colors"
+            >
+              Home
+            </Link>
+            <span className="text-brand-purple-300 font-semibold">&gt;</span>
+            <span className="text-brand-gold-400 font-semibold">
+              Download App
+            </span>
+          </div>
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-6">
@@ -20,11 +32,13 @@ export default function DownloadPage() {
             </span>
           </div>
 
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-brand-gold-400/40 shadow-2xl">
-              <img src="/android-chrome-512x512.png" alt="TFAM App" className="w-full h-full object-cover" />
-            </div>
+          {/* Real ministry logo — slightly bigger, tighter gap */}
+          <div className="flex justify-center mb-3">
+            <img
+              src="/images/logo/logo.png"
+              alt="TFAM App"
+              className="w-28 h-28 object-contain"
+            />
           </div>
 
           <h1 className="font-heading text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
@@ -38,25 +52,23 @@ export default function DownloadPage() {
             Pray With Us. Triumph With Us.
           </p>
           <p className="text-brand-purple-300 font-semibold text-sm max-w-xl mx-auto mb-10">
-            Stay connected to your church family. Watch live services, submit prayer requests,
-            give online, access devotionals, and more — all in one app.
+            Stay connected to your church family. Watch live services, submit
+            prayer requests, give online, access devotionals, and more — all in
+            one app.
           </p>
 
           {/* Download Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-12">
-
             {/* Android APK */}
             <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
               <div className="text-4xl mb-3">🤖</div>
-              <h3 className="font-black text-white text-lg mb-1">Android App</h3>
+              <h3 className="font-black text-white text-lg mb-1">
+                Android App
+              </h3>
               <p className="text-brand-purple-200 font-semibold text-sm mb-4">
                 Download APK directly to your Android phone
               </p>
-              {/* 
-                REPLACE href below with actual APK download link 
-                after building with Capacitor
-              */}
               <a
                 href="#coming-soon"
                 className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all"
@@ -75,7 +87,9 @@ export default function DownloadPage() {
             <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
               <div className="text-4xl mb-3">🍎</div>
-              <h3 className="font-black text-white text-lg mb-1">iPhone / iPad</h3>
+              <h3 className="font-black text-white text-lg mb-1">
+                iPhone / iPad
+              </h3>
               <p className="text-brand-purple-200 font-semibold text-sm mb-4">
                 Install directly from your Safari browser
               </p>
@@ -105,17 +119,39 @@ export default function DownloadPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { step: "1", icon: "🌐", title: "Open in Safari", desc: "Visit this website using Safari browser on your iPhone" },
-              { step: "2", icon: "📤", title: "Tap Share", desc: 'Tap the Share button at the bottom of Safari (the box with an arrow pointing up)' },
-              { step: "3", icon: "📱", title: "Add to Home Screen", desc: 'Scroll down and tap "Add to Home Screen" then tap "Add"' },
+              {
+                step: "1",
+                icon: "🌐",
+                title: "Open in Safari",
+                desc: "Visit this website using Safari browser on your iPhone",
+              },
+              {
+                step: "2",
+                icon: "📤",
+                title: "Tap Share",
+                desc: 'Tap the Share button at the bottom of Safari (the box with an arrow pointing up)',
+              },
+              {
+                step: "3",
+                icon: "📱",
+                title: "Add to Home Screen",
+                desc: 'Scroll down and tap "Add to Home Screen" then tap "Add"',
+              },
             ].map((item) => (
-              <div key={item.step} className="bg-brand-purple-950/60 rounded-2xl p-4 border border-brand-gold-400/40 text-center">
+              <div
+                key={item.step}
+                className="bg-brand-purple-950/60 rounded-2xl p-4 border border-brand-gold-400/40 text-center"
+              >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm flex items-center justify-center mx-auto mb-3">
                   {item.step}
                 </div>
                 <div className="text-3xl mb-2">{item.icon}</div>
-                <h3 className="font-black text-white text-sm mb-1">{item.title}</h3>
-                <p className="text-brand-purple-200 text-xs font-semibold">{item.desc}</p>
+                <h3 className="font-black text-white text-sm mb-1">
+                  {item.title}
+                </h3>
+                <p className="text-brand-purple-200 text-xs font-semibold">
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -129,18 +165,45 @@ export default function DownloadPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { step: "1", icon: "⬇️", title: "Download APK", desc: "Tap the Download APK button above" },
-              { step: "2", icon: "⚙️", title: "Allow Unknown Sources", desc: 'Go to Settings → Security → Enable "Unknown Sources"' },
-              { step: "3", icon: "📂", title: "Open APK File", desc: "Find the downloaded APK in your Downloads folder and tap it" },
-              { step: "4", icon: "✅", title: "Install & Open", desc: "Tap Install, wait for it to complete, then tap Open" },
+              {
+                step: "1",
+                icon: "⬇️",
+                title: "Download APK",
+                desc: "Tap the Download APK button above",
+              },
+              {
+                step: "2",
+                icon: "⚙️",
+                title: "Allow Unknown Sources",
+                desc: 'Go to Settings → Security → Enable "Unknown Sources"',
+              },
+              {
+                step: "3",
+                icon: "📂",
+                title: "Open APK File",
+                desc: "Find the downloaded APK in your Downloads folder and tap it",
+              },
+              {
+                step: "4",
+                icon: "✅",
+                title: "Install & Open",
+                desc: "Tap Install, wait for it to complete, then tap Open",
+              },
             ].map((item) => (
-              <div key={item.step} className="bg-brand-purple-950/60 rounded-2xl p-4 border border-brand-gold-400/40 text-center">
+              <div
+                key={item.step}
+                className="bg-brand-purple-950/60 rounded-2xl p-4 border border-brand-gold-400/40 text-center"
+              >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black text-sm flex items-center justify-center mx-auto mb-3">
                   {item.step}
                 </div>
                 <div className="text-3xl mb-2">{item.icon}</div>
-                <h3 className="font-black text-white text-sm mb-1">{item.title}</h3>
-                <p className="text-brand-purple-200 text-xs font-semibold">{item.desc}</p>
+                <h3 className="font-black text-white text-sm mb-1">
+                  {item.title}
+                </h3>
+                <p className="text-brand-purple-200 text-xs font-semibold">
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -163,7 +226,10 @@ export default function DownloadPage() {
               { emoji: "📢", label: "Announcements" },
               { emoji: "🎓", label: "Bible School" },
             ].map((feature) => (
-              <div key={feature.label} className="bg-brand-purple-950/60 rounded-2xl p-3 border border-brand-gold-400/40 text-center">
+              <div
+                key={feature.label}
+                className="bg-brand-purple-950/60 rounded-2xl p-3 border border-brand-gold-400/40 text-center"
+              >
                 <div className="text-2xl mb-1">{feature.emoji}</div>
                 <p className="text-white font-black text-xs">{feature.label}</p>
               </div>
