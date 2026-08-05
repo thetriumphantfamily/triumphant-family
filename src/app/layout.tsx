@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ROOT LAYOUT — With VisitTracker + PWARegister
+// ROOT LAYOUT — With VisitTracker + PWARegister + PushPermissionPrompt
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import type { Metadata } from "next";
@@ -13,6 +13,7 @@ import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import SiteChromeWrapper from "@/components/layout/SiteChromeWrapper";
 import VisitTracker from "@/components/VisitTracker";
 import PWARegister from "@/components/PWARegister";
+import PushPermissionPrompt from "@/components/PushPermissionPrompt";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -128,6 +129,9 @@ export default function RootLayout({
 
         {/* ━━━ PWA REGISTER — Service worker + install banner ━━━ */}
         <PWARegister />
+
+        {/* ━━━ PUSH PROMPT — Beautiful custom permission ask ━━━ */}
+        <PushPermissionPrompt />
 
         <SiteChromeWrapper chrome={chrome}>
           <div className="flex-1">
