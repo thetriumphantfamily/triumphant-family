@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// WELCOME SECTION — Both CTAs gold gradient (matching)
+// WELCOME SECTION — White gradient heading + white gradient buttons
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -47,7 +47,7 @@ export default function WelcomeSection() {
             {/* Content */}
             <div className="text-center">
 
-              {/* Badge — same gradient + gold border */}
+              {/* Badge — unchanged */}
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg mb-5">
                 <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
                 <span className="text-white font-bold text-xs uppercase tracking-widest">
@@ -55,27 +55,29 @@ export default function WelcomeSection() {
                 </span>
               </div>
 
+              {/* Heading — WHITE GRADIENT (was gold) */}
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-white leading-tight mb-5">
                 Welcome to{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
                   The Triumphant Family
                 </span>
               </h2>
 
-              <div className="space-y-4 text-brand-purple-100 text-base md:text-lg leading-relaxed mb-6">
-                <p className="text-justify">
+              {/* Paragraphs — smaller + no justify */}
+              <div className="space-y-3 text-brand-purple-100 text-sm md:text-base leading-relaxed mb-6">
+                <p>
                   God has called us together as a family — a family of prayer
                   warriors, worshippers, and believers who refuse to accept anything
                   less than God&rsquo;s best.
                 </p>
-                <p className="text-justify">
+                <p>
                   At The Triumphant Family, we believe in the supernatural power of
                   prayer, the life-changing Word of God, and the unstoppable move of
                   the Holy Spirit. Every service, every prayer session, every
                   encounter is designed to connect you with Heaven.
                 </p>
-                <p className="font-bold text-brand-gold-400 text-lg text-center">
-                  You belong here. You are family.
+                <p className="font-bold text-brand-gold-400 text-base md:text-lg text-center">
+                  You Belong Here. You Are Family.
                 </p>
               </div>
 
@@ -89,13 +91,11 @@ export default function WelcomeSection() {
                 </div>
               </div>
 
-              {/* CTAs — BOTH GOLD GRADIENT */}
+              {/* CTAs — WHITE GRADIENT BG + PURPLE TEXT */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-
-                {/* Learn About Us */}
                 <Link
                   href="/about"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   Learn About Us
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -103,10 +103,9 @@ export default function WelcomeSection() {
                   </svg>
                 </Link>
 
-                {/* Send a Prayer Request — GOLD GRADIENT (matching) */}
                 <Link
                   href="/prayer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -121,7 +120,7 @@ export default function WelcomeSection() {
         {/* DESKTOP LAYOUT */}
         <div className="hidden lg:block">
 
-          {/* Badge — same gradient + gold border */}
+          {/* Badge — unchanged */}
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
               <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
@@ -131,10 +130,11 @@ export default function WelcomeSection() {
             </div>
           </div>
 
+          {/* Heading — WHITE GRADIENT (was gold) */}
           <div className="text-center mb-10">
             <h2 className="font-heading text-5xl xl:text-6xl 2xl:text-7xl font-bold text-white leading-tight whitespace-nowrap">
               Welcome to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
                 The Triumphant Family
               </span>
             </h2>
@@ -172,20 +172,21 @@ export default function WelcomeSection() {
 
             <div className="col-span-8">
 
-              <div className="space-y-6 mb-8">
-                <p className="text-brand-purple-100 text-2xl xl:text-3xl leading-relaxed text-justify">
+              {/* Paragraphs — smaller + no justify */}
+              <div className="space-y-4 mb-8">
+                <p className="text-brand-purple-100 text-lg xl:text-xl leading-relaxed">
                   God has called us together as a family — a family of prayer
                   warriors, worshippers, and believers who refuse to accept anything
                   less than God&rsquo;s best.
                 </p>
-                <p className="text-brand-purple-100 text-2xl xl:text-3xl leading-relaxed text-justify">
+                <p className="text-brand-purple-100 text-lg xl:text-xl leading-relaxed">
                   At The Triumphant Family, we believe in the supernatural power of
                   prayer, the life-changing Word of God, and the unstoppable move of
                   the Holy Spirit. Every service, every prayer session, every
                   encounter is designed to connect you with Heaven.
                 </p>
-                <p className="font-bold text-brand-gold-400 text-3xl xl:text-4xl text-center">
-                  You belong here. You are family.
+                <p className="font-bold text-brand-gold-400 text-2xl xl:text-3xl text-center">
+                  You Belong Here. You Are Family.
                 </p>
               </div>
 
@@ -199,13 +200,11 @@ export default function WelcomeSection() {
                 </div>
               </div>
 
-              {/* CTAs — BOTH GOLD GRADIENT */}
+              {/* CTAs — WHITE GRADIENT BG + PURPLE TEXT */}
               <div className="flex flex-row gap-4 justify-start">
-
-                {/* Learn About Us */}
                 <Link
                   href="/about"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   Learn About Us
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -213,10 +212,9 @@ export default function WelcomeSection() {
                   </svg>
                 </Link>
 
-                {/* Send a Prayer Request — GOLD GRADIENT (matching) */}
                 <Link
                   href="/prayer"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />

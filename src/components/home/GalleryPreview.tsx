@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// GALLERY PREVIEW — Shows title, description, and category
+// GALLERY PREVIEW — Tight spacing + white gradient + minimal gold
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -30,8 +30,9 @@ export default async function GalleryPreview() {
   if (items.length === 0) return null;
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
+
         {/* Badge */}
         <div className="flex justify-center mb-4">
           <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
@@ -42,11 +43,11 @@ export default async function GalleryPreview() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-8 lg:mb-10 max-w-4xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-4xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Precious{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Moments
             </span>
           </h2>
@@ -61,16 +62,15 @@ export default async function GalleryPreview() {
         </div>
 
         {/* Photo grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {items.map((item) => (
             <Link
               key={item.id}
               href="/gallery"
-              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_20px_rgba(255,199,44,0.3)] transition-all duration-300 hover:-translate-y-0.5"
+              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-0.5"
             >
               {/* Photo */}
               <div className="relative aspect-square bg-brand-purple-950 overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image_url}
                   alt={item.title || "Gallery"}
@@ -78,19 +78,19 @@ export default async function GalleryPreview() {
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
 
-                {/* Category badge */}
+                {/* Category badge — WHITE (no gold) */}
                 {item.category && (
-                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-brand-purple-900/80 border border-brand-gold-400/40 text-brand-gold-300 text-[10px] font-bold">
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-brand-purple-950/80 border border-white/20 text-white text-[10px] font-bold">
                     {CATEGORY_LABELS[item.category] || item.category}
                   </div>
                 )}
               </div>
 
-              {/* Title and description below photo */}
+              {/* Title and description */}
               {(item.title || item.description) && (
                 <div className="p-3">
                   {item.title && (
-                    <h3 className="font-heading text-sm font-bold text-white mb-1 line-clamp-1 group-hover:text-brand-gold-400 transition-colors">
+                    <h3 className="font-heading text-sm font-bold text-white mb-1 line-clamp-1 group-hover:text-white transition-colors">
                       {item.title}
                     </h3>
                   )}
@@ -105,11 +105,11 @@ export default async function GalleryPreview() {
           ))}
         </div>
 
-        {/* View all CTA */}
+        {/* View all CTA — WHITE gradient */}
         <div className="flex justify-center">
           <Link
             href="/gallery"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
             View Full Gallery
             <svg

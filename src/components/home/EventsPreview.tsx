@@ -1,9 +1,15 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EVENTS PREVIEW — Mobile fix (flyer loads properly on real phones)
+// EVENTS PREVIEW — Tight spacing + white 3D icons + minimal gold
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+
+// White 3D metallic effect for icons
+const ICON_3D_STYLE = {
+  color: "#ffffff",
+  filter: "drop-shadow(0 2px 0 #e0e0e0) drop-shadow(0 3px 0 #cccccc) drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 6px 15px rgba(255,255,255,0.15))",
+};
 
 export default async function EventsPreview() {
   const supabase = await createClient();
@@ -17,7 +23,7 @@ export default async function EventsPreview() {
     .limit(3);
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
       <div className="relative z-10 container-custom">
 
@@ -31,11 +37,11 @@ export default async function EventsPreview() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-8 lg:mb-10 max-w-4xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-4xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Upcoming{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Events
             </span>
           </h2>
@@ -50,13 +56,16 @@ export default async function EventsPreview() {
 
         {/* Empty state */}
         {(!events || events.length === 0) && (
-          <div className="max-w-2xl mx-auto text-center bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+          <div className="max-w-2xl mx-auto text-center bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 rounded-3xl p-6 lg:p-8 relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-4">
-              <svg className="w-10 h-10 text-brand-purple-900" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+
+            {/* Icon — WHITE 3D metallic */}
+            <div className="flex justify-center mb-3" style={ICON_3D_STYLE}>
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75" />
               </svg>
             </div>
+
             <h3 className="font-heading text-xl lg:text-2xl font-bold text-white mb-2">
               Events Coming Soon
             </h3>
@@ -69,7 +78,7 @@ export default async function EventsPreview() {
         {/* Event cards */}
         {events && events.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 max-w-5xl mx-auto">
               {events.map((event) => {
                 const eventDate = new Date(event.event_date);
                 const day = eventDate.getDate();
@@ -82,70 +91,67 @@ export default async function EventsPreview() {
                 return (
                   <div
                     key={event.id}
-                    className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_25px_rgba(255,199,44,0.25)] transition-all duration-300 hover:-translate-y-1 relative flex flex-col max-w-md mx-auto w-full"
+                    className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl overflow-hidden border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-1 relative flex flex-col max-w-md mx-auto w-full"
                   >
                     <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
 
-                    {/* Flyer — plain <img> for mobile compatibility */}
+                    {/* Flyer */}
                     <div className="relative w-full bg-brand-purple-950 overflow-hidden flex-shrink-0">
                       {event.flyer_url ? (
-                        <>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={event.flyer_url}
-                            alt={event.title}
-                            loading="lazy"
-                            className="w-full h-auto block"
-                          />
-                        </>
+                        <img
+                          src={event.flyer_url}
+                          alt={event.title}
+                          loading="lazy"
+                          className="w-full h-auto block"
+                        />
                       ) : (
-                        <div className="w-full aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-violet-900">
-                          <svg className="w-20 h-20 text-white/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <div className="w-full aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-violet-900" style={ICON_3D_STYLE}>
+                          <svg className="w-16 h-16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75" />
                           </svg>
                         </div>
                       )}
                     </div>
 
-                    <div className="p-5 lg:p-6 flex flex-col flex-1">
+                    <div className="p-4 lg:p-5 flex flex-col flex-1">
 
-                      {/* Badges row */}
+                      {/* Badges row — WHITE (no gold) */}
                       <div className="flex items-center gap-2 flex-wrap mb-3">
-                        <div className="bg-brand-gold-400/20 border border-brand-gold-400/40 rounded-full px-3 py-1 flex items-center gap-2">
-                          <svg className="w-3.5 h-3.5 text-brand-gold-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <div className="bg-brand-purple-950/60 border border-white/20 rounded-full px-3 py-1 flex items-center gap-2">
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25" />
                           </svg>
-                          <span className="text-brand-gold-300 text-xs font-bold">
+                          <span className="text-white text-xs font-bold">
                             {month} {day}, {year}
                           </span>
                         </div>
 
                         {event.is_online && (
-                          <div className="bg-brand-gold-400/20 border border-brand-gold-400/40 rounded-full px-3 py-1 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold-400 animate-pulse" />
-                            <span className="text-brand-gold-300 text-xs font-bold">Online</span>
+                          <div className="bg-brand-purple-950/60 border border-white/20 rounded-full px-3 py-1 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span className="text-white text-xs font-bold">Online</span>
                           </div>
                         )}
 
                         {event.category && (
-                          <span className="px-3 py-1 rounded-full bg-brand-purple-900/60 border border-brand-gold-400/40 text-white text-xs font-bold capitalize">
+                          <span className="px-3 py-1 rounded-full bg-brand-purple-950/60 border border-white/20 text-white text-xs font-bold capitalize">
                             {event.category}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="font-heading text-lg lg:text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-brand-gold-400 transition-colors">
+                      <h3 className="font-heading text-base lg:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-white transition-colors">
                         {event.title}
                       </h3>
 
                       {event.description && (
-                        <p className="text-brand-purple-100 text-sm leading-relaxed line-clamp-2 mb-4 flex-1">
+                        <p className="text-brand-purple-100 text-sm leading-relaxed line-clamp-2 mb-3 flex-1">
                           {event.description}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-2 text-xs text-brand-purple-200 mb-4 pt-3 border-t border-brand-gold-400/30">
-                        <svg className="w-3.5 h-3.5 flex-shrink-0 text-brand-gold-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2 text-xs text-brand-purple-200 mb-3 pt-3 border-t border-brand-gold-400/30">
+                        <svg className="w-3.5 h-3.5 flex-shrink-0 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                         </svg>
                         <span className="truncate font-medium">
@@ -153,13 +159,13 @@ export default async function EventsPreview() {
                         </span>
                       </div>
 
-                      {/* CTA */}
+                      {/* CTA — WHITE gradient */}
                       {hasRegistration ? (
                         <a
                           href={event.registration_link!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm hover:shadow-gold-lg hover:scale-105 transition-all duration-300 shadow-gold"
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                         >
                           Register Now
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -171,16 +177,19 @@ export default async function EventsPreview() {
                           href={event.online_link!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                         >
                           🌐 Join Online
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
                         </a>
                       ) : (
                         <Link
                           href={`/events/${event.slug}`}
-                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                         >
-                          View Details
+                          Learn More
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                           </svg>
@@ -192,10 +201,11 @@ export default async function EventsPreview() {
               })}
             </div>
 
+            {/* View All CTA — WHITE gradient */}
             <div className="flex justify-center">
               <Link
                 href="/events"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 View All Events
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

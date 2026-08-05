@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SERMONS PREVIEW — Homepage sermons with embedded modal player
+// SERMONS PREVIEW — Tight spacing + white gradient + minimal gold
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -21,25 +21,20 @@ interface Sermon {
   views: number;
 }
 
-// Extract YouTube thumbnail from URL
 function getYouTubeThumbnail(url: string | null): string | null {
   if (!url) return null;
-
   const patterns = [
     /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
     /youtube\.com\/live\/([^"&?\/\s]{11})/,
     /youtube\.com\/shorts\/([^"&?\/\s]{11})/,
   ];
-
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match) return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
   }
-
   return null;
 }
 
-// Format date nicely
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
@@ -48,6 +43,12 @@ function formatDate(dateString: string): string {
     day: "numeric",
   });
 }
+
+// White 3D metallic effect for icons
+const ICON_3D_STYLE = {
+  color: "#ffffff",
+  filter: "drop-shadow(0 2px 0 #e0e0e0) drop-shadow(0 3px 0 #cccccc) drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 6px 15px rgba(255,255,255,0.15))",
+};
 
 export default function SermonsPreview() {
   const [sermons, setSermons] = useState<Sermon[]>([]);
@@ -63,18 +64,17 @@ export default function SermonsPreview() {
         .eq("is_published", true)
         .order("created_at", { ascending: false })
         .limit(3);
-
       setSermons(data || []);
       setLoading(false);
     };
-
     fetchSermons();
   }, []);
 
   return (
     <>
-      <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+      <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
         <div className="relative z-10 container-custom">
+
           {/* Badge */}
           <div className="flex justify-center mb-4">
             <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
@@ -85,11 +85,11 @@ export default function SermonsPreview() {
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="text-center mb-8 lg:mb-10 max-w-4xl mx-auto">
+          {/* Heading — WHITE gradient */}
+          <div className="text-center mb-6 lg:mb-8 max-w-4xl mx-auto">
             <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
               Latest{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
                 Sermons
               </span>
             </h2>
@@ -102,33 +102,36 @@ export default function SermonsPreview() {
             </div>
           </div>
 
-          {/* Loading state */}
+          {/* Loading */}
           {loading && (
-            <div className="text-center py-10">
+            <div className="text-center py-8">
               <p className="text-brand-purple-200">Loading sermons...</p>
             </div>
           )}
 
           {/* Empty state */}
           {!loading && sermons.length === 0 && (
-            <div className="max-w-2xl mx-auto text-center bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 rounded-3xl p-10 lg:p-12 relative overflow-hidden">
+            <div className="max-w-2xl mx-auto text-center bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 rounded-3xl p-6 lg:p-8 relative overflow-hidden">
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-4">
-                <svg className="w-10 h-10 text-brand-purple-900" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+
+              {/* Icon — WHITE 3D metallic */}
+              <div className="flex justify-center mb-3" style={ICON_3D_STYLE}>
+                <svg className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
                 </svg>
               </div>
+
               <h3 className="font-heading text-xl lg:text-2xl font-bold text-white mb-2">
                 Sermons Coming Soon
               </h3>
-              <p className="text-brand-purple-100 mb-6">
+              <p className="text-brand-purple-100 mb-4">
                 We are uploading our sermon library. Check back soon for anointed messages.
               </p>
               <a
                 href="https://www.youtube.com/PastorOlayiwoleTriumphant"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
@@ -141,46 +144,45 @@ export default function SermonsPreview() {
           {/* Sermon cards */}
           {!loading && sermons.length > 0 && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
                 {sermons.map((sermon) => {
                   const thumbnail = sermon.thumbnail_url || getYouTubeThumbnail(sermon.youtube_url);
-
                   return (
                     <button
                       key={sermon.id}
                       onClick={() => setSelectedSermon(sermon)}
-                      className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl overflow-hidden border-2 border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_25px_rgba(255,199,44,0.25)] transition-all duration-300 hover:-translate-y-1 relative text-left cursor-pointer"
+                      className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl overflow-hidden border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-1 relative text-left cursor-pointer"
                     >
                       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
 
                       <div className="relative w-full aspect-video bg-brand-purple-900 overflow-hidden">
                         {thumbnail ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={thumbnail}
                             alt={sermon.title}
+                            loading="lazy"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-purple-900">
-                            <svg className="w-16 h-16 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple-700 to-brand-purple-900" style={ICON_3D_STYLE}>
+                            <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M8 5v14l11-7z" />
                             </svg>
                           </div>
                         )}
 
-                        {/* Play overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-brand-purple-900/60">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center">
-                            <svg className="w-8 h-8 text-brand-purple-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                        {/* Play overlay — WHITE 3D metallic (no gold bg) */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-brand-purple-900/70">
+                          <div style={ICON_3D_STYLE}>
+                            <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M8 5v14l11-7z" />
                             </svg>
                           </div>
                         </div>
                       </div>
 
-                      <div className="p-5 lg:p-6">
-                        <h3 className="font-heading text-lg lg:text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-brand-gold-400 transition-colors">
+                      <div className="p-4 lg:p-5">
+                        <h3 className="font-heading text-base lg:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-white transition-colors">
                           {sermon.title}
                         </h3>
                         {sermon.description && (
@@ -198,10 +200,11 @@ export default function SermonsPreview() {
                 })}
               </div>
 
+              {/* CTA — WHITE gradient */}
               <div className="flex justify-center">
                 <Link
                   href="/sermons"
-                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   View All Sermons
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -214,7 +217,7 @@ export default function SermonsPreview() {
         </div>
       </section>
 
-      {/* Video Modal — same as sermons page */}
+      {/* Video Modal */}
       <SermonModal
         sermon={selectedSermon}
         onClose={() => setSelectedSermon(null)}

@@ -1,7 +1,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// HERO SECTION CLIENT — Rotating photos + all UI + Prophet signature
-// Content constrained to first column on desktop
+// HERO SECTION CLIENT — Metallic text + minimal gold + no prophet signature
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,11 +28,6 @@ const STARS = [
   { top: "35%", left: "90%", delay: "0.3s", duration: "3.8s" },
   { top: "88%", left: "60%", delay: "1.2s", duration: "3.2s" },
 ];
-
-// Auto-detect if photo is a prophet photo (based on filename)
-function isProphetPhoto(url: string): boolean {
-  return url.toLowerCase().includes("prophet");
-}
 
 export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
   const totalPhotos = photos.length;
@@ -95,11 +90,10 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
   }, [totalPhotos]);
 
   const currentPills = PILL_SETS[pillIndex];
-  const currentPhoto1 = photos[photoIndex1] || photos[0] || "";
-  const isCurrentProphet = isProphetPhoto(currentPhoto1);
 
   return (
     <section className="relative w-full h-[380px] sm:h-[420px] md:h-[480px] lg:h-[550px] overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
+
       {/* MOBILE: SINGLE PHOTO */}
       <div className="absolute inset-0 z-0 md:hidden">
         {photos.map((photo, i) => (
@@ -204,51 +198,47 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
         ))}
       </div>
 
-      {/* Prophet signature — shows only when a prophet photo is active */}
-      <div
-        className={`absolute top-3 right-3 sm:top-4 sm:right-4 text-right pointer-events-none z-20 transition-opacity duration-1000 ${
-          isCurrentProphet ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <p
-          className="font-script text-brand-gold-400 text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-none drop-shadow-2xl"
-          style={{ textShadow: "0 4px 20px rgba(0,0,0,0.95)" }}
-        >
-          Prophet
-        </p>
-        <p
-          className="text-white font-bold text-[9px] sm:text-[10px] md:text-xs lg:text-sm tracking-wider uppercase mt-0.5 drop-shadow-lg"
-          style={{ textShadow: "0 2px 10px rgba(0,0,0,0.95)" }}
-        >
-          Olayiwole
-        </p>
-      </div>
-
-      {/* Main content — constrained to first column on desktop */}
+      {/* Main content */}
       <div className="relative z-20 md:grid md:grid-cols-3 h-full">
         {/* First column — text lives here on desktop */}
         <div className="container-custom md:container-none md:pl-6 lg:pl-10 py-6 sm:py-7 md:py-8 lg:py-10 flex items-center h-full md:pr-4">
           <div className="w-full md:max-w-full">
+
+            {/* 1. "Experience" — METALLIC WHITE 3D */}
             <div className="mb-2 sm:mb-3">
               <p
-                className="font-script text-red-500 text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-none drop-shadow-lg"
-                style={{ textShadow: "0 2px 15px rgba(239,68,68,0.6)" }}
+                className="font-script text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-none"
+                style={{
+                  color: "#ffffff",
+                  background: "linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #cccccc 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  textShadow: "0 1px 0 #ffffff, 0 2px 0 #e0e0e0, 0 3px 0 #cccccc, 0 4px 0 #b0b0b0, 0 5px 8px rgba(0,0,0,0.4), 0 8px 20px rgba(255,255,255,0.15)",
+                  filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))",
+                }}
               >
                 Experience
               </p>
             </div>
 
+            {/* 2. Rotating pills — METALLIC NO BG */}
             <div
-              className="flex flex-col gap-1.5 sm:gap-2 mb-3 sm:mb-4 max-w-xs transition-opacity duration-500"
+              className="flex flex-col gap-2 sm:gap-2.5 mb-3 sm:mb-4 max-w-xs transition-opacity duration-500"
               style={{ opacity: pillVisible ? 1 : 0 }}
             >
               {currentPills.map((pill, i) => (
                 <div
                   key={`${pillIndex}-${i}`}
-                  className="bg-brand-gold-400/25 border-2 border-brand-gold-400/50 text-white font-heading font-bold text-[10px] sm:text-xs md:text-sm lg:text-base py-1 sm:py-1.5 lg:py-2 px-2.5 sm:px-3 lg:px-5 rounded-full shadow-lg text-center animate-slide-up"
+                  className="font-heading font-black text-sm sm:text-base md:text-lg lg:text-xl text-center animate-slide-up"
                   style={{
                     animationDelay: `${i * 100}ms`,
-                    textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                    background: "linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #cccccc 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    textShadow: "0 1px 0 #ffffff, 0 2px 0 #e0e0e0, 0 3px 0 #cccccc, 0 4px 6px rgba(0,0,0,0.6), 0 6px 15px rgba(255,255,255,0.1)",
+                    filter: "drop-shadow(0 3px 5px rgba(0,0,0,0.7))",
                   }}
                 >
                   {pill}
@@ -256,6 +246,7 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
               ))}
             </div>
 
+            {/* 3. Main paragraph — WHITE (unchanged) */}
             <p
               className="text-white text-[10px] sm:text-xs md:text-[11px] lg:text-sm leading-snug mb-2 sm:mb-3 drop-shadow-lg font-medium max-w-md md:max-w-none"
               style={{ textShadow: "0 2px 10px rgba(0,0,0,0.7)" }}
@@ -263,17 +254,21 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
               We gather for explosive prayer storms, glorious worship, and life-changing encounters with the Holy Spirit.
             </p>
 
-            <p
-              className="font-script text-brand-gold-400 text-base sm:text-lg md:text-lg lg:text-2xl mb-3 sm:mb-4 drop-shadow-lg"
-              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
-            >
-              Pray with us. Triumph with us.
-            </p>
+            {/* 4. Tagline — GOLD, readable heading font */}
+<p
+  className="font-heading italic text-brand-gold-400 text-base sm:text-lg md:text-lg lg:text-xl mb-3 sm:mb-4 drop-shadow-lg font-bold"
+  style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
+>
+  Pray With Us. Triumph With Us.
+</p>
 
+            {/* 5 + 6. Buttons — BOTH match (purple + gold border) */}
             <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2">
+
+              {/* Prayer Request — now purple + gold border */}
               <Link
                 href="/prayer"
-                className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-[11px] sm:text-xs lg:text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-[11px] sm:text-xs lg:text-sm hover:border-brand-gold-400 transition-all duration-300"
               >
                 <svg
                   className="w-3 h-3 sm:w-4 sm:h-4"
@@ -291,6 +286,7 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
                 Prayer Request
               </Link>
 
+              {/* Watch Live — kept as is */}
               <Link
                 href="/live"
                 className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 text-white font-bold text-[11px] sm:text-xs lg:text-sm hover:border-brand-gold-400 transition-all duration-300"
@@ -308,10 +304,10 @@ export default function HeroSectionClient({ photos }: HeroSectionClientProps) {
           </div>
         </div>
 
-        {/* Empty second column on desktop — allows photo 2 to be seen */}
+        {/* Empty second column on desktop */}
         <div className="hidden md:block" />
 
-        {/* Empty third column on desktop — allows photo 3 to be seen */}
+        {/* Empty third column on desktop */}
         <div className="hidden md:block" />
       </div>
     </section>

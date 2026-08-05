@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TESTIMONIES SECTION — Clean theme (same gradient on section + cards)
+// TESTIMONIES SECTION — Tight spacing + white gradient + minimal gold
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
@@ -9,8 +9,7 @@ import { getInitials, truncate } from "@/lib/utils";
 const CATEGORY_LABELS: Record<string, string> = {
   healing:      "🙌 Healing",
   breakthrough: "⚡ Breakthrough",
-  salvation:    "✝ Salvation",
-  marriage:     "💍 Marriage",
+  salvation:    "✝ Marriage",
   family:       "👨‍👩‍👧 Family",
   finance:      "💰 Finance",
   career:       "📈 Career",
@@ -31,11 +30,11 @@ export default async function TestimoniesSection() {
   if (!testimonies || testimonies.length === 0) return null;
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
       <div className="relative z-10 container-custom">
 
-        {/* Badge — same gradient + gold border */}
+        {/* Badge */}
         <div className="flex justify-center mb-4">
           <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
@@ -45,11 +44,11 @@ export default async function TestimoniesSection() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-8 lg:mb-10 max-w-4xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-4xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             God is Still{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Working Miracles
             </span>
           </h2>
@@ -62,44 +61,43 @@ export default async function TestimoniesSection() {
           </div>
         </div>
 
-        {/* Testimony cards — SAME GRADIENT + GOLD BORDER */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Testimony cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
           {testimonies.map((testimony) => (
             <div
               key={testimony.id}
-              className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 lg:p-7 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden"
+              className="group bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-5 lg:p-6 border-2 border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden"
             >
               {/* Gold top bar */}
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-              {/* Gold quote mark */}
-              <div className="text-brand-gold-400 text-5xl font-heading leading-none mb-3 select-none">
+              {/* Quote mark — WHITE (was gold) */}
+              <div className="text-white/60 text-5xl font-heading leading-none mb-2 select-none">
                 &ldquo;
               </div>
 
               {/* Testimony text */}
-              <p className="text-brand-purple-100 leading-relaxed text-sm lg:text-base flex-1 mb-5 italic">
+              <p className="text-brand-purple-100 leading-relaxed text-sm lg:text-base flex-1 mb-4 italic">
                 {truncate(testimony.testimony_text, 180)}
               </p>
 
-              {/* Category badge */}
+              {/* Category badge — WHITE (was gold) */}
               {testimony.category && (
-                <span className="inline-block px-3 py-1 rounded-full bg-brand-gold-400/20 border border-brand-gold-400/40 text-brand-gold-300 text-xs font-bold mb-5 w-fit">
+                <span className="inline-block px-3 py-1 rounded-full bg-brand-purple-950/60 border border-white/20 text-white text-xs font-bold mb-4 w-fit">
                   {CATEGORY_LABELS[testimony.category] || "🙏 Testimony"}
                 </span>
               )}
 
               {/* Author */}
-              <div className="flex items-center gap-3 pt-4 border-t border-brand-gold-400/30">
+              <div className="flex items-center gap-3 pt-3 border-t border-brand-gold-400/30">
                 {testimony.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={testimony.photo_url}
                     alt={testimony.full_name}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-brand-gold-400/60"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white/40"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white to-gray-100 flex items-center justify-center flex-shrink-0 shadow-md">
                     <span className="text-brand-purple-900 text-sm font-bold">
                       {getInitials(testimony.full_name)}
                     </span>
@@ -118,12 +116,12 @@ export default async function TestimoniesSection() {
 
         {/* Share testimony CTA */}
         <div className="text-center">
-          <p className="text-brand-gold-400 text-base md:text-lg lg:text-xl italic mb-4" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
+          <p className="text-brand-gold-400 text-base md:text-lg lg:text-xl italic mb-3" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
             Has God done something amazing in your life?
           </p>
           <Link
             href="/testimonies"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
             Share Your Testimony
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
