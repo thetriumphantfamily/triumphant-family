@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SOCIAL CONNECT — Original brand colors for social icons
+// SOCIAL CONNECT — White gradient + brand social colors + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const SOCIAL_PLATFORMS = [
@@ -47,7 +47,7 @@ const SOCIAL_PLATFORMS = [
 
 export default function SocialConnectSection() {
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
 
         {/* Badge */}
@@ -60,11 +60,11 @@ export default function SocialConnectSection() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-3xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Follow Us On{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Social Media
             </span>
           </h2>
@@ -77,29 +77,27 @@ export default function SocialConnectSection() {
           </div>
         </div>
 
-        {/* Social platform cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 max-w-4xl mx-auto">
+        {/* Social platform cards — brand colors KEPT */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 max-w-4xl mx-auto">
           {SOCIAL_PLATFORMS.map((platform) => (
             <a
               key={platform.name}
               href={platform.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl p-6 text-center border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_25px_rgba(255,199,44,0.25)] transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl p-5 text-center border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-2 overflow-hidden"
             >
-              {/* Gold top bar */}
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
               <div className="relative z-10">
-                {/* Icon with ORIGINAL brand color */}
+                {/* Icon with brand color */}
                 <div
-                  className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${platform.bgColor} text-white shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}
+                  className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl ${platform.bgColor} text-white shadow-lg mb-3 group-hover:scale-110 transition-transform duration-300`}
                 >
                   {platform.icon}
                 </div>
 
-                {/* Platform Name */}
-                <h3 className="font-heading text-lg font-bold text-white">
+                <h3 className="font-heading text-base font-bold text-white">
                   {platform.name}
                 </h3>
               </div>
@@ -108,7 +106,7 @@ export default function SocialConnectSection() {
         </div>
 
         {/* Bottom tagline */}
-        <p className="text-center mt-10 font-script text-brand-gold-400 text-xl md:text-2xl">
+        <p className="text-center mt-6 font-heading italic font-bold text-brand-gold-400 text-lg md:text-xl">
           Join the family. Triumph together.
         </p>
       </div>

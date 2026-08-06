@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// GIVING TYPES — Clean cards (no blurs)
+// GIVING TYPES — White gradient + white badges + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const GIVING_TYPES = [
@@ -43,7 +43,7 @@ const GIVING_TYPES = [
 
 export default function GivingTypesSection() {
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
 
         {/* Badge */}
@@ -56,11 +56,11 @@ export default function GivingTypesSection() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-3xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Types of{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Giving
             </span>
           </h2>
@@ -74,35 +74,34 @@ export default function GivingTypesSection() {
         </div>
 
         {/* Cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
           {GIVING_TYPES.map((type) => (
             <div
               key={type.title}
-              className="group relative rounded-2xl p-6 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_25px_rgba(255,199,44,0.25)] transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+              className="group relative rounded-2xl p-5 lg:p-6 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-500 hover:-translate-y-1 overflow-hidden"
             >
-              {/* Gold top bar */}
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
               <div className="relative z-10">
                 {/* Emoji */}
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
                   {type.emoji}
                 </div>
 
                 {/* Title */}
-                <h3 className="font-heading text-xl font-bold text-white mb-3">
+                <h3 className="font-heading text-lg lg:text-xl font-bold text-white mb-2">
                   {type.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-brand-purple-100 text-sm leading-relaxed mb-4">
+                <p className="text-brand-purple-100 text-sm leading-relaxed mb-3">
                   {type.description}
                 </p>
 
-                {/* Scripture badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-gold-400/40 bg-brand-gold-400/10">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-gold-400" />
-                  <span className="text-brand-gold-300 text-xs font-bold">
+                {/* Scripture badge — WHITE */}
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-brand-purple-950/60">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  <span className="text-white text-xs font-bold">
                     📖 {type.scripture}
                   </span>
                 </div>

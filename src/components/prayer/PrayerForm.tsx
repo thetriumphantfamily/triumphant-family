@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PRAYER FORM — Clean theme with gold submit button
-// Now triggers admin notification on submit
+// PRAYER FORM — White gradient + white CTA + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -15,8 +14,7 @@ import Select   from "@/components/ui/Select";
 const CATEGORIES = [
   { value: "healing",      label: "🙌 Healing" },
   { value: "breakthrough", label: "⚡ Breakthrough" },
-  { value: "salvation",    label: "✝ Salvation" },
-  { value: "marriage",     label: "💍 Marriage" },
+  { value: "salvation",    label: "✝ Marriage" },
   { value: "family",       label: "👨‍👩‍👧‍👦 Family" },
   { value: "finance",      label: "💰 Finance" },
   { value: "career",       label: "💼 Career / Business" },
@@ -96,7 +94,6 @@ export default function PrayerForm() {
     try {
       const supabase = createClient();
 
-      // ━━━ 1. Save prayer request ━━━
       const { error } = await supabase.from("prayer_requests").insert([{
         full_name:    formData.isAnonymous ? "Anonymous" : formData.fullName,
         email:        formData.email || null,
@@ -113,7 +110,6 @@ export default function PrayerForm() {
         return;
       }
 
-      // ━━━ 2. Notify admin ━━━
       const name = formData.isAnonymous ? "Anonymous" : formData.fullName;
       const categoryLabel = CATEGORY_LABELS[formData.category] || formData.category;
       await supabase.from("site_notifications").insert({
@@ -145,7 +141,7 @@ export default function PrayerForm() {
   return (
     <section
       id="form"
-      className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden"
+      className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden"
     >
       <div className="relative z-10 container-custom">
         <div className="max-w-3xl mx-auto">
@@ -160,11 +156,11 @@ export default function PrayerForm() {
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="text-center mb-10">
+          {/* Heading — WHITE gradient */}
+          <div className="text-center mb-6 lg:mb-8">
             <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
               Submit Your{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
                 Prayer Request
               </span>
             </h2>
@@ -178,12 +174,11 @@ export default function PrayerForm() {
           </div>
 
           {/* Form card */}
-          <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-8 border-2 border-brand-gold-400/40 relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
 
-              {/* Anonymous Toggle */}
               <div className="p-4 rounded-2xl bg-brand-purple-900/50 border border-brand-gold-400/30">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -201,7 +196,6 @@ export default function PrayerForm() {
                 </label>
               </div>
 
-              {/* Full name */}
               {!formData.isAnonymous && (
                 <Input
                   label="Full Name"
@@ -213,8 +207,7 @@ export default function PrayerForm() {
                 />
               )}
 
-              {/* Email + Phone */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Email (Optional)"
                   type="email"
@@ -232,8 +225,7 @@ export default function PrayerForm() {
                 />
               </div>
 
-              {/* Country + Category */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select
                   label="Country"
                   placeholder="Select your country"
@@ -252,11 +244,10 @@ export default function PrayerForm() {
                 />
               </div>
 
-              {/* Prayer point */}
               <Textarea
                 label="Your Prayer Request"
                 required
-                placeholder="Share what's on your heart. Be as detailed as you'd like — we want to pray with understanding."
+                placeholder="Share what's on your heart..."
                 rows={6}
                 maxLength={1000}
                 value={formData.prayerPoint}
@@ -264,7 +255,6 @@ export default function PrayerForm() {
                 error={errors.prayerPoint}
               />
 
-              {/* Show on Wall Toggle */}
               <div className="p-4 rounded-2xl bg-brand-purple-900/50 border border-brand-gold-400/30">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -282,11 +272,11 @@ export default function PrayerForm() {
                 </label>
               </div>
 
-              {/* Submit */}
+              {/* Submit — WHITE gradient */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base lg:text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base lg:text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isSubmitting ? (
                   <>

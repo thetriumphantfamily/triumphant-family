@@ -1,8 +1,13 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// LIVE STREAM PLAYER — Dual platform (YouTube + Facebook) with orientation
+// LIVE STREAM PLAYER — White 3D + white gradient + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { createClient } from "@/lib/supabase/server";
+
+const ICON_3D_STYLE = {
+  color: "#ffffff",
+  filter: "drop-shadow(0 2px 0 #e0e0e0) drop-shadow(0 3px 0 #cccccc) drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 6px 15px rgba(255,255,255,0.15))",
+};
 
 const YoutubeIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -19,7 +24,6 @@ const FacebookIcon = ({ className }: { className?: string }) => (
 export default async function LiveStreamPlayer() {
   const supabase = await createClient();
 
-  // Fetch all settings we need
   const { data: settings } = await supabase
     .from("site_settings")
     .select("key, value")
@@ -35,7 +39,6 @@ export default async function LiveStreamPlayer() {
       "facebook_url",
     ]);
 
-  // Build settings map
   const settingsMap: Record<string, string> = {};
   settings?.forEach((s) => {
     settingsMap[s.key] = s.value;
@@ -43,11 +46,9 @@ export default async function LiveStreamPlayer() {
 
   const isLive = settingsMap.is_live_streaming === "true";
 
-  // Trim and validate URLs — must have actual content
   const youtubeLiveUrl = (settingsMap.youtube_live_url || "").trim();
   const facebookLiveUrl = (settingsMap.facebook_live_url || "").trim();
 
-  // Only consider URL valid if it starts with https://
   const hasYoutube = youtubeLiveUrl.startsWith("https://");
   const hasFacebook = facebookLiveUrl.startsWith("https://");
 
@@ -63,26 +64,24 @@ export default async function LiveStreamPlayer() {
   const facebookPage =
     settingsMap.facebook_url || "https://m.facebook.com/wole.ola.376/";
 
-  // Aspect ratio classes
   const getAspectClass = (orientation: string) =>
     orientation === "vertical"
       ? "aspect-[9/16] max-w-sm mx-auto"
       : "aspect-video";
 
-  // Count active streams
   const activeStreams = (hasYoutube ? 1 : 0) + (hasFacebook ? 1 : 0);
   const bothActive = hasYoutube && hasFacebook;
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
         {/* Status Bar */}
-        <div className="max-w-5xl mx-auto mb-8">
+        <div className="max-w-5xl mx-auto mb-6">
           {isLive ? (
-            <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-700 border-2 border-brand-gold-400/60 shadow-lg">
+            <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-700 border-2 border-white/40 shadow-lg">
               <div className="relative flex items-center justify-center">
-                <span className="absolute w-3 h-3 rounded-full bg-brand-gold-400 animate-ping" />
-                <span className="relative w-3 h-3 rounded-full bg-brand-gold-400" />
+                <span className="absolute w-3 h-3 rounded-full bg-white animate-ping" />
+                <span className="relative w-3 h-3 rounded-full bg-white" />
               </div>
               <p className="text-white font-bold uppercase tracking-widest text-sm">
                 🔴 We are LIVE right now — join us!
@@ -92,7 +91,7 @@ export default async function LiveStreamPlayer() {
             <div className="text-center">
               <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 shadow-lg mb-3">
                 <svg
-                  className="w-5 h-5 text-brand-gold-400"
+                  className="w-5 h-5 text-white"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -115,10 +114,9 @@ export default async function LiveStreamPlayer() {
           )}
         </div>
 
-        {/* Live streams — Only show when live AND at least one URL is valid */}
+        {/* Live streams */}
         {isLive && activeStreams > 0 ? (
           <div className="max-w-6xl mx-auto">
-            {/* Section badge */}
             <div className="flex justify-center mb-6">
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
                 <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
@@ -132,16 +130,13 @@ export default async function LiveStreamPlayer() {
               </div>
             </div>
 
-            {/* Streams grid — layout adjusts based on active streams */}
             <div
               className={`grid gap-6 ${
                 bothActive ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
               }`}
             >
-              {/* YOUTUBE LIVE — only show if URL is valid */}
               {hasYoutube && (
                 <div className="relative">
-                  {/* Platform label */}
                   <div className="flex items-center justify-between mb-3 px-2">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center">
@@ -173,10 +168,8 @@ export default async function LiveStreamPlayer() {
                 </div>
               )}
 
-              {/* FACEBOOK LIVE — only show if URL is valid */}
               {hasFacebook && (
                 <div className="relative">
-                  {/* Platform label */}
                   <div className="flex items-center justify-between mb-3 px-2">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
@@ -210,37 +203,28 @@ export default async function LiveStreamPlayer() {
             </div>
           </div>
         ) : (
-          /* OFFLINE STATE — shows when not live OR no valid URLs */
+          /* OFFLINE STATE */
           <div className="max-w-5xl mx-auto">
             <div className="aspect-video rounded-3xl overflow-hidden bg-black border-2 border-brand-gold-400/40 relative">
               <div className="relative w-full h-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center">
                 <div className="relative z-10 text-center px-8">
-                  {/* Gold icon */}
-                  <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-6">
-                    <svg
-                      className="w-10 h-10 md:w-12 md:h-12 text-brand-purple-900"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"
-                      />
+
+                  {/* Icon — WHITE 3D no bg box */}
+                  <div className="flex justify-center mb-4" style={ICON_3D_STYLE}>
+                    <svg className="w-14 h-14 md:w-16 md:h-16" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
                     </svg>
                   </div>
 
-                  <h3 className="font-heading text-2xl md:text-4xl font-bold text-white mb-4">
+                  <h3 className="font-heading text-2xl md:text-4xl font-bold text-white mb-3">
                     Stream Offline
                   </h3>
 
-                  <p className="text-brand-purple-100 text-sm md:text-lg mb-4 max-w-md mx-auto">
+                  <p className="text-brand-purple-100 text-sm md:text-lg mb-3 max-w-md mx-auto">
                     Come back for our next service and be blessed!
                   </p>
 
-                  <p className="font-script text-brand-gold-400 text-lg md:text-xl mb-6">
+                  <p className="font-heading italic font-bold text-brand-gold-400 text-lg md:text-xl mb-5">
                     Pray with us. Triumph with us.
                   </p>
 
@@ -249,7 +233,7 @@ export default async function LiveStreamPlayer() {
                       href={youtubeChannel}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-sm shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                     >
                       <YoutubeIcon className="w-5 h-5" />
                       Subscribe on YouTube
@@ -270,8 +254,8 @@ export default async function LiveStreamPlayer() {
           </div>
         )}
 
-        {/* Platform Buttons (always visible below) */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+        {/* Platform Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
           <a
             href={youtubeChannel}
             target="_blank"

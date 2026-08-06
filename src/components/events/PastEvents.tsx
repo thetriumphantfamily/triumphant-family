@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PAST EVENTS — Archive (clean purple + gold theme)
+// PAST EVENTS — White gradient + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { createClient } from "@/lib/supabase/server";
@@ -19,7 +19,7 @@ export default async function PastEvents() {
   if (!events || events.length === 0) return null;
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
       <div className="relative z-10 container-custom">
 
@@ -33,11 +33,11 @@ export default async function PastEvents() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-3xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Past{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Events
             </span>
           </h2>
@@ -50,7 +50,7 @@ export default async function PastEvents() {
         </div>
 
         {/* Past event cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 max-w-7xl mx-auto">
           {events.map((event) => (
             <EventCard key={event.id} event={event} variant="past" />
           ))}

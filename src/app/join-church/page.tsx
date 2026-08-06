@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// JOIN CHURCH PAGE – Membership registration (breadcrumb style)
+// JOIN CHURCH PAGE — Membership registration (tight spacing)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import type { Metadata } from "next";
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function JoinChurchPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900">
-      <section className="relative pt-8 pb-14 lg:pt-10 lg:pb-20 overflow-hidden">
+      <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 overflow-hidden">
         <div className="relative z-10 container-custom">
 
           {/* Breadcrumb */}
@@ -52,7 +52,7 @@ export default function JoinChurchPage() {
           </nav>
 
           {/* LOGO */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6">
             <Link href="/" className="flex flex-col items-center gap-3">
               <Image
                 src="/images/logo/logo.png"
@@ -75,7 +75,7 @@ export default function JoinChurchPage() {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-10 max-w-2xl mx-auto">
+          <div className="text-center mb-6 max-w-2xl mx-auto">
             <div className="flex justify-center mb-4">
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 shadow-lg">
                 <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
@@ -85,8 +85,12 @@ export default function JoinChurchPage() {
               </div>
             </div>
 
+            {/* Heading — WHITE gradient */}
             <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3">
-              Become a Member
+              Become a{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
+                Member
+              </span>
             </h1>
 
             <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed">
@@ -103,7 +107,7 @@ export default function JoinChurchPage() {
           <MemberRegisterForm />
 
           {/* Login link */}
-          <div className="text-center mt-8">
+          <div className="text-center mt-6">
             <p className="text-brand-purple-100 text-sm">
               Already a member?{" "}
               <Link

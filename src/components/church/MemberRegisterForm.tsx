@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER REGISTER FORM — Church membership registration + notify admin + save password
+// MEMBER REGISTER FORM — White CTA + white accents + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -166,7 +166,6 @@ export default function MemberRegisterForm() {
         return;
       }
 
-      // 🔔 NOTIFY ADMIN
       await notifyAdmin({
         title: "👥 New Member Registration",
         message: `${formData.full_name.trim()} just registered (${formData.email.trim().toLowerCase()}) and is awaiting approval.`,
@@ -191,10 +190,10 @@ export default function MemberRegisterForm() {
   if (registrationSuccess) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-8 md:p-12 border-2 border-brand-gold-400/40 shadow-2xl text-center">
+        <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-8 md:p-10 border-2 border-brand-gold-400/40 shadow-2xl text-center">
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 shadow-lg mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 shadow-lg mb-5">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
@@ -204,18 +203,18 @@ export default function MemberRegisterForm() {
             🎉 Welcome to The Family!
           </h2>
 
-          <p className="text-brand-purple-100 mb-6">
+          <p className="text-brand-purple-100 mb-5">
             {registrationSuccess.name}, your membership registration has been submitted!
           </p>
 
-          <div className="bg-brand-purple-950/60 border-2 border-brand-gold-400/40 rounded-2xl p-6 mb-6">
+          <div className="bg-brand-purple-950/60 border-2 border-brand-gold-400/40 rounded-2xl p-5 mb-5">
             <p className="text-brand-purple-200 text-xs uppercase tracking-widest font-semibold mb-2">Your Member ID</p>
-            <p className="font-heading text-3xl md:text-4xl font-bold text-brand-gold-400">{registrationSuccess.memberId}</p>
+            <p className="font-heading text-3xl md:text-4xl font-bold text-white">{registrationSuccess.memberId}</p>
             <p className="text-brand-purple-100 text-sm mt-2">Save this ID for future reference</p>
           </div>
 
-          <div className="bg-brand-gold-400/10 border border-brand-gold-400/30 rounded-2xl p-5 mb-6 text-left">
-            <p className="font-bold text-brand-gold-400 mb-2">📋 What&rsquo;s Next?</p>
+          <div className="bg-brand-purple-950/40 border border-white/20 rounded-2xl p-5 mb-5 text-left">
+            <p className="font-bold text-white mb-2">📋 What&rsquo;s Next?</p>
             <ul className="text-brand-purple-100 text-sm space-y-2 list-disc pl-4">
               <li>Your registration is pending admin approval</li>
               <li>You will be notified once approved</li>
@@ -225,7 +224,7 @@ export default function MemberRegisterForm() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/member/login" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all">
+            <Link href="/member/login" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
               Go to Login
             </Link>
             <Link href="/" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-purple-950/60 border-2 border-brand-gold-400/40 text-white font-bold hover:border-brand-gold-400 transition-all">
@@ -239,23 +238,22 @@ export default function MemberRegisterForm() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <form onSubmit={handleSubmit} className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 shadow-2xl relative overflow-hidden">
+      <form onSubmit={handleSubmit} className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-8 border-2 border-brand-gold-400/40 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
         {/* PHOTO UPLOAD */}
-        <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
-          <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <div className="mb-6 pb-5 border-b border-brand-gold-400/30">
+          <h3 className="font-heading text-lg font-bold text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">📸</span>
             Passport Photograph <span className="text-red-400">*</span>
           </h3>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" id="member-photo" />
           <div className="flex flex-col sm:flex-row items-center gap-4">
             {previewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={previewUrl} alt="Preview" className="w-32 h-32 rounded-2xl object-cover border-2 border-brand-gold-400 shadow-gold" />
+              <img src={previewUrl} alt="Preview" className="w-32 h-32 rounded-2xl object-cover border-2 border-white/60 shadow-lg" loading="lazy" />
             ) : (
-              <div className="w-32 h-32 rounded-2xl bg-brand-purple-950/60 border-2 border-dashed border-brand-gold-400/40 flex items-center justify-center">
-                <svg className="w-12 h-12 text-brand-gold-400/40" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="w-32 h-32 rounded-2xl bg-brand-purple-950/60 border-2 border-dashed border-white/40 flex items-center justify-center">
+                <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
                 </svg>
@@ -274,26 +272,26 @@ export default function MemberRegisterForm() {
         </div>
 
         {/* PERSONAL INFO */}
-        <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
-          <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <div className="mb-6 pb-5 border-b border-brand-gold-400/30">
+          <h3 className="font-heading text-lg font-bold text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">👤</span>
             Personal Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-white mb-2">Full Name <span className="text-brand-gold-400">*</span></label>
+              <label className="block text-sm font-bold text-white mb-2">Full Name <span className="text-white">*</span></label>
               <input type="text" value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} placeholder="Your full name" className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required />
             </div>
             <div>
-              <label className="block text-sm font-bold text-white mb-2">Email <span className="text-brand-gold-400">*</span></label>
+              <label className="block text-sm font-bold text-white mb-2">Email <span className="text-white">*</span></label>
               <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="you@example.com" className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required />
             </div>
             <div>
-              <label className="block text-sm font-bold text-white mb-2">Phone <span className="text-brand-gold-400">*</span></label>
+              <label className="block text-sm font-bold text-white mb-2">Phone <span className="text-white">*</span></label>
               <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+234 XXX XXX XXXX" className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required />
             </div>
             <div>
-              <label className="block text-sm font-bold text-white mb-2">Gender <span className="text-brand-gold-400">*</span></label>
+              <label className="block text-sm font-bold text-white mb-2">Gender <span className="text-white">*</span></label>
               <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className="w-full p-3 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required>
                 <option value="">Select gender</option>
                 {GENDERS.map((g) => (<option key={g.value} value={g.value}>{g.label}</option>))}
@@ -314,8 +312,8 @@ export default function MemberRegisterForm() {
         </div>
 
         {/* LOCATION */}
-        <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
-          <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <div className="mb-6 pb-5 border-b border-brand-gold-400/30">
+          <h3 className="font-heading text-lg font-bold text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">📍</span>
             Location
           </h3>
@@ -341,8 +339,8 @@ export default function MemberRegisterForm() {
         </div>
 
         {/* CHURCH INFO */}
-        <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
-          <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <div className="mb-6 pb-5 border-b border-brand-gold-400/30">
+          <h3 className="font-heading text-lg font-bold text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">⛪</span>
             Church Information
           </h3>
@@ -361,8 +359,8 @@ export default function MemberRegisterForm() {
         </div>
 
         {/* EMERGENCY CONTACT */}
-        <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
-          <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <div className="mb-6 pb-5 border-b border-brand-gold-400/30">
+          <h3 className="font-heading text-lg font-bold text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">🆘</span>
             Emergency Contact
           </h3>
@@ -379,14 +377,14 @@ export default function MemberRegisterForm() {
         </div>
 
         {/* ACCOUNT SETUP */}
-        <div className="mb-8 pb-6 border-b border-brand-gold-400/30">
-          <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <div className="mb-6 pb-5 border-b border-brand-gold-400/30">
+          <h3 className="font-heading text-lg font-bold text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">🔐</span>
             Account Setup
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-white mb-2">Password <span className="text-brand-gold-400">*</span></label>
+              <label className="block text-sm font-bold text-white mb-2">Password <span className="text-white">*</span></label>
               <div className="relative">
                 <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="Min. 6 characters" className="w-full p-3 pr-12 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required minLength={6} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
@@ -395,7 +393,7 @@ export default function MemberRegisterForm() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-white mb-2">Confirm Password <span className="text-brand-gold-400">*</span></label>
+              <label className="block text-sm font-bold text-white mb-2">Confirm Password <span className="text-white">*</span></label>
               <div className="relative">
                 <input type={showConfirmPassword ? "text" : "password"} value={formData.confirm_password} onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })} placeholder="Re-enter password" className="w-full p-3 pr-12 rounded-xl border-2 border-brand-gold-400/40 focus:border-brand-gold-400 focus:outline-none text-gray-900 bg-white" required minLength={6} />
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
@@ -411,14 +409,14 @@ export default function MemberRegisterForm() {
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={formData.agree_terms} onChange={(e) => setFormData({ ...formData, agree_terms: e.target.checked })} className="w-5 h-5 mt-0.5 rounded border-2 border-brand-gold-400 accent-brand-gold-400" required />
             <span className="text-brand-purple-100 text-sm leading-relaxed">
-              I agree to be a committed member of <strong className="text-brand-gold-400">The Triumphant Family Ministry</strong>, to attend services regularly, support the vision, and respect the leadership and community.
+              I agree to be a committed member of <strong className="text-white">The Triumphant Family Ministry</strong>, to attend services regularly, support the vision, and respect the leadership and community.
             </span>
           </label>
         </div>
 
-        {/* SUBMIT */}
+        {/* SUBMIT — WHITE gradient */}
         <button type="submit" disabled={isSubmitting}
-          className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base lg:text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100">
+          className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base lg:text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100">
           {isSubmitting ? (
             <>
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">

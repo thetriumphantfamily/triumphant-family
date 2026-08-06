@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TESTIMONIES WALL — Book page style (no blurs)
+// TESTIMONIES WALL — Book page style + white CTAs + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { createClient } from "@/lib/supabase/server";
@@ -18,6 +18,11 @@ const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
   other:        { label: "Other",        emoji: "📖" },
 };
 
+const ICON_3D_STYLE = {
+  color: "#ffffff",
+  filter: "drop-shadow(0 2px 0 #e0e0e0) drop-shadow(0 3px 0 #cccccc) drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 6px 15px rgba(255,255,255,0.15))",
+};
+
 export default async function TestimoniesWall() {
   const supabase = await createClient();
 
@@ -30,16 +35,17 @@ export default async function TestimoniesWall() {
 
   const approvedTestimonies = testimonies || [];
 
-  // ══════ EMPTY STATE ══════
+  // EMPTY STATE
   if (approvedTestimonies.length === 0) {
     return (
-      <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+      <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
         <div className="relative z-10 container-custom">
           <div className="max-w-2xl mx-auto">
-            <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-10 lg:p-12 border-2 border-brand-gold-400/40 text-center overflow-hidden">
+            <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-8 lg:p-10 border-2 border-brand-gold-400/40 text-center overflow-hidden">
 
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
+              {/* Badge */}
               <div className="flex justify-center mb-5">
                 <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border border-brand-gold-400/40 shadow-lg">
                   <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
@@ -49,27 +55,29 @@ export default async function TestimoniesWall() {
                 </div>
               </div>
 
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-5">
-                <svg className="w-10 h-10 text-brand-purple-900" fill="currentColor" viewBox="0 0 24 24">
+              {/* Icon — WHITE 3D no bg box */}
+              <div className="flex justify-center mb-4" style={ICON_3D_STYLE}>
+                <svg className="w-14 h-14" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z" />
                 </svg>
               </div>
 
-              <h2 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">
+              <h2 className="font-heading text-xl md:text-2xl font-bold text-white mb-3">
                 Be The{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
                   First to Share
                 </span>
               </h2>
 
-              <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed mb-8 max-w-md mx-auto">
+              <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed mb-6 max-w-md mx-auto">
                 No testimonies have been shared yet. Be the first to encourage
                 others with what God has done in your life!
               </p>
 
+              {/* CTA — WHITE gradient */}
               <a
                 href="#share-testimony"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 🎉 Share Your Testimony
               </a>
@@ -81,7 +89,7 @@ export default async function TestimoniesWall() {
   }
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
 
         {/* Badge */}
@@ -94,11 +102,11 @@ export default async function TestimoniesWall() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-3xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             Miracles &amp;{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Breakthroughs
             </span>
           </h2>
@@ -111,8 +119,8 @@ export default async function TestimoniesWall() {
           </div>
         </div>
 
-        {/* ══════ BOOK PAGE STYLE CARDS ══════ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+        {/* Book page style cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {approvedTestimonies.map((t) => {
             const category = t.category
               ? CATEGORY_LABELS[t.category] || CATEGORY_LABELS.other
@@ -122,18 +130,14 @@ export default async function TestimoniesWall() {
               <div
                 key={t.id}
                 className={`group relative rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 flex flex-col ${
-                  t.is_featured
-                    ? "ring-4 ring-brand-gold-400/60"
-                    : ""
+                  t.is_featured ? "ring-4 ring-brand-gold-400/60" : ""
                 }`}
                 style={{
                   background: "linear-gradient(135deg, #faf6ec 0%, #f5eddc 100%)",
                 }}
               >
-                {/* Gold top edge */}
                 <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-brand-gold-400 via-brand-gold-500 to-brand-gold-400" />
 
-                {/* Paper texture */}
                 <div
                   className="absolute inset-0 opacity-[0.03] pointer-events-none"
                   style={{
@@ -141,7 +145,6 @@ export default async function TestimoniesWall() {
                   }}
                 />
 
-                {/* Corner ornaments */}
                 <div className="absolute top-4 left-4 w-8 h-8 opacity-40 pointer-events-none">
                   <svg viewBox="0 0 32 32" className="w-full h-full text-brand-gold-500" fill="currentColor">
                     <path d="M2 2 L14 2 L14 4 L4 4 L4 14 L2 14 Z" />
@@ -155,13 +158,12 @@ export default async function TestimoniesWall() {
                   </svg>
                 </div>
 
-                <div className="relative z-10 flex flex-col flex-1 p-7 pt-9">
+                <div className="relative z-10 flex flex-col flex-1 p-6 pt-8">
 
-                  {/* Featured stamp — wax seal style */}
                   {t.is_featured && (
-                    <div className="absolute top-6 right-8 rotate-12 pointer-events-none z-20">
+                    <div className="absolute top-5 right-6 rotate-12 pointer-events-none z-20">
                       <div className="relative">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-600 flex items-center justify-center border-2 border-brand-gold-300">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-600 flex items-center justify-center border-2 border-brand-gold-300">
                           <div className="text-center">
                             <div className="text-[8px] text-brand-purple-900 font-bold uppercase tracking-wider leading-none">
                               God&rsquo;s
@@ -175,22 +177,19 @@ export default async function TestimoniesWall() {
                     </div>
                   )}
 
-                  {/* Big fancy quote mark */}
                   <div className="mb-2">
-                    <svg className="w-16 h-16 text-brand-purple-900/20" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-14 h-14 text-brand-purple-900/20" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                     </svg>
                   </div>
 
-                  {/* Testimony text */}
                   <p
-                    className="text-brand-purple-900 text-sm leading-relaxed italic mb-6 line-clamp-7 flex-1"
+                    className="text-brand-purple-900 text-sm leading-relaxed italic mb-4 line-clamp-7 flex-1"
                     style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                   >
                     &ldquo;{t.testimony_text}&rdquo;
                   </p>
 
-                  {/* Video if present */}
                   {t.video_url && (
                     <div className="aspect-video rounded-lg overflow-hidden mb-4 bg-black border-2 border-brand-purple-900/20">
                       <iframe
@@ -203,8 +202,7 @@ export default async function TestimoniesWall() {
                     </div>
                   )}
 
-                  {/* Signature line */}
-                  <div className="relative pt-5 mt-auto">
+                  <div className="relative pt-4 mt-auto">
                     <div className="absolute top-0 left-0 right-1/3 h-px bg-gradient-to-r from-brand-purple-900/50 to-transparent" />
 
                     <div className="flex items-center gap-3">
@@ -251,7 +249,6 @@ export default async function TestimoniesWall() {
                   </div>
                 </div>
 
-                {/* Bottom torn edge */}
                 <div className="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-500/60 via-brand-gold-400/60 to-brand-gold-500/60" />
               </div>
             );

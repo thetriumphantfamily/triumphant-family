@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PRAYER PROMISES — Compact scripture cards with shine hover
+// PRAYER PROMISES — White gradient + white avatars + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const PROMISES = [
@@ -31,7 +31,7 @@ const PROMISES = [
 
 export default function PrayerPromisesSection() {
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
       <div className="relative z-10 container-custom">
 
@@ -45,11 +45,11 @@ export default function PrayerPromisesSection() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-3xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             His Word On{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Prayer
             </span>
           </h2>
@@ -62,39 +62,33 @@ export default function PrayerPromisesSection() {
           </div>
         </div>
 
-        {/* Promise cards — compact + cute + polished */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+        {/* Promise cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
           {PROMISES.map((promise, i) => (
             <div
               key={i}
-              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl p-5 border border-brand-gold-400/40 hover:border-brand-gold-400 hover:shadow-[0_0_25px_rgba(255,199,44,0.25)] transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col"
+              className="group relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-2xl p-5 border border-brand-gold-400/40 hover:border-brand-gold-400 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col"
             >
-              {/* Gold top bar */}
               <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-              {/* Shine sweep */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                <div className="absolute -inset-x-full top-0 h-full bg-gradient-to-r from-transparent via-brand-gold-400/10 to-transparent -skew-x-12 group-hover:translate-x-full transition-transform duration-1000" />
-              </div>
-
-              {/* Quote mark */}
-              <svg className="relative z-10 w-6 h-6 text-brand-gold-400/50 mb-2 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              {/* Quote mark — WHITE */}
+              <svg className="relative z-10 w-6 h-6 text-white/40 mb-2 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
               </svg>
 
               {/* Verse text */}
-              <p className="relative z-10 text-brand-purple-100 leading-relaxed text-sm italic flex-1 mb-4 text-justify">
+              <p className="relative z-10 text-brand-purple-100 leading-relaxed text-sm italic flex-1 mb-4">
                 &ldquo;{promise.text}&rdquo;
               </p>
 
-              {/* Verse reference */}
+              {/* Verse reference — WHITE icon */}
               <div className="relative z-10 flex items-center gap-2.5 pt-3 border-t border-brand-gold-400/30">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-md">
                   <svg className="w-4 h-4 text-brand-purple-900" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1z" />
                   </svg>
                 </div>
-                <p className="text-brand-gold-400 font-bold text-sm">
+                <p className="text-white font-bold text-sm">
                   {promise.verse}
                 </p>
               </div>

@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CONTACT FORM — Clean purple + gold theme
-// Now triggers admin notification on submit
+// CONTACT FORM — White gradient + white CTA + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 "use client";
@@ -71,7 +70,6 @@ export default function ContactForm() {
     try {
       const supabase = createClient();
 
-      // ━━━ 1. Save the contact message ━━━
       const { error } = await supabase.from("contact_messages").insert([{
         full_name: formData.fullName,
         email:     formData.email,
@@ -85,7 +83,6 @@ export default function ContactForm() {
         return;
       }
 
-      // ━━━ 2. Notify admin ━━━
       const subjectLabel = SUBJECT_LABELS[formData.subject] || formData.subject;
       await supabase.from("site_notifications").insert({
         title: `✉️ New Contact Message`,
@@ -111,7 +108,7 @@ export default function ContactForm() {
   };
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
       <div className="relative z-10 container-custom">
         <div className="max-w-3xl mx-auto">
 
@@ -125,11 +122,11 @@ export default function ContactForm() {
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="text-center mb-10">
+          {/* Heading — WHITE gradient */}
+          <div className="text-center mb-6 lg:mb-8">
             <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
               Drop Us A{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
                 Message
               </span>
             </h2>
@@ -142,13 +139,12 @@ export default function ContactForm() {
           </div>
 
           {/* Form card */}
-          <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-10 border-2 border-brand-gold-400/40 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-6 md:p-8 border-2 border-brand-gold-400/40 relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
             <form onSubmit={handleSubmit} className="space-y-5">
 
-              {/* Name + Email */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Full Name"
                   required
@@ -168,8 +164,7 @@ export default function ContactForm() {
                 />
               </div>
 
-              {/* Phone + Subject */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Phone Number (Optional)"
                   type="tel"
@@ -188,7 +183,6 @@ export default function ContactForm() {
                 />
               </div>
 
-              {/* Message */}
               <Textarea
                 label="Your Message"
                 required
@@ -200,11 +194,11 @@ export default function ContactForm() {
                 error={errors.message}
               />
 
-              {/* Submit */}
+              {/* Submit — WHITE gradient */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base lg:text-lg shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base lg:text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isSubmitting ? (
                   <>

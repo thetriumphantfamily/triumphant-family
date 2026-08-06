@@ -1,10 +1,15 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// UPCOMING EVENTS — Clean purple + gold theme
+// UPCOMING EVENTS — White gradient + white 3D icons + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import EventCard from "@/components/events/EventCard";
+
+const ICON_3D_STYLE = {
+  color: "#ffffff",
+  filter: "drop-shadow(0 2px 0 #e0e0e0) drop-shadow(0 3px 0 #cccccc) drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 6px 15px rgba(255,255,255,0.15))",
+};
 
 export default async function UpcomingEvents() {
   const supabase = await createClient();
@@ -17,7 +22,7 @@ export default async function UpcomingEvents() {
     .order("event_date", { ascending: true });
 
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
       <div className="relative z-10 container-custom">
 
@@ -31,11 +36,11 @@ export default async function UpcomingEvents() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-3xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-3xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             What&rsquo;s{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Coming Up
             </span>
           </h2>
@@ -50,28 +55,30 @@ export default async function UpcomingEvents() {
         {/* Empty state */}
         {(!events || events.length === 0) && (
           <div className="max-w-2xl mx-auto">
-            <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-10 lg:p-12 border-2 border-brand-gold-400/40 text-center overflow-hidden">
+            <div className="relative bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 rounded-3xl p-8 lg:p-10 border-2 border-brand-gold-400/40 text-center overflow-hidden">
 
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 shadow-gold mb-5">
-                <svg className="w-10 h-10 text-brand-purple-900" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              {/* Icon — WHITE 3D no bg box */}
+              <div className="flex justify-center mb-3" style={ICON_3D_STYLE}>
+                <svg className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25" />
                 </svg>
               </div>
 
-              <h3 className="font-heading text-2xl lg:text-3xl font-bold text-white mb-3">
+              <h3 className="font-heading text-xl lg:text-2xl font-bold text-white mb-2">
                 No Upcoming Events Yet
               </h3>
 
-              <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed mb-8 max-w-md mx-auto">
+              <p className="text-brand-purple-100 text-sm md:text-base leading-relaxed mb-6 max-w-md mx-auto">
                 We are preparing exciting events. In the meantime, join our weekly
                 services every Sunday and Wednesday.
               </p>
 
+              {/* CTA — WHITE gradient */}
               <Link
                 href="/about"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-bold text-base shadow-gold hover:shadow-gold-lg hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-white to-gray-100 text-brand-purple-900 font-bold text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -88,12 +95,12 @@ export default async function UpcomingEvents() {
         {/* Event cards */}
         {events && events.length > 0 && (
           <>
-            <p className="text-center text-brand-purple-200 text-sm mb-8">
-              <strong className="text-brand-gold-400">{events.length}</strong>{" "}
+            <p className="text-center text-brand-purple-200 text-sm mb-6">
+              <strong className="text-white">{events.length}</strong>{" "}
               {events.length === 1 ? "event" : "events"} coming up
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 max-w-7xl mx-auto">
               {events.map((event) => (
                 <EventCard key={event.id} event={event} variant="upcoming" />
               ))}
