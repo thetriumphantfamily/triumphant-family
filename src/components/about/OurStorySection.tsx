@@ -1,10 +1,10 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// OUR STORY SECTION — Deep purple cards, no white haze
+// OUR STORY SECTION — White gradient + minimal gold + tight spacing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export default function OurStorySection() {
   return (
-    <section className="relative pt-10 pb-14 lg:pt-12 lg:pb-16 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
+    <section className="relative pt-8 pb-10 lg:pt-10 lg:pb-12 bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 overflow-hidden">
 
       <div className="relative z-10 container-custom">
 
@@ -18,11 +18,11 @@ export default function OurStorySection() {
           </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10 max-w-4xl mx-auto">
+        {/* Heading — WHITE gradient */}
+        <div className="text-center mb-6 lg:mb-8 max-w-4xl mx-auto">
           <h2 className="font-heading text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight mb-3">
             A Family Born from{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-200">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-300">
               Divine Encounter
             </span>
           </h2>
@@ -35,13 +35,12 @@ export default function OurStorySection() {
           </div>
         </div>
 
-        {/* Story content — deep purple card */}
-        <div className="max-w-4xl mx-auto bg-brand-purple-900/60 rounded-3xl p-8 lg:p-12 border border-brand-gold-400/30 relative overflow-hidden">
+        {/* Story content */}
+        <div className="max-w-4xl mx-auto bg-brand-purple-900/60 rounded-3xl p-6 lg:p-8 border border-brand-gold-400/30 relative overflow-hidden">
 
-          {/* Gold top bar */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
 
-          <div className="space-y-5 text-brand-purple-100 leading-relaxed text-sm md:text-base lg:text-lg text-justify">
+          <div className="space-y-4 text-brand-purple-100 leading-relaxed text-sm md:text-base lg:text-lg">
 
             <p>
               The Triumphant Family — The Gleam of Salvation Apostolic Ministry — was
@@ -60,11 +59,11 @@ export default function OurStorySection() {
 
             <p>
               We believe that{" "}
-              <strong className="text-brand-gold-400">prayer changes things</strong>,
+              <strong className="text-white">prayer changes things</strong>,
               that the{" "}
-              <strong className="text-brand-gold-400">Word of God transforms lives</strong>,
+              <strong className="text-white">Word of God transforms lives</strong>,
               and that the{" "}
-              <strong className="text-brand-gold-400">Holy Spirit still moves with power</strong>{" "}
+              <strong className="text-white">Holy Spirit still moves with power</strong>{" "}
               today — just as in the days of the apostles. Our services are charged
               with faith, anointing, and the manifest presence of God.
             </p>
@@ -77,14 +76,14 @@ export default function OurStorySection() {
           </div>
 
           {/* Quote block */}
-          <div className="relative mt-10 py-7 px-6 md:px-10 border-l-4 border-brand-gold-400 bg-brand-purple-900/60 rounded-r-2xl">
-            <svg className="absolute top-4 left-4 w-8 h-8 text-brand-gold-400/40" fill="currentColor" viewBox="0 0 24 24">
+          <div className="relative mt-8 py-5 px-5 md:px-8 border-l-4 border-brand-gold-400 bg-brand-purple-900/60 rounded-r-2xl">
+            <svg className="absolute top-3 left-3 w-6 h-6 text-white/30" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
             </svg>
-            <p className="text-lg md:text-xl lg:text-2xl font-heading italic text-white leading-relaxed pl-6">
+            <p className="text-base md:text-lg lg:text-xl font-heading italic text-white leading-relaxed pl-5">
               You were not created to be defeated. You were created to triumph!
             </p>
-            <p className="text-brand-gold-400 font-bold text-sm mt-3 pl-6">
+            <p className="text-brand-gold-400 font-bold text-sm mt-2 pl-5">
               — Prophet Olayiwole Ogunsola
             </p>
           </div>
