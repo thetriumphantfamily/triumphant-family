@@ -1,5 +1,6 @@
 // ───────────────────────────────────────────────────────────────
 // CAPACITOR CONFIG — The Triumphant Family Ministry App
+// APK opens directly to /member/login (member-first experience)
 // ───────────────────────────────────────────────────────────────
 
 import { CapacitorConfig } from "@capacitor/cli";
@@ -10,7 +11,8 @@ const config: CapacitorConfig = {
   webDir: "out",
   backgroundColor: "#3B0764",
   server: {
-    url: "https://triumphantfamily.vercel.app",
+    // APK opens to member login page (auto-redirects to dashboard if logged in)
+    url: "https://triumphantfamily.vercel.app/member/login",
     cleartext: true,
     androidScheme: "https",
   },
