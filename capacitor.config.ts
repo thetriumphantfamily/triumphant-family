@@ -1,6 +1,6 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // CAPACITOR CONFIG — The Triumphant Family Ministry App
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 
 import { CapacitorConfig } from "@capacitor/cli";
 
@@ -8,9 +8,8 @@ const config: CapacitorConfig = {
   appId: "com.triumphantfamily.app",
   appName: "The Triumphant Family",
   webDir: "out",
+  backgroundColor: "#3B0764",
   server: {
-    // ━━━ For TEST BUILD — using Vercel URL ━━━
-    // ━━━ Change to triumphantfamily.com tomorrow ━━━
     url: "https://triumphantfamily.vercel.app",
     cleartext: true,
     androidScheme: "https",
@@ -19,6 +18,7 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
+    backgroundColor: "#3B0764",
   },
   plugins: {
     SplashScreen: {

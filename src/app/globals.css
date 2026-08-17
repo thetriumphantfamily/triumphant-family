@@ -14,6 +14,31 @@
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WEBVIEW / APK SCROLL FIX (No White Flash)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+html {
+  background-color: #3B0764 !important;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  background-color: #3B0764;
+  overscroll-behavior: none;
+}
+
+/* Prevent white flash during scroll on all pages */
+#__next,
+main {
+  background-color: #3B0764;
+  min-height: 100vh;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    BASE STYLES
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 @layer base {
@@ -23,7 +48,7 @@
   }
 
   body {
-    @apply bg-white text-gray-900 font-body antialiased;
+    @apply text-gray-900 font-body antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
