@@ -1,6 +1,6 @@
 // ───────────────────────────────────────────────────────────────
 // CAPACITOR CONFIG — The Triumphant Family Ministry App
-// APK opens directly to /member/login (member-first experience)
+// Brand purple: #260832 (matches dashboard gradient)
 // ───────────────────────────────────────────────────────────────
 
 import { CapacitorConfig } from "@capacitor/cli";
@@ -9,9 +9,8 @@ const config: CapacitorConfig = {
   appId: "com.triumphantfamily.app",
   appName: "The Triumphant Family",
   webDir: "out",
-  backgroundColor: "#3B0764",
+  backgroundColor: "#260832",
   server: {
-    // APK opens to member login page (auto-redirects to dashboard if logged in)
     url: "https://triumphantfamily.vercel.app/member/login",
     cleartext: true,
     androidScheme: "https",
@@ -20,13 +19,13 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-    backgroundColor: "#3B0764",
+    backgroundColor: "#260832",
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
-      backgroundColor: "#3B0764",
+      backgroundColor: "#260832",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,

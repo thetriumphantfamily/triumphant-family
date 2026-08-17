@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_background">#3B0764</color>
-    <color name="purple_bg">#3B0764</color>
+    <color name="splash_background">#260832</color>
+    <color name="purple_bg">#260832</color>
+    <color name="brand_violet">#260832</color>
 </resources>

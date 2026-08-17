@@ -15,22 +15,23 @@
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    WEBVIEW / APK SCROLL FIX (No White Flash)
+   Uses brand-violet-900 (#260832) to match dashboard
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 html {
-  background-color: #3B0764 !important;
+  background-color: #260832 !important;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
 
 body {
-  background-color: #3B0764;
+  background-color: #260832;
   overscroll-behavior: none;
 }
 
 /* Prevent white flash during scroll on all pages */
 #__next,
 main {
-  background-color: #3B0764;
+  background-color: #260832;
   min-height: 100vh;
 }
 

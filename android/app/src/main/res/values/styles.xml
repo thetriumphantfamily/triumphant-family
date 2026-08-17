@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">#3B0764</item>
-        <item name="colorPrimaryDark">#2D0550</item>
+        <item name="colorPrimary">#260832</item>
+        <item name="colorPrimaryDark">#1A0622</item>
         <item name="colorAccent">#FFC72C</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowBackground">@color/purple_bg</item>
-        <item name="android:background">#3B0764</item>
-        <item name="android:statusBarColor">#3B0764</item>
-        <item name="android:navigationBarColor">#3B0764</item>
+        <item name="android:windowBackground">@color/brand_violet</item>
+        <item name="android:background">#260832</item>
+        <item name="android:statusBarColor">#260832</item>
+        <item name="android:navigationBarColor">#260832</item>
     </style>
 </resources>
