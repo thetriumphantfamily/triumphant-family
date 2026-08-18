@@ -2,7 +2,7 @@
 
 // ───────────────────────────────────────────────────────────────
 // NAVBAR — Mobile dropdown themed with purple + gold system
-// Logo removed from mobile drawer (was getting cut off)
+// Logo removed from mobile drawer + Navigate pill spacing fix
 // ───────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
@@ -224,11 +224,11 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Drawer Content */}
-          <nav className="p-5 overflow-y-auto h-[calc(100%-64px)]">
+          {/* Drawer Content — extra top padding for Navigate pill */}
+          <nav className="px-5 pt-8 pb-5 overflow-y-auto h-[calc(100%-64px)]">
 
             {/* Menu heading badge */}
-            <div className="flex justify-center mb-5">
+            <div className="flex justify-center mb-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-gold-400 animate-pulse" />
                 <span className="text-white font-bold text-[10px] uppercase tracking-widest">
