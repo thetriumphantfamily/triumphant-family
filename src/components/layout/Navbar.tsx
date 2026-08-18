@@ -225,7 +225,7 @@ export default function Navbar() {
           </div>
 
           {/* Drawer Content — extra top padding for Navigate pill */}
-          <nav className="px-5 pt-8 pb-5 overflow-y-auto h-[calc(100%-64px)]">
+          <nav className="px-5 pt-14 pb-5 overflow-y-auto h-[calc(100%-64px)]">
 
             {/* Menu heading badge */}
             <div className="flex justify-center mb-6">
