@@ -1,6 +1,7 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // TDA DASHBOARD CLIENT – Student portal overview
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Welcome header cloned from Church dashboard for mobile alignment
+// ───────────────────────────────────────────────────────────────
 "use client";
 
 import { useEffect, useState } from "react";
@@ -137,50 +138,62 @@ export default function TDADashboardClient() {
     }
   };
 
-  // ✅ LOADING SCREEN
   if (loading) return <LoadingScreen message="Loading your dashboard..." />;
   if (!student) return null;
 
   const greeting = getGreeting();
   const title = getTitle(student.gender);
+  const firstName = student.full_name.split(" ")[0];
 
   return (
     <div className="space-y-4 pb-6">
 
-      {/* ── Welcome Header ── */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
+      {/* ── Welcome Header (Church-style layout) ── */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="relative z-10">
 
-          {/* Photo */}
-          {student.photo_url ? (
-            <img
-              src={student.photo_url}
-              alt={student.full_name}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-brand-gold-400/40 shadow-xl flex-shrink-0"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-2xl bg-brand-purple-950/80 border-2 border-brand-gold-400/40 flex items-center justify-center text-white font-black text-3xl flex-shrink-0">
-              {student.full_name.charAt(0)}
+          {/* Student Portal Badge */}
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-4">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="text-white font-black text-sm md:text-base lg:text-lg uppercase tracking-widest">
+              Student Portal
+            </span>
+          </div>
+
+          {/* Photo + Info side-by-side */}
+          <div className="flex items-center gap-4 mb-4">
+            {student.photo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={student.photo_url}
+                alt={student.full_name}
+                className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-brand-gold-400 shadow-gold flex-shrink-0"
+              />
+            ) : (
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-brand-gold-400 to-brand-gold-500 flex items-center justify-center text-brand-purple-900 font-black text-2xl border-2 border-brand-gold-400 flex-shrink-0">
+                {firstName.charAt(0)}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-white/80 font-semibold text-base md:text-lg">{greeting},</p>
+              <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                {title} {firstName.toUpperCase()}!
+              </h1>
+              <p className="text-brand-purple-200 text-xs md:text-sm font-semibold mt-1">
+                {student.student_id} • Level {student.level}
+              </p>
             </div>
-          )}
+          </div>
 
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <p className="text-white/80 font-semibold text-sm mb-1">
-              {greeting}, {title}!
+          {/* School Level */}
+          <div className="mt-4 pt-4 border-t border-brand-gold-400/30">
+            <p className="text-brand-purple-300 text-[10px] uppercase tracking-widest font-black mb-1">
+              Enrolled In
             </p>
-            <h1 className="font-heading text-xl md:text-3xl font-bold text-white mb-2">
-              {student.full_name}
-            </h1>
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 text-white font-semibold text-xs">
-                {student.student_id}
-              </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/30 text-white font-semibold text-xs">
-                Level {student.level} — {LEVEL_NAMES[student.level]}
-              </span>
-            </div>
+            <p className="text-white font-bold text-sm md:text-base">
+              {LEVEL_NAMES[student.level]}
+            </p>
           </div>
         </div>
       </div>
