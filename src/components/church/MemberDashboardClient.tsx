@@ -1,12 +1,12 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// MEMBER DASHBOARD — Updated for dark purple background
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
+// MEMBER DASHBOARD — Instant load (no loading screen)
+// Shows content instantly from session, notifications load in bg
+// ───────────────────────────────────────────────────────────────
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import LoadingScreen from "./LoadingScreen";
 
 interface Member {
   id: string;
@@ -56,48 +56,53 @@ const QUICK_LINKS = [
 
 export default function MemberDashboardClient() {
   const [member, setMember] = useState<Member | null>(null);
-  const [loading, setLoading] = useState(true);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
+  // ─────────────────────────────────────────────
+  // LOAD SESSION INSTANTLY FROM localStorage
+  // No loading screen — content shows immediately
+  // ─────────────────────────────────────────────
   useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  const loadDashboard = async () => {
     try {
       const session = localStorage.getItem("tfam_member_session");
-      if (!session) {
-        setLoading(false);
-        return;
-      }
+      if (!session) return;
 
       const parsed = JSON.parse(session);
       setMember(parsed);
 
-      // Load unread notifications
+      // Load notifications in background (no blocking)
       if (parsed.id) {
-        const supabase = createClient();
-        const { count } = await supabase
-          .from("tfam_notifications")
-          .select("id", { count: "exact", head: true })
-          .eq("recipient_type", "member")
-          .eq("recipient_id", parsed.id)
-          .eq("is_read", false);
-        setUnreadNotifications(count || 0);
+        loadNotifications(parsed.id);
       }
-
-      setLoading(false);
     } catch (err) {
       console.error("Dashboard error:", err);
-      setLoading(false);
+    }
+  }, []);
+
+  const loadNotifications = async (memberId: string) => {
+    try {
+      const supabase = createClient();
+      const { count } = await supabase
+        .from("tfam_notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_type", "member")
+        .eq("recipient_id", memberId)
+        .eq("is_read", false);
+      setUnreadNotifications(count || 0);
+    } catch (err) {
+      console.error("Notifications error:", err);
     }
   };
 
-  if (loading) {
-    return <LoadingScreen message="Loading your dashboard..." />;
+  // ─────────────────────────────────────────────
+  // NO LOADING SCREEN — just wait for member data
+  // Shows blank purple bg (matches splash seamlessly)
+  // ─────────────────────────────────────────────
+  if (!member) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900" />
+    );
   }
-
-  if (!member) return null;
 
   const greeting = getGreeting();
   const title = getTitle(member.gender);

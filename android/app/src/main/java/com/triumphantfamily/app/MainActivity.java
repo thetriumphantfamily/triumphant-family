@@ -12,7 +12,7 @@ public class MainActivity extends BridgeActivity {
 
         WebView webView = getBridge().getWebView();
         if (webView != null) {
-            webView.setBackgroundColor(Color.parseColor("#3B0764"));
+            webView.setBackgroundColor(Color.parseColor("#260832"));
         }
     }
 }

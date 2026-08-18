@@ -1,5 +1,5 @@
 // ───────────────────────────────────────────────────────────────
-// MEMBER LOGIN CLIENT — Auto-redirects if session exists
+// MEMBER LOGIN CLIENT — Instant redirect (no loading screen)
 // ───────────────────────────────────────────────────────────────
 "use client";
 
@@ -11,11 +11,12 @@ import MemberLoginForm from "@/components/church/MemberLoginForm";
 
 export default function MemberLoginClient() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
 
   // ─────────────────────────────────────────────
   // AUTO-CHECK SESSION ON LOAD
-  // If member is already logged in, redirect
+  // If member is already logged in, redirect INSTANTLY
+  // Otherwise show login form
   // ─────────────────────────────────────────────
   useEffect(() => {
     try {
@@ -28,32 +29,18 @@ export default function MemberLoginClient() {
         }
       }
     } catch (err) {
-      // Invalid session — stay on login
+      // Invalid session — show login
     }
-    setChecking(false);
+    setShowLogin(true);
   }, [router]);
 
   // ─────────────────────────────────────────────
-  // LOADING WHILE CHECKING SESSION
+  // NO LOADING SCREEN — just blank purple bg
+  // Purple bg matches splash, so it looks continuous
   // ─────────────────────────────────────────────
-  if (checking) {
+  if (!showLogin) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 flex items-center justify-center">
-        <div className="text-center">
-          <Image
-            src="/images/logo/logo.png"
-            alt="TFAM"
-            width={80}
-            height={80}
-            unoptimized
-            className="w-20 h-20 object-contain mx-auto mb-4 animate-pulse"
-            priority
-          />
-          <p className="text-white font-heading text-sm animate-pulse">
-            Loading...
-          </p>
-        </div>
-      </main>
+      <main className="min-h-screen bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900" />
     );
   }
 
