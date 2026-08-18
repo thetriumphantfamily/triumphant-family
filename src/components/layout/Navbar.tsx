@@ -1,8 +1,9 @@
 "use client";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // NAVBAR — Mobile dropdown themed with purple + gold system
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Logo removed from mobile drawer (was getting cut off)
+// ───────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -12,9 +13,9 @@ import { NAV_LINKS, LIVE_STREAM } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // SOCIAL MEDIA LINKS — Original brand colors
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 const SOCIAL_LINKS = [
   {
     name:  "Facebook",
@@ -187,9 +188,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ══════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       {/* MOBILE DRAWER — LOCKED-IN PURPLE + GOLD THEME         */}
-      {/* ══════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════════════ */}
       <div
         className={cn(
           "fixed inset-0 z-40 lg:hidden transition-all duration-300",
@@ -212,9 +213,8 @@ export default function Navbar() {
           {/* Gold top bar */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500 z-10" />
 
-          {/* Drawer Header */}
-          <div className="relative flex items-center justify-between p-5 border-b border-brand-gold-400/30">
-            <Logo size="sm" textColor="white" />
+          {/* Drawer Header — Close button only (Logo removed) */}
+          <div className="relative flex items-center justify-end p-4 border-b border-brand-gold-400/30">
             <button
               onClick={() => setIsOpen(false)}
               className="p-2 rounded-full bg-brand-purple-950/60 hover:bg-brand-gold-400 hover:text-brand-purple-900 text-white transition-all duration-300 border border-brand-gold-400/40"
@@ -225,7 +225,7 @@ export default function Navbar() {
           </div>
 
           {/* Drawer Content */}
-          <nav className="p-5 overflow-y-auto h-[calc(100%-80px)]">
+          <nav className="p-5 overflow-y-auto h-[calc(100%-64px)]">
 
             {/* Menu heading badge */}
             <div className="flex justify-center mb-5">
