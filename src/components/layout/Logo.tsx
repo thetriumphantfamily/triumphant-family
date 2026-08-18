@@ -1,6 +1,8 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // LOGO COMPONENT — REUSABLE + 3-CLICK ADMIN ACCESS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Mobile: smaller "sm" text to fit on one line
+// Desktop: original sizes preserved
+// ───────────────────────────────────────────────────────────────
 
 "use client";
 
@@ -29,7 +31,7 @@ export default function Logo({
   const clickCountRef = useRef(0);
 
   const sizes = {
-    sm: { img: 80,  textMain: "text-lg",  textSub: "text-[10px]", gap: "gap-1" },
+    sm: { img: 80,  textMain: "text-sm sm:text-base md:text-lg",  textSub: "text-[9px] sm:text-[10px]", gap: "gap-1" },
     md: { img: 120, textMain: "text-2xl", textSub: "text-xs",     gap: "gap-1" },
     lg: { img: 180, textMain: "text-3xl", textSub: "text-sm",     gap: "gap-2" },
     xl: { img: 240, textMain: "text-5xl", textSub: "text-lg",     gap: "gap-3" },
@@ -44,7 +46,7 @@ export default function Logo({
   const dimensions = sizes[size];
   const textStyles = colors[textColor];
 
-  // ━━━ Click handler: count clicks, redirect on 3rd ━━━
+  // ─── Click handler: count clicks, redirect on 3rd ───
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
@@ -76,7 +78,7 @@ export default function Logo({
         <div className="flex flex-col leading-tight">
           <span
             className={cn(
-              "font-heading font-bold tracking-tight",
+              "font-heading font-bold tracking-tight whitespace-nowrap",
               dimensions.textMain,
               textStyles.main
             )}
@@ -85,7 +87,7 @@ export default function Logo({
           </span>
           <span
             className={cn(
-              "font-body font-black tracking-wider uppercase",
+              "font-body font-black tracking-wider uppercase whitespace-nowrap",
               dimensions.textSub,
               textStyles.sub
             )}
