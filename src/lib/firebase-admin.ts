@@ -1,7 +1,5 @@
 // ───────────────────────────────────────────────────────────────
-// FIREBASE ADMIN SDK — Supports BOTH:
-// 1. Local dev: JSON file (firebase-admin-key.json)
-// 2. Production (Vercel): Environment variables
+// FIREBASE ADMIN SDK — Better handling for Vercel env vars
 // ───────────────────────────────────────────────────────────────
 
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
@@ -11,26 +9,37 @@ import * as path from "path";
 
 let app: App;
 
+function parsePrivateKey(key: string): string {
+  // Remove wrapping quotes if present
+  let cleaned = key.trim();
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  // Replace escaped newlines with real newlines
+  cleaned = cleaned.replace(/\\n/g, "\n");
+  return cleaned;
+}
+
 function initFirebaseAdmin() {
-  // Method 1: Try env variables first (Vercel/production)
-  if (
-    process.env.FIREBASE_ADMIN_PROJECT_ID &&
-    process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
-    process.env.FIREBASE_ADMIN_PRIVATE_KEY
-  ) {
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const rawPrivateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+
+  // Method 1: Try env variables (Vercel/production)
+  if (projectId && clientEmail && rawPrivateKey) {
     try {
-      const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, "\n");
+      const privateKey = parsePrivateKey(rawPrivateKey);
       const initialized = initializeApp({
         credential: cert({
-          projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+          projectId,
+          clientEmail,
           privateKey,
         }),
       });
       console.log("Firebase Admin initialized via ENV VARS ✅");
       return initialized;
     } catch (err) {
-      console.warn("Env var init failed, trying JSON file...", err);
+      console.warn("Env var init failed:", err);
     }
   }
 
@@ -54,13 +63,22 @@ function initFirebaseAdmin() {
   );
 }
 
-if (!getApps().length) {
-  app = initFirebaseAdmin();
-} else {
-  app = getApps()[0];
+// Lazy initialization to prevent build-time errors
+function getApp(): App {
+  if (!app) {
+    if (!getApps().length) {
+      app = initFirebaseAdmin();
+    } else {
+      app = getApps()[0];
+    }
+  }
+  return app;
 }
 
-export const adminMessaging = getMessaging(app);
+// Export messaging as function to defer init
+export function getAdminMessaging() {
+  return getMessaging(getApp());
+}
 
 // ─── Send notification to single token ───
 export async function sendNotification(
@@ -87,7 +105,7 @@ export async function sendNotification(
       },
     };
 
-    const response = await adminMessaging.send(message);
+    const response = await getAdminMessaging().send(message);
     console.log("Notification sent:", response);
     return { success: true, response };
   } catch (err) {
@@ -125,7 +143,7 @@ export async function sendNotificationToMultiple(
       },
     };
 
-    const response = await adminMessaging.sendEachForMulticast(message);
+    const response = await getAdminMessaging().sendEachForMulticast(message);
     console.log(`Notifications sent: ${response.successCount}/${tokens.length}`);
     return {
       success: true,
@@ -138,5 +156,3 @@ export async function sendNotificationToMultiple(
     return { success: false, error: err };
   }
 }
-
-export { app };

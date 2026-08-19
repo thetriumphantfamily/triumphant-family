@@ -7,12 +7,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendNotificationToMultiple } from "@/lib/firebase-admin";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { title, message, target, link } = body;
 
-    // Validate input
     if (!title || !message) {
       return NextResponse.json(
         { error: "Title and message are required" },
@@ -20,19 +22,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Init Supabase (server-side)
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Build query based on target
     let query = supabase
       .from("fcm_tokens")
       .select("token")
       .eq("is_active", true);
 
-    // Filter by user type if specified
     if (target === "members") {
       query = query.eq("user_type", "member");
     } else if (target === "students") {
@@ -40,7 +39,6 @@ export async function POST(req: NextRequest) {
     } else if (target === "anonymous") {
       query = query.eq("user_type", "anonymous");
     }
-    // "all" = no filter (send to everyone)
 
     const { data: tokens, error } = await query;
 
@@ -59,10 +57,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Extract token strings
     const tokenList = tokens.map((t) => t.token);
 
-    // Send notifications
     const result = await sendNotificationToMultiple(
       tokenList,
       title,
