@@ -1,6 +1,7 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // DOWNLOAD PAGE — App download page for members
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// APK live at /TFAM.apk
+// ───────────────────────────────────────────────────────────────
 
 import Link from "next/link";
 
@@ -26,13 +27,13 @@ export default function DownloadPage() {
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-purple-950/60 border border-brand-gold-400/40 mb-6">
-            <span className="w-2 h-2 rounded-full bg-brand-gold-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-white font-semibold text-xs uppercase tracking-widest">
-              Official App
+              Available Now
             </span>
           </div>
 
-          {/* Real ministry logo — slightly bigger, tighter gap */}
+          {/* Real ministry logo */}
           <div className="flex justify-center mb-3">
             <img
               src="/images/logo/logo.png"
@@ -60,8 +61,17 @@ export default function DownloadPage() {
           {/* Download Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-12">
             {/* Android APK */}
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl">
-              <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400 p-6 shadow-2xl">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+
+              {/* Available badge */}
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/20 border border-green-400/40 mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-green-300 font-black text-[10px] uppercase tracking-widest">
+                  Ready
+                </span>
+              </div>
+
               <div className="text-4xl mb-3">🤖</div>
               <h3 className="font-black text-white text-lg mb-1">
                 Android App
@@ -70,7 +80,8 @@ export default function DownloadPage() {
                 Download APK directly to your Android phone
               </p>
               <a
-                href="#coming-soon"
+                href="/TFAM.apk"
+                download="TFAM.apk"
                 className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold hover:scale-105 transition-all"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -79,7 +90,7 @@ export default function DownloadPage() {
                 Download APK
               </a>
               <p className="text-brand-purple-300 text-xs mt-2 font-semibold">
-                Version 1.0.0 • Coming Soon
+                Version 1.0.0 • ~5 MB
               </p>
             </div>
 
@@ -104,6 +115,19 @@ export default function DownloadPage() {
               </Link>
               <p className="text-brand-purple-300 text-xs mt-2 font-semibold">
                 Free • No App Store needed
+              </p>
+            </div>
+          </div>
+
+          {/* Direct download notice */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="rounded-2xl bg-brand-purple-950/60 border border-brand-gold-400/40 p-4">
+              <p className="text-brand-purple-100 text-sm">
+                <span className="font-black text-brand-gold-400">📱 Members Only App:</span>{" "}
+                You must register as a church member to use the app.{" "}
+                <Link href="/join-church" className="text-brand-gold-400 font-black underline">
+                  Join The Family
+                </Link>
               </p>
             </div>
           </div>
@@ -175,7 +199,7 @@ export default function DownloadPage() {
                 step: "2",
                 icon: "⚙️",
                 title: "Allow Unknown Sources",
-                desc: 'Go to Settings → Security → Enable "Unknown Sources"',
+                desc: 'Go to Settings → Security → Enable "Unknown Sources" or allow install from browser',
               },
               {
                 step: "3",
@@ -209,6 +233,28 @@ export default function DownloadPage() {
           </div>
         </div>
 
+        {/* Security Notice */}
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 shadow-xl mb-6">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-brand-purple-950/80 border border-brand-gold-400/40 flex items-center justify-center flex-shrink-0 text-2xl">
+              🔒
+            </div>
+            <div>
+              <h3 className="font-black text-white text-base mb-2">
+                Safe to Install
+              </h3>
+              <p className="text-brand-purple-200 text-sm leading-relaxed">
+                This app is 100% safe and made specifically for The Triumphant Family
+                Ministry members. Android may show a warning because the app is not
+                from Google Play Store — this is normal. Just tap{" "}
+                <span className="font-black text-white">&ldquo;Install Anyway&rdquo;</span>{" "}
+                to proceed.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Features */}
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-xl">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -223,7 +269,7 @@ export default function DownloadPage() {
               { emoji: "📖", label: "Daily Devotional" },
               { emoji: "💬", label: "Church Chat" },
               { emoji: "👥", label: "Small Groups" },
-              { emoji: "📢", label: "Announcements" },
+              { emoji: "📢", label: "Push Notifications" },
               { emoji: "🎓", label: "Bible School" },
             ].map((feature) => (
               <div
