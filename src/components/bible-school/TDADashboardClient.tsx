@@ -1,6 +1,6 @@
 // ───────────────────────────────────────────────────────────────
 // TDA DASHBOARD CLIENT – Student portal overview
-// Welcome header cloned from Church dashboard for mobile alignment
+// Welcome header cloned from Church + Push notification setup
 // ───────────────────────────────────────────────────────────────
 "use client";
 
@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import LoadingScreen from "@/components/church/LoadingScreen";
+import PushNotificationSetup from "@/components/PushNotificationSetup";
 
 interface Student {
   id: string;
@@ -147,6 +148,9 @@ export default function TDADashboardClient() {
 
   return (
     <div className="space-y-4 pb-6">
+
+      {/* Push Notification Setup */}
+      <PushNotificationSetup userId={student.id} userType="student" />
 
       {/* ── Welcome Header (Church-style layout) ── */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">

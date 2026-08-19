@@ -1,6 +1,7 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // TDA ADMIN SIDEBAR – Bible School admin navigation with notifications
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Push Notifications link added
+// ───────────────────────────────────────────────────────────────
 "use client";
 
 import Link from "next/link";
@@ -13,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin/bible-school/dashboard", hasCount: false, icon: "📊" },
   { name: "Notifications", href: "/admin/bible-school/notifications", hasCount: true, icon: "🔔" },
+  { name: "Push Notifications", href: "/admin/push", hasCount: false, icon: "🚀" },
   { name: "Students", href: "/admin/bible-school/students", hasCount: false, icon: "👥" },
   { name: "Materials", href: "/admin/bible-school/materials", hasCount: false, icon: "📚" },
   { name: "Assignments", href: "/admin/bible-school/assignments", hasCount: false, icon: "📝" },
@@ -138,7 +140,7 @@ export default function TDAAdminSidebar() {
             target="_blank"
             className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm"
           >
-            <span className="text-lg">🌍</span>
+            <span className="text-lg">🌐</span>
             <span>View Bible School</span>
           </Link>
           <button

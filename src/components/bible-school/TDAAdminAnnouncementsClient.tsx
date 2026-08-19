@@ -1,6 +1,7 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TDA ADMIN ANNOUNCEMENTS CLIENT – Post, edit, delete + notify students
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
+// TDA ADMIN ANNOUNCEMENTS CLIENT – Post + notify students
+// Now with FCM push notifications too
+// ───────────────────────────────────────────────────────────────
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
@@ -8,6 +9,7 @@ import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import LoadingScreen from "@/components/church/LoadingScreen";
 import { notifyAllTDAStudents } from "@/lib/tda-notifications";
+import { sendPushNotification } from "@/lib/fcm-triggers";
 
 interface Announcement {
   id: string;
@@ -87,7 +89,7 @@ export default function TDAAdminAnnouncementsClient() {
         const { error } = await supabase.from("tda_announcements").insert(payload);
         if (error) { toast.error(`Failed: ${error.message}`); setIsSubmitting(false); return; }
 
-        // ✅ NOTIFY ALL STUDENTS
+        // In-app notifications (existing)
         await notifyAllTDAStudents({
           title: formData.is_important ? `🚨 Important: ${formData.title}` : `📢 ${formData.title}`,
           message: formData.body.substring(0, 150) + (formData.body.length > 150 ? "..." : ""),
@@ -96,6 +98,23 @@ export default function TDAAdminAnnouncementsClient() {
         });
 
         toast.success("📢 Announcement posted and students notified!");
+
+        // ─── FCM PUSH notification (new!) ───
+        try {
+          const pushTitle = formData.is_important ? `🚨 ${formData.title}` : `📢 ${formData.title}`;
+          const pushMessage = formData.body.substring(0, 150) + (formData.body.length > 150 ? "..." : "");
+          const pushResult = await sendPushNotification({
+            title: pushTitle,
+            message: pushMessage,
+            target: "students",
+            link: "/bible-school/portal/announcements",
+          });
+          if (pushResult.success) {
+            toast.success(`🔔 Push sent to ${pushResult.successCount} students`, { duration: 3000 });
+          }
+        } catch (err) {
+          console.error("Push notification failed:", err);
+        }
       }
       resetForm();
       loadAnnouncements();
@@ -139,7 +158,7 @@ export default function TDAAdminAnnouncementsClient() {
   return (
     <div className="space-y-4 pb-6">
 
-      {/* ── Page Header ── */}
+      {/* Page Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -151,7 +170,7 @@ export default function TDAAdminAnnouncementsClient() {
             📢 Announcements
           </h1>
           <p className="text-brand-purple-200 text-sm mb-4">
-            Post school-wide messages. Students are notified automatically.
+            Post school-wide messages. Students get in-app + push notifications.
           </p>
           <button onClick={openCreateForm}
             className="w-full md:w-auto py-3 px-6 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all">
@@ -160,7 +179,7 @@ export default function TDAAdminAnnouncementsClient() {
         </div>
       </div>
 
-      {/* ── Stats ── */}
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Total", value: stats.total, border: "border-brand-gold-400/40" },
@@ -175,7 +194,7 @@ export default function TDAAdminAnnouncementsClient() {
         ))}
       </div>
 
-      {/* ── Announcements List ── */}
+      {/* Announcements List */}
       {announcements.length === 0 ? (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -227,7 +246,7 @@ export default function TDAAdminAnnouncementsClient() {
         </div>
       )}
 
-      {/* ── FORM MODAL ── */}
+      {/* FORM MODAL */}
       {showForm && (
         <>
           <div onClick={resetForm} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -279,6 +298,18 @@ export default function TDAAdminAnnouncementsClient() {
                     <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${formData.is_important ? "translate-x-9" : "translate-x-1"}`} />
                   </button>
                 </div>
+
+                {!editingAnnouncement && (
+                  <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
+                    <p className="text-xs text-blue-800 flex items-start gap-2">
+                      <span className="text-lg leading-none">🔔</span>
+                      <span>
+                        <strong>Students will get in-app notification + push notification</strong> on their phones.
+                      </span>
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
                   <button type="submit" disabled={isSubmitting}
                     className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all disabled:opacity-50">

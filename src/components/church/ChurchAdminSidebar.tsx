@@ -1,6 +1,6 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHURCH ADMIN SIDEBAR – With Finance added
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
+// CHURCH ADMIN SIDEBAR – With Push Notifications link
+// ───────────────────────────────────────────────────────────────
 "use client";
 
 import Link from "next/link";
@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin/church/dashboard", icon: "📊", hasCount: false },
   { name: "Notifications", href: "/admin/church/notifications", icon: "🔔", hasCount: true },
+  { name: "Push Notifications", href: "/admin/push", icon: "🚀", hasCount: false },
   { name: "Church Chat", href: "/admin/church/church-chat", icon: "💬", hasCount: false },
   { name: "Members", href: "/admin/church/members", icon: "👥", hasCount: false },
   { name: "Visitors", href: "/admin/church/visitors", icon: "🆕", hasCount: false },
@@ -163,7 +164,7 @@ export default function ChurchAdminSidebar() {
             target="_blank"
             className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-brand-purple-100 hover:bg-white/10 transition-colors text-sm"
           >
-            <span className="text-lg">🌍</span>
+            <span className="text-lg">🌐</span>
             <span>View Website</span>
           </Link>
           <button

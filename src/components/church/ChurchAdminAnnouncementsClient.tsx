@@ -1,12 +1,14 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
 // CHURCH ADMIN ANNOUNCEMENTS – Post + notify all members
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Now with FCM push notifications too
+// ───────────────────────────────────────────────────────────────
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { notifyAllMembers } from "@/lib/notifications";
+import { notifyNewAnnouncement } from "@/lib/fcm-triggers";
 import LoadingScreen from "./LoadingScreen";
 
 interface Announcement {
@@ -98,13 +100,28 @@ export default function ChurchAdminAnnouncementsClient() {
         toast.success("✅ Updated!");
       } else {
         await supabase.from("tfam_member_announcements").insert(payload);
+
+        // In-app notifications (existing)
         await notifyAllMembers({
           title: formData.is_important ? "🚨 Important Announcement" : "📢 New Announcement",
           message: `${formData.title}${formData.body.length > 80 ? ` — ${formData.body.substring(0, 80)}...` : ""}`,
           type: "announcement",
           link: "/member/announcements",
         });
+
         toast.success("📢 Announcement posted and members notified!");
+
+        // ─── FCM PUSH notification (new!) ───
+        try {
+          const pushTitle = formData.is_important ? `🚨 ${formData.title}` : formData.title;
+          const pushResult = await notifyNewAnnouncement(pushTitle, formData.body.trim());
+          if (pushResult.success) {
+            toast.success(`🔔 Push sent to ${pushResult.successCount} devices`, { duration: 3000 });
+          }
+        } catch (err) {
+          console.error("Push notification failed:", err);
+          // Don't block flow
+        }
       }
       resetForm();
       loadAnnouncements();
@@ -122,13 +139,12 @@ export default function ChurchAdminAnnouncementsClient() {
     } catch { toast.error("Failed"); }
   };
 
-  // ✅ LOADING SCREEN
   if (loading) return <LoadingScreen message="Loading announcements..." />;
 
   return (
     <div className="space-y-4 pb-6">
 
-      {/* ── Brand Header ── */}
+      {/* Brand Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
         <div className="relative z-10">
@@ -157,7 +173,7 @@ export default function ChurchAdminAnnouncementsClient() {
         </div>
       </div>
 
-      {/* ── Post Button — full width mobile ── */}
+      {/* Post Button */}
       <button
         onClick={() => setShowForm(true)}
         className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-gold-400 to-brand-gold-500 text-brand-purple-900 font-black shadow-gold active:scale-95 transition-all"
@@ -165,7 +181,7 @@ export default function ChurchAdminAnnouncementsClient() {
         ➕ Post Announcement
       </button>
 
-      {/* ── Empty State ── */}
+      {/* Empty State */}
       {announcements.length === 0 ? (
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-8 shadow-xl text-center">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />
@@ -188,7 +204,6 @@ export default function ChurchAdminAnnouncementsClient() {
                   : "from-brand-gold-300 via-brand-gold-400 to-brand-gold-500"
               }`} />
 
-              {/* Badges */}
               <div className="flex items-center gap-2 flex-wrap mb-2">
                 {a.is_important && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-red-500 text-white animate-pulse">
@@ -208,7 +223,6 @@ export default function ChurchAdminAnnouncementsClient() {
                 📅 {timeAgo(a.created_at)}
               </p>
 
-              {/* Actions — full width stacked */}
               <div className="flex flex-col gap-2 pt-3 border-t border-brand-gold-400/30 mt-3">
                 <button
                   onClick={() => openEdit(a)}
@@ -228,7 +242,7 @@ export default function ChurchAdminAnnouncementsClient() {
         </div>
       )}
 
-      {/* ── Form Modal — KEEP bg-white — slides up mobile ── */}
+      {/* Form Modal */}
       {showForm && (
         <>
           <div onClick={resetForm} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -297,6 +311,19 @@ export default function ChurchAdminAnnouncementsClient() {
                   </div>
                   <span className="text-sm font-bold text-gray-700">🔴 Mark as Important</span>
                 </label>
+
+                {/* Push notification info */}
+                {!editingId && (
+                  <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
+                    <p className="text-xs text-blue-800 flex items-start gap-2">
+                      <span className="text-lg leading-none">🔔</span>
+                      <span>
+                        <strong>Members will get an in-app notification + push notification</strong> on their phones.
+                      </span>
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
                   <button
                     type="submit"

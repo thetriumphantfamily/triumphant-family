@@ -1,13 +1,13 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EVENTS FORM — Modal for adding/editing events
-// Modal keeps bg-white for form readability
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
+// EVENTS FORM — Auto-sends push notification on new event
+// ───────────────────────────────────────────────────────────────
 
 "use client";
 
 import { useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyNewEvent } from "@/lib/fcm-triggers";
 
 interface Event {
   id: string;
@@ -115,6 +115,20 @@ export default function EventsForm({ event, onSuccess, onCancel }: EventsFormPro
       if (result.error) { toast.error(`Error: ${result.error.message}`); return; }
 
       toast.success(isEdit ? "✅ Event updated!" : "🎉 Event added!");
+
+      // ─── Auto-send push notification on NEW event (only if published) ───
+      if (!isEdit && formData.is_published) {
+        try {
+          const pushResult = await notifyNewEvent(formData.title.trim(), result.data.id);
+          if (pushResult.success) {
+            toast.success(`🔔 Notified ${pushResult.successCount} devices`, { duration: 3000 });
+          }
+        } catch (err) {
+          console.error("Push notification failed:", err);
+          // Don't block save if push fails
+        }
+      }
+
       onSuccess(result.data as Event, isEdit);
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -253,6 +267,18 @@ export default function EventsForm({ event, onSuccess, onCancel }: EventsFormPro
                 </div>
               </div>
             </div>
+
+            {/* Push Notification Info */}
+            {!isEdit && formData.is_published && (
+              <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
+                <p className="text-xs text-blue-800 flex items-start gap-2">
+                  <span className="text-lg leading-none">🔔</span>
+                  <span>
+                    <strong>Push notification will be sent</strong> to all registered devices when you save this event.
+                  </span>
+                </p>
+              </div>
+            )}
 
             {/* Buttons — stacked mobile first */}
             <div className="flex flex-col gap-3 pt-4 border-t-2 border-gray-100">

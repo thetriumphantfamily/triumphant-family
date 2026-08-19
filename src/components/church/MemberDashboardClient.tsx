@@ -1,12 +1,12 @@
 // ───────────────────────────────────────────────────────────────
-// MEMBER DASHBOARD — Instant load (no loading screen)
-// Shows content instantly from session, notifications load in bg
+// MEMBER DASHBOARD — Instant load + Push Notification Setup
 // ───────────────────────────────────────────────────────────────
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import PushNotificationSetup from "@/components/PushNotificationSetup";
 
 interface Member {
   id: string;
@@ -110,6 +110,9 @@ export default function MemberDashboardClient() {
 
   return (
     <div className="space-y-6">
+      {/* Push Notification Setup */}
+      <PushNotificationSetup userId={member.id} userType="member" />
+
       {/* Welcome Header */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-violet-900 via-brand-purple-800 to-brand-purple-900 border-2 border-brand-gold-400/40 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-500" />

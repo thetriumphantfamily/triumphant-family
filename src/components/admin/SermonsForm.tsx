@@ -1,12 +1,13 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SERMONS FORM — Super simple: just paste YouTube URL and save
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ───────────────────────────────────────────────────────────────
+// SERMONS FORM — Auto-sends push notification on new sermon
+// ───────────────────────────────────────────────────────────────
 
 "use client";
 
 import { useState, FormEvent } from "react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { notifyNewSermon } from "@/lib/fcm-triggers";
 
 interface Sermon {
   id: string;
@@ -130,6 +131,19 @@ export default function SermonsForm({ sermon, onSuccess, onCancel }: SermonsForm
 
       toast.success(isEdit ? "✅ Sermon updated!" : "🎉 Sermon added!");
 
+      // ─── Auto-send push notification on NEW sermon (only if published) ───
+      if (!isEdit && formData.is_published) {
+        try {
+          const pushResult = await notifyNewSermon(formData.title.trim(), result.data.id);
+          if (pushResult.success) {
+            toast.success(`🔔 Notified ${pushResult.successCount} devices`, { duration: 3000 });
+          }
+        } catch (err) {
+          console.error("Push notification failed:", err);
+          // Don't block the save flow if push fails
+        }
+      }
+
       if (addAnother && !isEdit) {
         resetForm();
         setIsSubmitting(false);
@@ -245,7 +259,7 @@ export default function SermonsForm({ sermon, onSuccess, onCancel }: SermonsForm
               <div className="flex items-center justify-between bg-white p-3 rounded-xl">
                 <div>
                   <p className="font-bold text-brand-purple-900 text-sm">✅ Publish to Website</p>
-                  <p className="text-xs text-gray-500">Make visible on the sermons page</p>
+                  <p className="text-xs text-gray-500">Make visible on the sermons page + send push notification</p>
                 </div>
                 <button
                   type="button"
@@ -269,6 +283,18 @@ export default function SermonsForm({ sermon, onSuccess, onCancel }: SermonsForm
                 </button>
               </div>
             </div>
+
+            {/* Push Notification Info */}
+            {!isEdit && formData.is_published && (
+              <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
+                <p className="text-xs text-blue-800 flex items-start gap-2">
+                  <span className="text-lg leading-none">🔔</span>
+                  <span>
+                    <strong>Push notification will be sent</strong> to all registered devices when you save this sermon.
+                  </span>
+                </p>
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="flex flex-col gap-3 pt-4 border-t-2 border-gray-100">

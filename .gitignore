@@ -83,3 +83,6 @@ next-env.d.ts
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 AGENTS.md
 CLAUDE.md
+# Firebase Admin Private Key (NEVER COMMIT!)
+firebase-admin-key.json
+*firebase-adminsdk*.json
